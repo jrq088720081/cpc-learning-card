@@ -1,0 +1,50 @@
+{
+  "architecture_version": "2026-10-26-v2",
+  "built_from": "chinese-knowledge",
+  "note": "常識總表（離線 JSON）；刷題區下一階段",
+  "totals": {
+    "rows": 492,
+    "exam": 443,
+    "extension": 33,
+    "other": 16,
+    "categories": 5,
+    "sections": 29
+  },
+  "categories": [
+    {
+      "id": "chars",
+      "name": "字音字形",
+      "blurb": "字音、字形辨正、成語俗諺、字詞解釋",
+      "sectionCount": 4,
+      "rowCount": 174
+    },
+    {
+      "id": "classic",
+      "name": "古典文學",
+      "blurb": "古文金句、詩詞曲精選",
+      "sectionCount": 2,
+      "rowCount": 59
+    },
+    {
+      "id": "culture",
+      "name": "國學常識",
+      "blurb": "國學概要、人物／稱號／時間自然、文學修辭",
+      "sectionCount": 13,
+      "rowCount": 170
+    },
+    {
+      "id": "practical",
+      "name": "應用文",
+      "blurb": "公文格式、書信／題辭／柬帖",
+      "sectionCount": 6,
+      "rowCount": 54
+    },
+    {
+      "id": "modern",
+      "name": "現代文學",
+      "blurb": "作家風格、散文、新詩",
+      "sectionCount": 4,
+      "rowCount": 35
+    }
+  ]
+}
