@@ -2,7 +2,8 @@
   "meta": {
     "year": 114,
     "total": 20,
-    "recall": 7
+    "recall": 7,
+    "gloss": "詳解含整句中譯、片語、單字；語速在 App 內可調。"
   },
   "exam114": [
     {
@@ -21,7 +22,44 @@
       "answer": "B",
       "explain": "整句中譯：我上週寫了一封信給 Mary，但她到現在還沒回。\n片語／單字：\n- respond to：回應、回覆。respond to a letter＝回信，所以空格用 responded。\n- communicated：溝通。通常說 communicate with someone，不說 communicate to a letter。\n- disappointed：使失望，語意和文法都接不上 to it。\n- related：與…相關，不是回信。\n正解：B　responded",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "我上週寫了一封信給 Mary，但她到現在還沒回這封信。",
+      "phrases": [
+        {
+          "en": "respond to",
+          "zh": "回應；回（信）"
+        },
+        {
+          "en": "last week",
+          "zh": "上週"
+        }
+      ],
+      "words": [
+        {
+          "en": "responded",
+          "zh": "回應了（respond 的過去分詞）"
+        },
+        {
+          "en": "letter",
+          "zh": "信"
+        },
+        {
+          "en": "yet",
+          "zh": "尚未"
+        },
+        {
+          "en": "communicated",
+          "zh": "溝通了（不接 to a letter）"
+        },
+        {
+          "en": "disappointed",
+          "zh": "失望的"
+        },
+        {
+          "en": "related",
+          "zh": "有關的"
+        }
+      ]
     },
     {
       "id": "114-en-vocab-22",
@@ -39,7 +77,36 @@
       "answer": "A",
       "explain": "整句中譯：我喜歡模型車，而且已經收集了很多。\n片語／單字：\n- be fond of：喜歡。空格在 am 和 of 中間，用 fond。\n- embarrassing：令人尷尬，不能說 am embarrassing of。\n- cultural：文化的，不接 of 表示喜好。\n- valuable：有價值的，模型車可以很有價值，但空格文法不成立。\n正解：A　fond",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "我喜歡模型車，而且已經收集了很多。",
+      "phrases": [
+        {
+          "en": "be fond of",
+          "zh": "喜歡"
+        }
+      ],
+      "words": [
+        {
+          "en": "fond",
+          "zh": "喜歡的（要接 of）"
+        },
+        {
+          "en": "collected",
+          "zh": "收集了"
+        },
+        {
+          "en": "embarrassing",
+          "zh": "令人尷尬的"
+        },
+        {
+          "en": "cultural",
+          "zh": "文化的"
+        },
+        {
+          "en": "valuable",
+          "zh": "有價值的"
+        }
+      ]
     },
     {
       "id": "114-en-vocab-23",
@@ -57,7 +124,44 @@
       "answer": "D",
       "explain": "整句中譯：畫廊主人稱讚這位年輕藝術家眼光獨特，跟以前看過的都不一樣。\n片語／單字：\n- special：特別的、獨特的，才接得上 unlike anything seen before。\n- common：普通的，和「前所未見」相反。\n- regular：規律的、普通的，不是獨特。\n- general：一般的，同樣相反。\n正解：D　special",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "畫廊主人稱讚這位年輕藝術家有獨特的眼光，和以前見過的都不一樣。",
+      "phrases": [
+        {
+          "en": "unlike anything",
+          "zh": "不像任何……；前所未見"
+        }
+      ],
+      "words": [
+        {
+          "en": "special",
+          "zh": "特別的、獨特的"
+        },
+        {
+          "en": "vision",
+          "zh": "眼光；願景"
+        },
+        {
+          "en": "praised",
+          "zh": "稱讚"
+        },
+        {
+          "en": "gallery",
+          "zh": "畫廊"
+        },
+        {
+          "en": "common",
+          "zh": "普通的"
+        },
+        {
+          "en": "regular",
+          "zh": "規律的、一般的"
+        },
+        {
+          "en": "general",
+          "zh": "普遍的"
+        }
+      ]
     },
     {
       "id": "114-en-vocab-24",
@@ -75,7 +179,44 @@
       "answer": "C",
       "explain": "整句中譯：這位年輕服務生很笨手笨腳，晚餐尖峰時不小心打破了三個盤子。\n片語／單字：\n- clumsy：笨拙、手腳不靈活，才會打破盤子。\n- greasy：油膩的。\n- mighty：強大的。\n- sticky：黏的。這三個都解釋不了 accidentally broke。\n正解：C　clumsy",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "這位年輕服務生太笨手笨腳，晚餐尖峰時不小心打破了三個盤子。",
+      "phrases": [
+        {
+          "en": "dinner rush",
+          "zh": "晚餐尖峰時段"
+        }
+      ],
+      "words": [
+        {
+          "en": "clumsy",
+          "zh": "笨手笨腳的"
+        },
+        {
+          "en": "waiter",
+          "zh": "服務生"
+        },
+        {
+          "en": "accidentally",
+          "zh": "不小心"
+        },
+        {
+          "en": "broke",
+          "zh": "打破（break 的過去式）"
+        },
+        {
+          "en": "greasy",
+          "zh": "油膩的"
+        },
+        {
+          "en": "mighty",
+          "zh": "強大的"
+        },
+        {
+          "en": "sticky",
+          "zh": "黏的"
+        }
+      ]
     },
     {
       "id": "114-en-vocab-25",
@@ -93,7 +234,40 @@
       "answer": "A",
       "explain": "整句中譯：許多在地團體正努力保存傳統語言，以免它們完全消失。\n片語／單字：\n- preserve：保存、保護，後面接到語言消失之前，語意通。\n- scatter：驅散、散開。\n- motivate：激勵某人，不直接接 languages。\n- volunteer：自願去做，這裡需要的是及物動詞加語言。\n正解：A　preserve",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "許多在地團體正努力保存傳統語言，以免它們完全消失。",
+      "phrases": [
+        {
+          "en": "work hard to",
+          "zh": "努力去……"
+        }
+      ],
+      "words": [
+        {
+          "en": "preserve",
+          "zh": "保存、保護"
+        },
+        {
+          "en": "traditional",
+          "zh": "傳統的"
+        },
+        {
+          "en": "disappear",
+          "zh": "消失"
+        },
+        {
+          "en": "scatter",
+          "zh": "分散"
+        },
+        {
+          "en": "motivate",
+          "zh": "激勵"
+        },
+        {
+          "en": "volunteer",
+          "zh": "自願；志工"
+        }
+      ]
     },
     {
       "id": "114-en-vocab-26",
@@ -111,7 +285,44 @@
       "answer": "B",
       "explain": "整句中譯：最近的全球金融危機造成嚴重通貨膨脹，什麼東西都變貴了。\n片語／單字：\n- inflation：通貨膨脹，後面 making everything more expensive 就是在解釋它。\n- solution：解決方案，不會讓東西變貴。\n- condition：狀況，太籠統，接不上變貴。\n- objection：反對、異議。\n正解：B　inflation",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "最近的全球金融危機造成嚴重通膨，讓所有東西都變貴了。",
+      "phrases": [
+        {
+          "en": "lead to",
+          "zh": "導致"
+        },
+        {
+          "en": "financial crisis",
+          "zh": "金融危機"
+        }
+      ],
+      "words": [
+        {
+          "en": "inflation",
+          "zh": "通貨膨脹"
+        },
+        {
+          "en": "severe",
+          "zh": "嚴重的"
+        },
+        {
+          "en": "expensive",
+          "zh": "昂貴的"
+        },
+        {
+          "en": "solution",
+          "zh": "解決方法"
+        },
+        {
+          "en": "condition",
+          "zh": "狀況"
+        },
+        {
+          "en": "objection",
+          "zh": "反對"
+        }
+      ]
     },
     {
       "id": "114-en-vocab-27",
@@ -129,7 +340,44 @@
       "answer": "D",
       "explain": "整句中譯：每個人都應該試著為環境保護出一份力。\n片語／單字：\n- contribute to：對…有貢獻。空格後面是 to the efforts。\n- displeases：使不高興，第三人稱單數也不能接在 should try to 後面。\n- alternates：交替，不接 to the efforts 表示參與。\n- invades：入侵，語意相反。\n正解：D　contribute",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "每個人都應該試著為環境保護盡一份力。",
+      "phrases": [
+        {
+          "en": "contribute to",
+          "zh": "對……有貢獻"
+        },
+        {
+          "en": "environmental protection",
+          "zh": "環境保護"
+        }
+      ],
+      "words": [
+        {
+          "en": "contribute",
+          "zh": "貢獻（原形，接在 try to 後面）"
+        },
+        {
+          "en": "individual",
+          "zh": "個人"
+        },
+        {
+          "en": "effort",
+          "zh": "努力"
+        },
+        {
+          "en": "displeases",
+          "zh": "使不高興（第三人稱，文法也不合）"
+        },
+        {
+          "en": "alternates",
+          "zh": "交替"
+        },
+        {
+          "en": "invades",
+          "zh": "入侵"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-28",
@@ -147,7 +395,32 @@
       "answer": "C",
       "explain": "整句中譯：喝太多含糖飲料可能會傷害健康。\n片語／單字：\n- Drinking：動名詞當主詞，把「喝」這件事當成一件事。\n- Drink / Drank：原形或過去式不能單獨當這句的主詞。\n- Is drinking：進行式動詞片語，缺少主詞，也不能放在句首當主詞。\n正解：C　Drinking",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "喝太多含糖飲料可能會傷害你的健康。",
+      "phrases": [
+        {
+          "en": "sugary drinks",
+          "zh": "含糖飲料"
+        },
+        {
+          "en": "harm your health",
+          "zh": "傷害健康"
+        }
+      ],
+      "words": [
+        {
+          "en": "Drinking",
+          "zh": "喝（動名詞，可當主詞）"
+        },
+        {
+          "en": "too many",
+          "zh": "太多（後面接可數名詞）"
+        },
+        {
+          "en": "health",
+          "zh": "健康"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-29",
@@ -165,7 +438,40 @@
       "answer": "D",
       "explain": "整句中譯：這位學生考得很差，因為她讀得不夠。\n片語／單字：\n- badly：performed badly＝表現差。because 後面說沒讀，所以是差，不是好。\n- cheaply：便宜地，不形容考試表現。\n- hardly：幾乎不。performed hardly 不是「很努力」。\n- shortly：不久、簡短地。\n正解：D　badly",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "這位學生考得很差，因為她讀得不夠。",
+      "phrases": [
+        {
+          "en": "on the test",
+          "zh": "在這次測驗中"
+        },
+        {
+          "en": "not enough",
+          "zh": "不夠"
+        }
+      ],
+      "words": [
+        {
+          "en": "badly",
+          "zh": "差地；拙劣地"
+        },
+        {
+          "en": "performed",
+          "zh": "表現"
+        },
+        {
+          "en": "cheaply",
+          "zh": "便宜地"
+        },
+        {
+          "en": "hardly",
+          "zh": "幾乎不"
+        },
+        {
+          "en": "shortly",
+          "zh": "不久"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-30",
@@ -183,7 +489,40 @@
       "answer": "B",
       "explain": "整句中譯：大眾運輸變好之後，城裡的人開的車比以前少。\n片語／單字：\n- fewer：cars 是可數複數，比較級用 fewer。\n- less：修飾不可數名詞，不修飾 cars。\n- lower：較低，不跟 cars 的數量搭配。\n- more：更多，和「交通變好所以少開車」相反。\n正解：B　fewer",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "有了更好的大眾運輸，城裡的人開車比以前少。",
+      "phrases": [
+        {
+          "en": "public transportation",
+          "zh": "大眾運輸"
+        },
+        {
+          "en": "than before",
+          "zh": "比以前"
+        }
+      ],
+      "words": [
+        {
+          "en": "fewer",
+          "zh": "較少的（接可數名詞 cars）"
+        },
+        {
+          "en": "less",
+          "zh": "較少的（接不可數）"
+        },
+        {
+          "en": "lower",
+          "zh": "較低的"
+        },
+        {
+          "en": "more",
+          "zh": "更多的"
+        },
+        {
+          "en": "drive",
+          "zh": "開車"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-31",
@@ -201,7 +540,28 @@
       "answer": "A",
       "explain": "整句中譯：我不知道這項新政策最後會變成什麼樣子。\n片語／單字：\n- what will become of：固定說法，問某事物會落得如何。\n- who / where / why：都不能接 become of 這個句型。\n正解：A　what",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "我不知道這項新政策最後會變成什麼樣子。",
+      "phrases": [
+        {
+          "en": "what will become of",
+          "zh": "將會如何；會落得什麼結果"
+        }
+      ],
+      "words": [
+        {
+          "en": "policy",
+          "zh": "政策"
+        },
+        {
+          "en": "what",
+          "zh": "什麼（這裡當主詞）"
+        },
+        {
+          "en": "become",
+          "zh": "變成"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-32",
@@ -219,7 +579,40 @@
       "answer": "A",
       "explain": "整句中譯：你應該事先訂票，才能確保拿到最好的位子。\n片語／單字：\n- in advance：事先、預先。\n- in address：不是英文片語。\n- in amount：不是「事先」。\n- in account：不是這個意思；on account of 才是「因為」。\n正解：A　in advance",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "你應該事先訂票，才能確保拿到最好的座位。",
+      "phrases": [
+        {
+          "en": "in advance",
+          "zh": "事先、預先"
+        },
+        {
+          "en": "book tickets",
+          "zh": "訂票"
+        }
+      ],
+      "words": [
+        {
+          "en": "ensure",
+          "zh": "確保"
+        },
+        {
+          "en": "seats",
+          "zh": "座位"
+        },
+        {
+          "en": "address",
+          "zh": "地址"
+        },
+        {
+          "en": "amount",
+          "zh": "數量"
+        },
+        {
+          "en": "account",
+          "zh": "帳戶"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-33",
@@ -237,7 +630,32 @@
       "answer": "C",
       "explain": "整句中譯：Mary 每天練英文，好提升語言能力。\n片語／單字：\n- on a daily basis：固定片語：每天、按日。介系詞用 on。\n- in / at / for a daily basis：這三個介系詞都不接 a daily basis。\n正解：C　on",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "Mary 每天讀英文，好提升她的語言能力。",
+      "phrases": [
+        {
+          "en": "on a daily basis",
+          "zh": "每天；以日常的方式"
+        },
+        {
+          "en": "language skills",
+          "zh": "語言能力"
+        }
+      ],
+      "words": [
+        {
+          "en": "basis",
+          "zh": "基礎；基準"
+        },
+        {
+          "en": "improve",
+          "zh": "改善、提升"
+        },
+        {
+          "en": "daily",
+          "zh": "每天的"
+        }
+      ]
     },
     {
       "id": "114-en-grammar-34",
@@ -255,7 +673,32 @@
       "answer": "D",
       "explain": "整句中譯：走失的男孩不知道自己在哪裡，於是哭了起來。\n片語／單字：\n- where he was：間接問句用直述語序：疑問詞 + 主詞 + 動詞。\n- where was he：這是直接問句的倒裝，嵌進 know 後面要改回來。\n- he was where / he where was：語序不對。\n正解：D　where he was",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "迷路的男孩不知道自己在哪裡，於是放聲大哭。",
+      "phrases": [
+        {
+          "en": "burst into tears",
+          "zh": "突然大哭"
+        },
+        {
+          "en": "the lost boy",
+          "zh": "迷路的男孩"
+        }
+      ],
+      "words": [
+        {
+          "en": "where",
+          "zh": "哪裡（間接問句用直述語序 where he was）"
+        },
+        {
+          "en": "lost",
+          "zh": "迷路的"
+        },
+        {
+          "en": "tears",
+          "zh": "眼淚"
+        }
+      ]
     },
     {
       "id": "114-en-dialogue-35",
@@ -273,7 +716,36 @@
       "answer": "D",
       "explain": "整句中譯：A：我要一杯熱咖啡。B：好的，請問要怎麼喝？A：黑咖啡，不要糖。\n片語／單字：\n- How do you like your coffee：問糖和奶怎麼加。下一句 Black coffee, no sugar 正好在回答。\n- What size would you like：問尺寸，答不出黑咖啡。\n- What about cold coffee：客人已經點熱的，不該改推冷的當唯一問題。\n- Do you want to come back later：和後句的口味回答接不上。\n正解：D　How do you like your coffee",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "A：請給我一杯熱咖啡。B：好的，請問要怎麼喝？A：黑咖啡，不加糖。",
+      "phrases": [
+        {
+          "en": "How do you like your coffee",
+          "zh": "你的咖啡要怎麼喝"
+        },
+        {
+          "en": "black coffee",
+          "zh": "黑咖啡"
+        },
+        {
+          "en": "no sugar",
+          "zh": "不加糖"
+        }
+      ],
+      "words": [
+        {
+          "en": "size",
+          "zh": "尺寸（這句回答的是口味不是大小）"
+        },
+        {
+          "en": "hot",
+          "zh": "熱的"
+        },
+        {
+          "en": "sugar",
+          "zh": "糖"
+        }
+      ]
     },
     {
       "id": "114-en-dialogue-36",
@@ -291,7 +763,36 @@
       "answer": "C",
       "explain": "整句中譯：A：這電影快把我看得睡著。B：你在開玩笑吧！這是我看過最棒的電影。\n片語／單字：\n- You must be joking：表示不敢相信對方的負評，後面才接自己覺得超好看。\n- You're telling me / You can say that again：都是強烈同意，會變成也覺得電影很無聊，和後句矛盾。\n- You've got a deal：成交，用在這段對話不成立。\n正解：C　You must be joking",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "A：那部電影讓我想睡覺。B：你一定是在開玩笑！那是我看過最棒的電影！",
+      "phrases": [
+        {
+          "en": "put someone to sleep",
+          "zh": "讓某人想睡"
+        },
+        {
+          "en": "You must be joking",
+          "zh": "你一定在開玩笑"
+        },
+        {
+          "en": "the best I've ever seen",
+          "zh": "我看過最棒的"
+        }
+      ],
+      "words": [
+        {
+          "en": "movie",
+          "zh": "電影"
+        },
+        {
+          "en": "joking",
+          "zh": "開玩笑"
+        },
+        {
+          "en": "seen",
+          "zh": "看過（see 的過去分詞）"
+        }
+      ]
     },
     {
       "id": "114-en-dialogue-37",
@@ -309,7 +810,36 @@
       "answer": "A",
       "explain": "整句中譯：A：我們去看市區的新展覽吧。B：我很想去，可是沒辦法。A：為什麼不行？B：我得把學校作業做完。\n片語／單字：\n- I'd love to, but I can't：先婉拒。A 接著問 Why not，B 才補理由。\n- Sure / Great：是答應，後面不會再問 Why not。\n- I went there last week：沒有拒絕，也接不上 Why not。\n正解：A　I'd love to, but I can't",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "A：我們去看市中心的新展覽吧。B：我很想去，可是沒辦法。A：為什麼不呢？B：我得先把學校作業做完。",
+      "phrases": [
+        {
+          "en": "I'd love to, but I can't",
+          "zh": "我很想，但是沒辦法"
+        },
+        {
+          "en": "Why not",
+          "zh": "為什麼不"
+        },
+        {
+          "en": "school project",
+          "zh": "學校作業、專題"
+        }
+      ],
+      "words": [
+        {
+          "en": "exhibit",
+          "zh": "展覽"
+        },
+        {
+          "en": "downtown",
+          "zh": "市中心"
+        },
+        {
+          "en": "finish",
+          "zh": "完成"
+        }
+      ]
     },
     {
       "id": "114-en-dialogue-38",
@@ -327,7 +857,36 @@
       "answer": "B",
       "explain": "整句中譯：A：Stella 的芭蕾表演很精彩。B：她學芭蕾多久了？A：從七歲開始。\n片語／單字：\n- How long has she been learning ballet：Since she was seven 回答的是一段時間的起點，所以問 how long。\n- How old do people start：問的是一般人幾歲開始，不是她學了多久。\n- How often：問頻率，回答不會是 Since。\n- How much will you pay：問票價，完全接不上。\n正解：B　How long has she been learning ballet",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "A：Stella 的芭蕾表演太精彩了。B：她學芭蕾多久了？A：從七歲開始。",
+      "phrases": [
+        {
+          "en": "How long has she been learning",
+          "zh": "她學多久了（現在完成進行式）"
+        },
+        {
+          "en": "since she was seven",
+          "zh": "從她七歲起"
+        }
+      ],
+      "words": [
+        {
+          "en": "ballet",
+          "zh": "芭蕾"
+        },
+        {
+          "en": "performance",
+          "zh": "表演"
+        },
+        {
+          "en": "terrific",
+          "zh": "極好的"
+        },
+        {
+          "en": "often",
+          "zh": "多久一次（這句回答的是起點不是頻率）"
+        }
+      ]
     },
     {
       "id": "114-en-dialogue-39",
@@ -345,7 +904,44 @@
       "answer": "C",
       "explain": "整句中譯：A：隊伍太長了，我們插隊才能準時進場。B：你怎麼會提出這種主意？A：好吧，那我們去排最後面。\n片語／單字：\n- How could you suggest that：責備插隊。A 才改口說去排後面。\n- Which theater / Which movie / How much：都是在問場次或票價，接不上「那我們去排最後」。\n正解：C　How could you suggest that",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "A：隊伍太長了！我們插隊才能準時進戲院。B：你怎麼會提出這種建議？A：好吧，我們去排最後面。",
+      "phrases": [
+        {
+          "en": "cut in",
+          "zh": "插隊"
+        },
+        {
+          "en": "on time",
+          "zh": "準時"
+        },
+        {
+          "en": "How could you suggest that",
+          "zh": "你怎麼會這樣提議（責備）"
+        },
+        {
+          "en": "join the end of the line",
+          "zh": "去排隊伍的最後面"
+        }
+      ],
+      "words": [
+        {
+          "en": "line",
+          "zh": "隊伍"
+        },
+        {
+          "en": "theater",
+          "zh": "劇院"
+        },
+        {
+          "en": "suggest",
+          "zh": "提議"
+        },
+        {
+          "en": "tickets",
+          "zh": "票"
+        }
+      ]
     },
     {
       "id": "114-en-dialogue-40",
@@ -363,7 +959,40 @@
       "answer": "B",
       "explain": "整句中譯：A：你昨天的演講太精彩了，我好佩服。B：謝謝，我很感激。其實我花了很多心力。\n片語／單字：\n- I appreciate that：接受稱讚並道謝，再補自己很用心。\n- I can't believe it：不像在接受稱讚。\n- I knew you could do that / I love your speech：變成 B 在稱讚 A，可是被稱讚的人是 B。\n正解：B　I appreciate that",
       "answerConfidence": "high",
-      "source": "cpc-114"
+      "source": "cpc-114",
+      "translation": "A：你昨天的演講太精彩了，我印象很深。B：謝謝。我很感激。其實我花了很多心思。",
+      "phrases": [
+        {
+          "en": "I appreciate that",
+          "zh": "我很感謝你這麼說"
+        },
+        {
+          "en": "put a lot of effort into",
+          "zh": "花很多心力在……"
+        }
+      ],
+      "words": [
+        {
+          "en": "speech",
+          "zh": "演講"
+        },
+        {
+          "en": "marvelous",
+          "zh": "極好的"
+        },
+        {
+          "en": "impressed",
+          "zh": "印象深刻的"
+        },
+        {
+          "en": "effort",
+          "zh": "努力、心思"
+        },
+        {
+          "en": "appreciate",
+          "zh": "感激"
+        }
+      ]
     }
   ],
   "recall": [
@@ -380,7 +1009,44 @@
       ],
       "answer": "B",
       "explain": "整句中譯：我上週寫了一封信給 Mary，但她到現在還沒回。\n片語／單字：\n- respond to：回應、回覆。respond to a letter＝回信，所以空格用 responded。\n- communicated：溝通。通常說 communicate with someone，不說 communicate to a letter。\n- disappointed：使失望，語意和文法都接不上 to it。\n- related：與…相關，不是回信。\n正解：B　responded",
-      "source": "114-en-vocab-21"
+      "source": "114-en-vocab-21",
+      "translation": "我上週寫了一封信給 Mary，但她到現在還沒回這封信。",
+      "phrases": [
+        {
+          "en": "respond to",
+          "zh": "回應；回（信）"
+        },
+        {
+          "en": "last week",
+          "zh": "上週"
+        }
+      ],
+      "words": [
+        {
+          "en": "responded",
+          "zh": "回應了（respond 的過去分詞）"
+        },
+        {
+          "en": "letter",
+          "zh": "信"
+        },
+        {
+          "en": "yet",
+          "zh": "尚未"
+        },
+        {
+          "en": "communicated",
+          "zh": "溝通了（不接 to a letter）"
+        },
+        {
+          "en": "disappointed",
+          "zh": "失望的"
+        },
+        {
+          "en": "related",
+          "zh": "有關的"
+        }
+      ]
     },
     {
       "id": "recall-114-en-vocab-22",
@@ -395,7 +1061,36 @@
       ],
       "answer": "A",
       "explain": "整句中譯：我喜歡模型車，而且已經收集了很多。\n片語／單字：\n- be fond of：喜歡。空格在 am 和 of 中間，用 fond。\n- embarrassing：令人尷尬，不能說 am embarrassing of。\n- cultural：文化的，不接 of 表示喜好。\n- valuable：有價值的，模型車可以很有價值，但空格文法不成立。\n正解：A　fond",
-      "source": "114-en-vocab-22"
+      "source": "114-en-vocab-22",
+      "translation": "我喜歡模型車，而且已經收集了很多。",
+      "phrases": [
+        {
+          "en": "be fond of",
+          "zh": "喜歡"
+        }
+      ],
+      "words": [
+        {
+          "en": "fond",
+          "zh": "喜歡的（要接 of）"
+        },
+        {
+          "en": "collected",
+          "zh": "收集了"
+        },
+        {
+          "en": "embarrassing",
+          "zh": "令人尷尬的"
+        },
+        {
+          "en": "cultural",
+          "zh": "文化的"
+        },
+        {
+          "en": "valuable",
+          "zh": "有價值的"
+        }
+      ]
     },
     {
       "id": "recall-114-en-vocab-23",
@@ -410,7 +1105,44 @@
       ],
       "answer": "D",
       "explain": "整句中譯：畫廊主人稱讚這位年輕藝術家眼光獨特，跟以前看過的都不一樣。\n片語／單字：\n- special：特別的、獨特的，才接得上 unlike anything seen before。\n- common：普通的，和「前所未見」相反。\n- regular：規律的、普通的，不是獨特。\n- general：一般的，同樣相反。\n正解：D　special",
-      "source": "114-en-vocab-23"
+      "source": "114-en-vocab-23",
+      "translation": "畫廊主人稱讚這位年輕藝術家有獨特的眼光，和以前見過的都不一樣。",
+      "phrases": [
+        {
+          "en": "unlike anything",
+          "zh": "不像任何……；前所未見"
+        }
+      ],
+      "words": [
+        {
+          "en": "special",
+          "zh": "特別的、獨特的"
+        },
+        {
+          "en": "vision",
+          "zh": "眼光；願景"
+        },
+        {
+          "en": "praised",
+          "zh": "稱讚"
+        },
+        {
+          "en": "gallery",
+          "zh": "畫廊"
+        },
+        {
+          "en": "common",
+          "zh": "普通的"
+        },
+        {
+          "en": "regular",
+          "zh": "規律的、一般的"
+        },
+        {
+          "en": "general",
+          "zh": "普遍的"
+        }
+      ]
     },
     {
       "id": "recall-114-en-vocab-24",
@@ -425,7 +1157,44 @@
       ],
       "answer": "C",
       "explain": "整句中譯：這位年輕服務生很笨手笨腳，晚餐尖峰時不小心打破了三個盤子。\n片語／單字：\n- clumsy：笨拙、手腳不靈活，才會打破盤子。\n- greasy：油膩的。\n- mighty：強大的。\n- sticky：黏的。這三個都解釋不了 accidentally broke。\n正解：C　clumsy",
-      "source": "114-en-vocab-24"
+      "source": "114-en-vocab-24",
+      "translation": "這位年輕服務生太笨手笨腳，晚餐尖峰時不小心打破了三個盤子。",
+      "phrases": [
+        {
+          "en": "dinner rush",
+          "zh": "晚餐尖峰時段"
+        }
+      ],
+      "words": [
+        {
+          "en": "clumsy",
+          "zh": "笨手笨腳的"
+        },
+        {
+          "en": "waiter",
+          "zh": "服務生"
+        },
+        {
+          "en": "accidentally",
+          "zh": "不小心"
+        },
+        {
+          "en": "broke",
+          "zh": "打破（break 的過去式）"
+        },
+        {
+          "en": "greasy",
+          "zh": "油膩的"
+        },
+        {
+          "en": "mighty",
+          "zh": "強大的"
+        },
+        {
+          "en": "sticky",
+          "zh": "黏的"
+        }
+      ]
     },
     {
       "id": "recall-114-en-vocab-25",
@@ -440,7 +1209,40 @@
       ],
       "answer": "A",
       "explain": "整句中譯：許多在地團體正努力保存傳統語言，以免它們完全消失。\n片語／單字：\n- preserve：保存、保護，後面接到語言消失之前，語意通。\n- scatter：驅散、散開。\n- motivate：激勵某人，不直接接 languages。\n- volunteer：自願去做，這裡需要的是及物動詞加語言。\n正解：A　preserve",
-      "source": "114-en-vocab-25"
+      "source": "114-en-vocab-25",
+      "translation": "許多在地團體正努力保存傳統語言，以免它們完全消失。",
+      "phrases": [
+        {
+          "en": "work hard to",
+          "zh": "努力去……"
+        }
+      ],
+      "words": [
+        {
+          "en": "preserve",
+          "zh": "保存、保護"
+        },
+        {
+          "en": "traditional",
+          "zh": "傳統的"
+        },
+        {
+          "en": "disappear",
+          "zh": "消失"
+        },
+        {
+          "en": "scatter",
+          "zh": "分散"
+        },
+        {
+          "en": "motivate",
+          "zh": "激勵"
+        },
+        {
+          "en": "volunteer",
+          "zh": "自願；志工"
+        }
+      ]
     },
     {
       "id": "recall-114-en-vocab-26",
@@ -455,7 +1257,44 @@
       ],
       "answer": "B",
       "explain": "整句中譯：最近的全球金融危機造成嚴重通貨膨脹，什麼東西都變貴了。\n片語／單字：\n- inflation：通貨膨脹，後面 making everything more expensive 就是在解釋它。\n- solution：解決方案，不會讓東西變貴。\n- condition：狀況，太籠統，接不上變貴。\n- objection：反對、異議。\n正解：B　inflation",
-      "source": "114-en-vocab-26"
+      "source": "114-en-vocab-26",
+      "translation": "最近的全球金融危機造成嚴重通膨，讓所有東西都變貴了。",
+      "phrases": [
+        {
+          "en": "lead to",
+          "zh": "導致"
+        },
+        {
+          "en": "financial crisis",
+          "zh": "金融危機"
+        }
+      ],
+      "words": [
+        {
+          "en": "inflation",
+          "zh": "通貨膨脹"
+        },
+        {
+          "en": "severe",
+          "zh": "嚴重的"
+        },
+        {
+          "en": "expensive",
+          "zh": "昂貴的"
+        },
+        {
+          "en": "solution",
+          "zh": "解決方法"
+        },
+        {
+          "en": "condition",
+          "zh": "狀況"
+        },
+        {
+          "en": "objection",
+          "zh": "反對"
+        }
+      ]
     },
     {
       "id": "recall-114-en-vocab-27",
@@ -470,7 +1309,44 @@
       ],
       "answer": "D",
       "explain": "整句中譯：每個人都應該試著為環境保護出一份力。\n片語／單字：\n- contribute to：對…有貢獻。空格後面是 to the efforts。\n- displeases：使不高興，第三人稱單數也不能接在 should try to 後面。\n- alternates：交替，不接 to the efforts 表示參與。\n- invades：入侵，語意相反。\n正解：D　contribute",
-      "source": "114-en-vocab-27"
+      "source": "114-en-vocab-27",
+      "translation": "每個人都應該試著為環境保護盡一份力。",
+      "phrases": [
+        {
+          "en": "contribute to",
+          "zh": "對……有貢獻"
+        },
+        {
+          "en": "environmental protection",
+          "zh": "環境保護"
+        }
+      ],
+      "words": [
+        {
+          "en": "contribute",
+          "zh": "貢獻（原形，接在 try to 後面）"
+        },
+        {
+          "en": "individual",
+          "zh": "個人"
+        },
+        {
+          "en": "effort",
+          "zh": "努力"
+        },
+        {
+          "en": "displeases",
+          "zh": "使不高興（第三人稱，文法也不合）"
+        },
+        {
+          "en": "alternates",
+          "zh": "交替"
+        },
+        {
+          "en": "invades",
+          "zh": "入侵"
+        }
+      ]
     }
   ]
 }

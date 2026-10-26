@@ -104,7 +104,7 @@ const LearnUI = (() => {
   async function getStats() {
     return (await DB.meta('practiceStats', null)) || { bySubject: {}, history: [] };
   }
-  async function recordPractice({ subject, correct, total, source }) {
+  async function recordPractice({ subject, correct, total, source, ids }) {
     const st = await getStats();
     const s = st.bySubject[subject] || { correct: 0, total: 0, wrong: 0 };
     s.correct += correct;
@@ -112,6 +112,12 @@ const LearnUI = (() => {
     s.wrong += (total - correct);
     st.bySubject[subject] = s;
     st.history = [{ at: Date.now(), subject, correct, total, source: source || '' }, ...(st.history || [])].slice(0, 100);
+    if (ids && ids.length) {
+      st.seen = st.seen || {};
+      const cur = new Set(st.seen[subject] || []);
+      ids.forEach((id) => { if (id) cur.add(String(id)); });
+      st.seen[subject] = [...cur].slice(-4000);
+    }
     await DB.setMeta('practiceStats', st);
     return st;
   }
@@ -122,13 +128,18 @@ const LearnUI = (() => {
   }
 
   /* ---------- TTS helpers (EN) ---------- */
-  let enSlow = false;
+  const EN_RATES = { slow: 0.72, normal: 1, fast: 1.22 };
+  function enRateKey() {
+    const k = (typeof settings !== 'undefined' && settings && settings.enTtsRate) || 'normal';
+    return EN_RATES[k] ? k : 'normal';
+  }
+  function enSpeakRate() { return EN_RATES[enRateKey()]; }
   function speakEn(text, rate) {
     if (!window.speechSynthesis || !text) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(String(text));
     u.lang = 'en-US';
-    u.rate = rate != null ? rate : (enSlow ? 0.7 : 1);
+    u.rate = rate != null ? rate : enSpeakRate();
     const voices = speechSynthesis.getVoices();
     const v = voices.find((x) => /en-US|en_US|English/.test(x.lang)) || voices.find((x) => /^en/.test(x.lang));
     if (v) u.voice = v;
@@ -142,8 +153,37 @@ const LearnUI = (() => {
       return `<button type="button" class="en-word" data-speak="${esc(clean)}">${esc(tok)}</button>`;
     }).join('');
   }
+  function enSpeedHtml() {
+    const cur = enRateKey();
+    const opts = [['slow', '慢'], ['normal', '正常'], ['fast', '快']];
+    return `<div class="en-speed" role="group" aria-label="語速"><span class="lbl">語速</span>${opts.map(([k, n]) => `<button type="button" class="en-rate ${cur === k ? 'on' : ''}" data-en-rate="${k}" aria-pressed="${cur === k ? 'true' : 'false'}">${n}</button>`).join('')}</div>`;
+  }
+  function enSpeakList(items) {
+    return (items || []).map((it) => {
+      const en = (it && it.en) || '';
+      const zh = (it && it.zh) || '';
+      if (!en) return '';
+      return `<li><button type="button" class="en-speak-item" data-speak="${esc(en)}"><b>${esc(en)}</b><span>${esc(zh)}</span></button></li>`;
+    }).filter(Boolean).join('');
+  }
+  function renderEnGloss(q) {
+    if (!q) return '';
+    const speakText = q.stem || q.sentence || '';
+    const tr = q.translation
+      ? `<div class="en-block"><h4>整句中譯</h4><p>${esc(q.translation)}</p>${speakText ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(speakText)}">🔊 念英文整句</button>` : ''}</div>`
+      : '';
+    const phrases = enSpeakList(q.phrases);
+    const words = enSpeakList(q.words);
+    const ph = phrases ? `<div class="en-block"><h4>片語</h4><ul class="en-speak-list">${phrases}</ul></div>` : '';
+    const wd = words ? `<div class="en-block"><h4>單字</h4><ul class="en-speak-list">${words}</ul></div>` : '';
+    const note = q.explain ? `<div class="en-block"><h4>說明</h4>${formatExplainBody(q.explain)}</div>` : '';
+    return `${tr}${ph}${wd}${note}`;
+  }
+  function renderEnExplain(q) {
+    return `${enSpeedHtml()}${renderEnGloss(q)}`;
+  }
   function wireEnSpeak(root) {
-    $$('.en-word', root).forEach((b) => {
+    $$('.en-word, .en-speak-item', root).forEach((b) => {
       if (b._wired) return; b._wired = true;
       b.addEventListener('click', (e) => { e.preventDefault(); speakEn(b.getAttribute('data-speak') || ''); });
     });
@@ -151,6 +191,86 @@ const LearnUI = (() => {
       if (b._wired) return; b._wired = true;
       b.addEventListener('click', (e) => { e.preventDefault(); speakEn(b.getAttribute('data-en-sentence') || ''); });
     });
+    $$('[data-en-rate]', root).forEach((b) => {
+      if (b._wired) return; b._wired = true;
+      b.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const rate = b.getAttribute('data-en-rate') || 'normal';
+        if (typeof settings !== 'undefined' && settings) {
+          settings.enTtsRate = EN_RATES[rate] ? rate : 'normal';
+          if (typeof saveSettings === 'function') await saveSettings('enTtsRate');
+        }
+        $$('[data-en-rate]', root).forEach((x) => {
+          const on = x.getAttribute('data-en-rate') === enRateKey();
+          x.classList.toggle('on', on);
+          x.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        const label = { slow: '慢', normal: '正常', fast: '快' }[enRateKey()] || '正常';
+        if (typeof toast === 'function') toast('語速：' + label);
+      });
+    });
+  }
+
+  /* ---------- 國英年份（只列出有題的年度，題池＝所選年份聯集） ---------- */
+  const yearPick = { zh: null, en: null };
+  function examBuckets(data) {
+    const out = [];
+    if (!data) return out;
+    Object.keys(data).forEach((k) => {
+      const m = /^exam(\d{2,3})$/.exec(k);
+      if (!m) return;
+      const arr = data[k];
+      if (Array.isArray(arr) && arr.length) out.push({ year: +m[1], key: k, questions: arr });
+    });
+    out.sort((a, b) => b.year - a.year);
+    return out;
+  }
+  function allExamQuestions(data) {
+    return examBuckets(data).flatMap((b) => b.questions);
+  }
+  function pickedYears(kind, data) {
+    const years = examBuckets(data).map((b) => b.year);
+    if (!years.length) return [];
+    const store = yearPick[kind];
+    if (!store || !store.size) {
+      yearPick[kind] = new Set([years[0]]);
+      return [years[0]];
+    }
+    const kept = years.filter((y) => store.has(y));
+    if (!kept.length) {
+      yearPick[kind] = new Set([years[0]]);
+      return [years[0]];
+    }
+    return kept;
+  }
+  function questionsForYears(data, years) {
+    const set = new Set((years || []).map(Number));
+    return examBuckets(data).filter((b) => set.has(b.year)).flatMap((b) => b.questions);
+  }
+  function yearChipsHtml(data, picked) {
+    const years = examBuckets(data);
+    const set = new Set(picked);
+    if (!years.length) return '<p class="muted small">尚無年份題庫。</p>';
+    return `<div class="year-chips" role="group" aria-label="選擇年份">${years.map((b) => `<button type="button" class="year-chip ${set.has(b.year) ? 'on' : ''}" data-year="${b.year}" aria-pressed="${set.has(b.year) ? 'true' : 'false'}">${b.year}（${b.questions.length}）</button>`).join('')}<button type="button" class="year-chip year-all">全選</button></div>`;
+  }
+  function wireYearChips(root, kind, data, rerender) {
+    $$('.year-chip[data-year]', root).forEach((b) => {
+      b.onclick = () => {
+        const y = +b.dataset.year;
+        const cur = new Set(pickedYears(kind, data));
+        if (cur.has(y)) {
+          if (cur.size <= 1) { if (typeof toast === 'function') toast('至少留一個年份'); return; }
+          cur.delete(y);
+        } else cur.add(y);
+        yearPick[kind] = cur;
+        rerender();
+      };
+    });
+    const allBtn = $('.year-all', root);
+    if (allBtn) allBtn.onclick = () => {
+      yearPick[kind] = new Set(examBuckets(data).map((b) => b.year));
+      rerender();
+    };
   }
 
   /* ---------- add wrong to notebook ---------- */
@@ -406,7 +526,9 @@ const LearnUI = (() => {
     }
     const timer = timedLeft != null ? `<div class="mock-timer" id="mockTimer">剩餘 ${fmtTime(timedLeft)}</div>` : '';
     const explainBody = q.explain || ('正解：' + q.answer);
-    const explainHtml = formatExplainBody(explainBody);
+    const explainHtml = (q.lang === 'en' && (q.translation || (q.phrases && q.phrases.length) || (q.words && q.words.length)))
+      ? renderEnExplain(q)
+      : formatExplainBody(explainBody);
     const explain = reveal && (q.explain || q.answer)
       ? `<div class="q-explain card soft-card"><b>詳解</b><div class="explain-body">${explainHtml}</div>
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
@@ -439,6 +561,7 @@ const LearnUI = (() => {
   function favSnapshot(q, state) {
     return { id: q.id, stem: q.stem, choices: q.choices, answer: q.answer, explain: q.explain || '',
       figurePath: q.figurePath || '', hasFigure: !!q.hasFigure, label: q.label || '', lang: q.lang || '',
+      translation: q.translation || '', phrases: q.phrases || [], words: q.words || [],
       source: q.source || '', sourceNote: q.sourceNote || '', subjectTab: state.subjectTab, from: state.source || '', at: Date.now() };
   }
   async function wireQTools(q, state) {
@@ -544,7 +667,8 @@ const LearnUI = (() => {
         graded++;
         if (state.picked[q.id] === q.answer) correct++;
       });
-      await recordPractice({ subject: subjectTab, correct, total: graded || state.qs.length, source });
+      const seenIds = state.qs.filter((q) => q.id && state.picked[q.id]).map((q) => q.id);
+      await recordPractice({ subject: subjectTab, correct, total: graded || state.qs.length, source, ids: seenIds });
       const wrongs = state.qs.filter((q) => q.answer && state.picked[q.id] && state.picked[q.id] !== q.answer)
         .map((q) => Object.assign({}, q, { _picked: state.picked[q.id] }));
       const isMock = state.mode === 'mock' || !!state.endsAt || auto;
@@ -682,7 +806,7 @@ const LearnUI = (() => {
       <section class="card learn-shell">
         <h2>學習區</h2>
         <p>考古題刷題、觀念卡、計時模擬考、國英發音、數學基礎與備考技巧都在這裡。寫錯可勾原因寫進同一本錯題本。</p>
-        <p class="muted small">專業題庫 ${meta.total || 0} 題（有圖 ${meta.withFigure || 0}）・國文 114 選擇 ${zh.exam114?.length || 0}＋常識自出 ${zh.fromKnowledge?.length || 0}・英文 114 共 ${en.exam114?.length || 0}・數學 ${math.units?.length || 0} 單元・備考技巧 ${tipN} 則</p>
+        <p class="muted small">專業題庫 ${meta.total || 0} 題（有圖 ${meta.withFigure || 0}）・國文選擇 ${allExamQuestions(zh).length}＋常識自出 ${zh.fromKnowledge?.length || 0}・英文 ${allExamQuestions(en).length}・數學 ${math.units?.length || 0} 單元・備考技巧 ${tipN} 則</p>
       </section>
       <div class="learn-subjects">
         <a class="overview-tab learn-card" href="#learn-math"><b>數學基礎</b><span class="muted small">分數・方程式・單位換算</span><span class="tag tag-ok">可用</span></a>
@@ -924,50 +1048,60 @@ const LearnUI = (() => {
     const bank = await loadBank();
     const zh = await loadZhQuiz();
     const en = await loadEnQuiz();
+    const years = new Set();
+    (bank.questions || []).forEach((q) => { if (q.year) years.add(q.year); });
+    allExamQuestions(zh).forEach((q) => { if (q.year) years.add(q.year); });
+    allExamQuestions(en).forEach((q) => { if (q.year) years.add(q.year); });
+    const yearOpts = [...years].sort((a, b) => b - a).map((y) => `<option value="${y}">${y}</option>`).join('');
+    const head = typeof pageHead === 'function'
+      ? pageHead('離線模擬', '模擬考', '交卷前不顯示答案。題目從這台裝置上的題庫抽，時間到會自動交卷。沒有另外的封存題庫。')
+      : '<h2>模擬考</h2>';
     app.innerHTML = `
-      <section class="card learn-shell">
-        <h2>計時模擬考</h2>
-        <p>交卷前<strong>不顯示</strong>答案與詳解。時間到自動交卷。</p>
-        <label class="field"><span class="field-title">範圍</span>
-          <select id="mockScope">
-            <option value="ee" ${preset === 'ee' ? 'selected' : ''}>電工原理</option>
-            <option value="em" ${preset === 'em' ? 'selected' : ''}>電工機械</option>
-            <option value="pro" ${preset === 'pro' ? 'selected' : ''}>專業混合（原理＋機械）</option>
-            <option value="zh">國文（114＋常識自出）</option>
-            <option value="en">英文（114）</option>
-            <option value="mixed">國英＋專業混合</option>
-          </select>
-        </label>
-        <label class="field"><span class="field-title">時間</span>
-          <select id="mockDur">
-            <option value="20">20 分鐘</option>
-            <option value="40" selected>40 分鐘</option>
-            <option value="60">60 分鐘</option>
-            <option value="custom">自訂分鐘</option>
-          </select>
-        </label>
-        <label class="field" id="mockCustomWrap" hidden><span class="field-title">自訂分鐘</span>
-          <input type="number" id="mockCustom" min="1" max="180" value="30">
-        </label>
-        <label class="field"><span class="field-title">題數</span>
-          <select id="mockN">
-            <option value="20">20 題</option>
-            <option value="30" selected>30 題</option>
-            <option value="40">40 題</option>
-            <option value="50">50 題</option>
-          </select>
-        </label>
-        <div class="btn-row" style="margin-top:12px">
-          <button type="button" class="btn btn-primary" id="mockGo">開始計時</button>
-          <a class="btn btn-soft" href="#learn">回學習</a>
-        </div>
-        <p class="muted small">題庫：專業 ${bank.meta?.total || 0}・國文 ${(zh.exam114?.length || 0) + (zh.fromKnowledge?.length || 0)}・英文 ${en.exam114?.length || 0}</p>
-      </section>`;
+      ${head}
+      <div class="mock-wrap">
+        <section class="card">
+          <h3>建立考卷</h3>
+          <label class="field"><span class="field-title">考卷範圍</span>
+            <select id="mockScope">
+              <option value="ee" ${preset === 'ee' ? 'selected' : ''}>電工原理</option>
+              <option value="em" ${preset === 'em' ? 'selected' : ''}>電工機械</option>
+              <option value="pro" ${preset === 'pro' ? 'selected' : ''}>專業混合（原理＋機械）</option>
+              <option value="zh">國文（歷屆選擇＋常識自出）</option>
+              <option value="en">英文</option>
+              <option value="mixed">國英＋專業混合</option>
+            </select>
+          </label>
+          <label class="field"><span class="field-title">年份</span>
+            <select id="mockYear"><option value="all">全部年份</option>${yearOpts}</select>
+          </label>
+          <label class="field"><span class="field-title">時間</span>
+            <select id="mockDur">
+              <option value="20">20 分鐘</option>
+              <option value="40" selected>40 分鐘</option>
+              <option value="60">60 分鐘</option>
+              <option value="custom">自訂分鐘</option>
+            </select>
+          </label>
+          <label class="field" id="mockCustomWrap" hidden><span class="field-title">自訂分鐘</span>
+            <input type="number" id="mockCustom" min="1" max="180" value="30">
+          </label>
+          <label class="field"><span class="field-title">題數</span>
+            <select id="mockN">
+              <option value="20">20 題</option>
+              <option value="30" selected>30 題</option>
+              <option value="40">40 題</option>
+              <option value="50">50 題</option>
+            </select>
+          </label>
+          <button type="button" class="btn btn-primary" id="mockGo">建立考卷</button>
+          <p class="muted small">題庫：專業 ${bank.meta?.total || 0}・國文 ${allExamQuestions(zh).length + (zh.fromKnowledge?.length || 0)}・英文 ${allExamQuestions(en).length}。指定年份時，沒有年份的常識題不會入卷。</p>
+        </section>
+      </div>`;
     $('#mockDur').onchange = () => { $('#mockCustomWrap').hidden = $('#mockDur').value !== 'custom'; };
     $('#mockGo').onclick = () => {
       let mins = parseInt($('#mockDur').value, 10);
       if ($('#mockDur').value === 'custom') mins = Math.max(1, Math.min(180, parseInt($('#mockCustom').value, 10) || 30));
-      const cfg = { scope: $('#mockScope').value, minutes: mins, n: parseInt($('#mockN').value, 10) || 30 };
+      const cfg = { scope: $('#mockScope').value, minutes: mins, n: parseInt($('#mockN').value, 10) || 30, year: $('#mockYear').value };
       sessionStorage.setItem('mockCfg', JSON.stringify(cfg));
       location.hash = '#learn-mock/run';
     };
@@ -981,6 +1115,7 @@ const LearnUI = (() => {
     const n = cfg.n || 30;
     let pool = [];
     const scope = cfg.scope || 'pro';
+    const yearOk = (q) => !cfg.year || cfg.year === 'all' || String(q.year || '') === String(cfg.year);
     const mapPro = (q) => ({
       id: q.id, stem: q.stem, choices: q.choices, answer: q.answer,
       explain: q.explain || (q.answer ? `答案 ${q.answer}` : ''),
@@ -990,25 +1125,34 @@ const LearnUI = (() => {
     });
     const mapLang = (q, lang) => ({
       id: q.id, stem: q.stem, choices: q.choices, answer: q.answer,
-      explain: q.explain || '', label: q.label || q.section || '', lang,
-      hasFigure: false, figurePath: ''
+      explain: q.explain || '', label: q.label || (q.year ? String(q.year) : '') || q.section || '', lang,
+      hasFigure: false, figurePath: '',
+      translation: q.translation || '', phrases: q.phrases || [], words: q.words || []
     });
-    if (scope === 'ee') pool = bank.questions.filter((q) => q.track === 'ee' && q.answer);
-    else if (scope === 'em') pool = bank.questions.filter((q) => q.track === 'em' && q.answer);
-    else if (scope === 'pro') pool = bank.questions.filter((q) => q.answer);
-    else if (scope === 'zh') pool = [...(zh.exam114 || []), ...(zh.fromKnowledge || [])];
-    else if (scope === 'en') pool = [...(en.exam114 || [])];
+    if (scope === 'ee') pool = bank.questions.filter((q) => q.track === 'ee' && q.answer && yearOk(q));
+    else if (scope === 'em') pool = bank.questions.filter((q) => q.track === 'em' && q.answer && yearOk(q));
+    else if (scope === 'pro') pool = bank.questions.filter((q) => q.answer && yearOk(q));
+    else if (scope === 'zh') pool = [...allExamQuestions(zh), ...(zh.fromKnowledge || [])].filter(yearOk);
+    else if (scope === 'en') pool = [...allExamQuestions(en)].filter(yearOk);
     else {
       pool = [
-        ...bank.questions.filter((q) => q.answer).map(mapPro),
-        ...(zh.exam114 || []).map((q) => mapLang(q, 'zh')),
-        ...(en.exam114 || []).map((q) => mapLang(q, 'en'))
+        ...bank.questions.filter((q) => q.answer && yearOk(q)).map(mapPro),
+        ...allExamQuestions(zh).filter(yearOk).map((q) => mapLang(q, 'zh')),
+        ...allExamQuestions(en).filter(yearOk).map((q) => mapLang(q, 'en'))
       ];
+      if (!pool.length) {
+        app.innerHTML = `<section class="card"><h2>這個範圍沒有題</h2><p class="muted">換一個年份或範圍再建立。</p><a class="btn btn-primary" href="#learn-mock">回模擬考</a></section>`;
+        return;
+      }
       const qs = shuffle(pool).slice(0, n);
       return runQuiz(app, {
         title: '混合模擬考', questions: qs, mode: 'mock',
         subjectTab: 'ee', source: '模擬考', durationSec: (cfg.minutes || 40) * 60
       });
+    }
+    if (!pool.length) {
+      app.innerHTML = `<section class="card"><h2>這個範圍沒有題</h2><p class="muted">換一個年份或範圍再建立。</p><a class="btn btn-primary" href="#learn-mock">回模擬考</a></section>`;
+      return;
     }
     if (scope === 'zh') pool = pool.map((q) => mapLang(q, 'zh'));
     else if (scope === 'en') pool = pool.map((q) => mapLang(q, 'en'));
@@ -1024,66 +1168,104 @@ const LearnUI = (() => {
   /* ---------- ZH QUIZ ---------- */
   async function viewZhQuizHub(app) {
     const data = await loadZhQuiz();
-    app.innerHTML = `
-      ${typeof zhSeg === 'function' ? zhSeg('quiz') : ''}
-      <section class="card learn-shell">
-        <h2>國文刷題</h2>
-        <p>114 年中油國文選擇題，以及由常識總表自動出題（字音／配對），來源會標示清楚。</p>
-        <p class="muted small">114 選擇 ${data.exam114?.length || 0} 題・常識自出 ${data.fromKnowledge?.length || 0} 題。選完或按詳解才顯示講解。</p>
-        <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
-          <button type="button" class="btn btn-primary" id="zh114">114 國文選擇（${data.exam114?.length || 0}）</button>
-          <button type="button" class="btn btn-soft" id="zhAuto">常識表出題（${data.fromKnowledge?.length || 0}）</button>
-          <button type="button" class="btn btn-soft" id="zhMix">混合 20 題</button>
-          <a class="btn btn-soft" href="#learn-mock">計時模擬考</a>
-        </div>
-      </section>`;
-    const go = (list, title) => runQuiz(app, {
-      title, questions: shuffle(list).map((q) => ({
-        ...q, lang: 'zh', label: q.label || '114 國文',
-        hasFigure: false
-      })),
-      mode: 'practice', subjectTab: 'zh', source: title
-    });
-    $('#zh114').onclick = () => go(data.exam114 || [], '114 國文');
-    $('#zhAuto').onclick = () => go(data.fromKnowledge || [], '常識表出題');
-    $('#zhMix').onclick = () => go([...(data.exam114 || []), ...(data.fromKnowledge || [])].slice(), '國文混合');
+    const paint = () => {
+      const picked = pickedYears('zh', data);
+      const pool = questionsForYears(data, picked);
+      const yearsLabel = picked.join('、');
+      const kbN = (data.fromKnowledge || []).length;
+      app.innerHTML = `
+        ${typeof zhSeg === 'function' ? zhSeg('quiz') : ''}
+        <section class="card learn-shell">
+          <h2>國文刷題</h2>
+          <p>有題的年份可複選，題池是所選年份的聯集。常識表出題不依年份；混合＝選取年份＋常識。</p>
+          ${yearChipsHtml(data, picked)}
+          <p class="muted small">已選 ${esc(yearsLabel)}・選擇 ${pool.length} 題・常識自出 ${kbN} 題・全部選擇 ${allExamQuestions(data).length} 題。選完或按詳解才顯示講解。</p>
+          <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
+            <button type="button" class="btn btn-primary" id="zhYears">練習選取年份（${pool.length}）</button>
+            <button type="button" class="btn btn-soft" id="zhAuto">常識表出題（${kbN}）</button>
+            <button type="button" class="btn btn-soft" id="zhMix">混合</button>
+            <a class="btn btn-soft" href="#learn-mock">計時模擬考</a>
+          </div>
+        </section>`;
+      wireYearChips(app, 'zh', data, paint);
+      const go = (list, title) => runQuiz(app, {
+        title, questions: shuffle(list).map((q) => ({
+          ...q, lang: 'zh', label: q.label || (q.year ? `${q.year} 國文` : '國文'),
+          hasFigure: false
+        })),
+        mode: 'practice', subjectTab: 'zh', source: title
+      });
+      $('#zhYears').onclick = () => go(pool, `國文 ${yearsLabel}`);
+      $('#zhAuto').onclick = () => go(data.fromKnowledge || [], '常識表出題');
+      $('#zhMix').onclick = () => go([...pool, ...(data.fromKnowledge || [])], '國文混合');
+    };
+    paint();
   }
 
   /* ---------- EN ---------- */
+  const EN_SEC = { vocab: '字彙', grammar: '文法', dialogue: '會話' };
+  function mapEnQuestion(q) {
+    return {
+      ...q,
+      lang: 'en',
+      label: EN_SEC[q.section] || q.label || q.section || (q.year ? String(q.year) : '英文')
+    };
+  }
   async function viewEn(app, parts) {
     const data = await loadEnQuiz();
     $('#pageTitle').textContent = '英文';
     if (parts[0] === 'recall') return viewEnRecall(app, data);
     if (parts[0] === 'quiz') {
       const sec = parts[1] || 'all';
-      let list = data.exam114 || [];
+      let list = allExamQuestions(data);
       if (sec !== 'all') list = list.filter((q) => q.section === sec);
       return runQuiz(app, {
-        title: '英文練習', questions: shuffle(list).map((q) => ({ ...q, lang: 'en', label: ({ vocab: '字彙', grammar: '文法', dialogue: '會話' })[q.section] || q.section })),
+        title: '英文練習', questions: shuffle(list).map(mapEnQuestion),
         mode: 'practice', subjectTab: 'en', source: '英文刷題'
       });
     }
     const links = (settings.learnLinks || []).filter((l) => l.subject === 'en' && l.url);
-    app.innerHTML = `
-      <section class="card learn-shell">
-        <h2>英文 <span class="tag tag-ok">114 考古</span></h2>
-        <p>點單字或按「整句」可發音（en-US）。可開慢速。另有遮答案回想卡。</p>
-        <label class="check"><input type="checkbox" id="enSlowToggle" ${enSlow ? 'checked' : ''}> 慢速發音</label>
-        <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
-          <a class="btn btn-primary" href="#learn-en/quiz/all">全部練習（${data.exam114?.length || 0}）</a>
-          <a class="btn btn-soft" href="#learn-en/quiz/vocab">字彙</a>
-          <a class="btn btn-soft" href="#learn-en/quiz/grammar">文法</a>
-          <a class="btn btn-soft" href="#learn-en/quiz/dialogue">會話</a>
-          <a class="btn btn-soft" href="#learn-en/recall">遮答案回想卡</a>
-        </div>
-      </section>
-      <section class="card soft-card">
-        <h3>使用提示</h3>
-        <p class="muted small">練習模式選完即對錯；模擬考請走「計時模擬考 → 英文」。答錯可加入錯題本（語文類原因）。</p>
-      </section>
-      ${links.length ? `<section class="card soft-card"><h3>學習連結</h3><ul class="link-list">${links.map((l) => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a></li>`).join('')}</ul></section>` : ''}`;
-    const t = $('#enSlowToggle');
-    if (t) t.onchange = () => { enSlow = t.checked; toast(enSlow ? '已開慢速' : '已關慢速'); };
+    const paint = () => {
+      const picked = pickedYears('en', data);
+      const pool = questionsForYears(data, picked);
+      const yearsLabel = picked.join('、');
+      const secBtns = [['all', '全部練習'], ['vocab', '字彙'], ['grammar', '文法'], ['dialogue', '會話']].map(([sec, name]) => {
+        const n = sec === 'all' ? pool.length : pool.filter((q) => q.section === sec).length;
+        return `<button type="button" class="btn ${sec === 'all' ? 'btn-primary' : 'btn-soft'}" data-sec="${sec}">${name}（${n}）</button>`;
+      }).join('');
+      app.innerHTML = `
+        <section class="card learn-shell">
+          <h2>英文</h2>
+          <p>有題的年份可複選，下方練習用所選年份的聯集。點單字、片語或整句可發音（en-US）。語速分慢／正常／快，會記在這台裝置。</p>
+          ${enSpeedHtml()}
+          ${yearChipsHtml(data, picked)}
+          <p class="muted small">已選 ${esc(yearsLabel)}・${pool.length} 題。詳解含整句中譯，片語與單字分開。</p>
+          <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
+            ${secBtns}
+            <a class="btn btn-soft" href="#learn-en/recall">遮答案回想卡</a>
+            <a class="btn btn-soft" href="#learn-mock">計時模擬考</a>
+          </div>
+        </section>
+        <section class="card soft-card">
+          <h3>使用提示</h3>
+          <p class="muted small">練習模式選完即對錯；模擬考請走「計時模擬考 → 英文」（用全部已入庫年份）。答錯可加入錯題本（語文類原因）。</p>
+        </section>
+        ${links.length ? `<section class="card soft-card"><h3>學習連結</h3><ul class="link-list">${links.map((l) => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a></li>`).join('')}</ul></section>` : ''}`;
+      wireEnSpeak(app);
+      wireYearChips(app, 'en', data, paint);
+      $$('[data-sec]', app).forEach((b) => {
+        b.onclick = () => {
+          const sec = b.dataset.sec || 'all';
+          let list = questionsForYears(data, pickedYears('en', data));
+          if (sec !== 'all') list = list.filter((q) => q.section === sec);
+          runQuiz(app, {
+            title: '英文練習', questions: shuffle(list).map(mapEnQuestion),
+            mode: 'practice', subjectTab: 'en', source: '英文刷題'
+          });
+        };
+      });
+    };
+    paint();
   }
 
   async function viewEnRecall(app, data) {
@@ -1100,7 +1282,7 @@ const LearnUI = (() => {
         <section class="card learn-shell">
           <div class="bar-label"><h2>遮答案回想卡</h2><span class="tag">${i + 1}/${cards.length}</span></div>
           <p class="muted small">${esc(c.promptZh || '先自己想，再翻開。')}</p>
-          <label class="check"><input type="checkbox" id="enSlowToggle" ${enSlow ? 'checked' : ''}> 慢速發音</label>
+          ${enSpeedHtml()}
         </section>
         <section class="card q-card">
           <div class="q-stem">${enWordSpans(blanked)}</div>
@@ -1108,7 +1290,8 @@ const LearnUI = (() => {
             <button type="button" class="btn btn-soft" data-en-sentence="${esc(c.sentence)}">🔊 整句</button>
             <button type="button" class="btn btn-primary" id="btnFlip">${shown ? '隱藏答案' : '顯示答案'}</button>
           </div>
-          ${shown ? `<div class="q-explain card soft-card"><b>${esc(c.answerWord || c.answer)}</b><p class="muted small">${esc(c.explain || '')}</p>
+          ${shown ? `<div class="q-explain card soft-card"><b>${esc(c.answerWord || c.answer)}</b>
+            ${(c.translation || (c.phrases && c.phrases.length) || (c.words && c.words.length)) ? renderEnGloss(c) : `<p class="muted small">${esc(c.explain || '')}</p>`}
             <div class="mc-list" style="margin-top:8px">${(c.choices || []).map((ch) => `<div class="muted small">${esc(ch)}</div>`).join('')}</div>
             <button type="button" class="btn btn-soft" id="btnAddWrong" style="margin-top:8px">不會・加入錯題本</button>
           </div>` : '<p class="muted">想好再翻開。</p>'}
@@ -1119,7 +1302,6 @@ const LearnUI = (() => {
           </div>
         </section>`;
       wireEnSpeak(app);
-      const t = $('#enSlowToggle'); if (t) t.onchange = () => { enSlow = t.checked; };
       $('#btnFlip').onclick = () => { shown = !shown; paint(); };
       $('#btnPrev').onclick = () => { if (i > 0) { i--; shown = false; paint(); } };
       $('#btnNext').onclick = () => { if (i >= cards.length - 1) { location.hash = '#learn-en'; return; } i++; shown = false; paint(); };
@@ -1322,8 +1504,9 @@ const LearnUI = (() => {
     tips.push({ href: '#learn-mock', text: '計時模擬考一段' });
     const weak = Object.entries(st.bySubject || {}).sort((a, b) => (a[1].correct / (a[1].total || 1)) - (b[1].correct / (b[1].total || 1)))[0];
     if (weak && weak[1].total >= 5) {
-      const map = { ee: '#learn-ee', em: '#learn-em', en: '#learn-en', zh: '#learn-zh', english: '#learn-en' };
-      tips.unshift({ href: map[weak[0]] || '#learn', text: `弱科加強：${weak[0]}（正確率 ${accuracyOf(st, weak[0])}%）` });
+      const map = { ee: '#learn-ee', em: '#learn-em', en: '#learn-en', zh: '#learn-zh', english: '#learn-en', math: '#learn-math' };
+      const names = { ee: '電工原理', em: '電工機械', en: '英文', english: '英文', zh: '國文', math: '數學基礎' };
+      tips.unshift({ href: map[weak[0]] || '#learn', text: `弱科加強：${names[weak[0]] || weak[0]}（正確率 ${accuracyOf(st, weak[0])}%）` });
     }
     return { tips, st, dueN, goal };
   }
@@ -1360,8 +1543,293 @@ const LearnUI = (() => {
       <p class="muted small" style="margin-top:8px">練習正確率來自學習區刷題／模擬考統計（本機）。</p>`;
   }
 
+  const ZH_TYPE = { phonetic: '字音', match: '常識配對', mc: '選擇題' };
+  const bankState = { year: 'all', subject: 'all', type: 'all', limit: 50 };
+  let _catalog;
+
+  async function questionCatalog() {
+    if (_catalog) return _catalog;
+    const bank = await loadBank();
+    const zh = await loadZhQuiz();
+    const en = await loadEnQuiz();
+    const math = await loadMath();
+    const items = [];
+    (bank.questions || []).forEach((q) => {
+      const em = q.track === 'em';
+      items.push({
+        id: q.id, year: q.year || '', subject: em ? 'em' : 'ee',
+        subjectName: em ? '電工機械' : '電工原理',
+        type: q.kind === 'concept' ? '觀念' : '計算／刷題',
+        typeKey: q.kind === 'concept' ? 'concept' : 'drill',
+        stem: q.stem || '', figure: q.hasFigure ? (q.figurePath || '') : '',
+        hasFigure: !!q.hasFigure, source: 'pro', raw: q
+      });
+    });
+    allExamQuestions(zh).forEach((q) => {
+      items.push({
+        id: q.id, year: q.year || '', subject: 'zh', subjectName: '國文',
+        type: '選擇題', typeKey: 'zh-mc',
+        stem: q.stem || '', figure: '', hasFigure: false, source: 'zh', raw: q
+      });
+    });
+    (zh.fromKnowledge || []).forEach((q) => {
+      const key = q.kind || 'kb';
+      items.push({
+        id: q.id, year: '', subject: 'zh', subjectName: '國文',
+        type: ZH_TYPE[key] || q.label || '常識', typeKey: 'zh-' + key,
+        stem: q.stem || '', figure: '', hasFigure: false, source: 'zh-kb', raw: q
+      });
+    });
+    allExamQuestions(en).forEach((q) => {
+      const sec = EN_SEC[q.section] || q.section || '英文';
+      items.push({
+        id: q.id, year: q.year || '', subject: 'en', subjectName: '英文',
+        type: sec, typeKey: 'en-' + (q.section || 'all'),
+        stem: q.stem || '', figure: '', hasFigure: false, source: 'en', raw: q
+      });
+    });
+    (math.units || []).forEach((unit) => {
+      (unit.practice || []).forEach((p, i) => {
+        items.push({
+          id: `math-${unit.id}-${i}`, year: '', subject: 'math', subjectName: '數學基礎',
+          type: '數學練習', typeKey: 'math', chapter: unit.name, chapterKey: 'math-' + unit.id,
+          stem: p.stem || '', figure: p.hasFigure ? (p.figurePath || '') : '',
+          hasFigure: !!p.hasFigure, source: 'math', raw: p
+        });
+      });
+    });
+    _catalog = items;
+    return items;
+  }
+
+  async function bankSummary() {
+    const items = await questionCatalog();
+    const by = { ee: 0, em: 0, en: 0, zh: 0, math: 0 };
+    const ids = { ee: new Set(), em: new Set(), en: new Set(), zh: new Set(), math: new Set() };
+    items.forEach((it) => {
+      if (!by[it.subject] && by[it.subject] !== 0) return;
+      by[it.subject] += 1;
+      ids[it.subject].add(it.id);
+    });
+    const core = by.ee + by.em + by.en + by.zh;
+    return { by, ids, total: items.length, core };
+  }
+
+  function countSeen(st, mistakes, idSet) {
+    const got = new Set();
+    if (!idSet || !idSet.size) return 0;
+    const seen = (st && st.seen) || {};
+    Object.keys(seen).forEach((k) => (seen[k] || []).forEach((id) => { if (idSet.has(id)) got.add(id); }));
+    (mistakes || []).forEach((m) => { if (m.learnId && idSet.has(m.learnId)) got.add(m.learnId); });
+    return got.size;
+  }
+
+  function practicedToday(st, keys, day) {
+    const set = new Set(keys || []);
+    let n = 0;
+    (st && st.history || []).forEach((h) => {
+      if (!set.has(h.subject) || !h.at) return;
+      let d = '';
+      try { d = (typeof dateStr === 'function') ? dateStr(new Date(h.at)) : ''; } catch (_) { d = ''; }
+      if (d !== day) return;
+      n += Number(h.total) || 0;
+    });
+    return n;
+  }
+
+  async function pathSnapshot() {
+    const sug = await todaySuggestions();
+    const math = await loadMath();
+    const tips = await loadTips();
+    const st = sug.st || { bySubject: {}, history: [] };
+    const method = ((tips.categories || []).find((c) => c.id === 'method') || {}).tips || [];
+    return {
+      tips: sug.tips, dueN: sug.dueN, goal: sug.goal, st,
+      units: math.units || [],
+      methodTip: method[0] || null,
+      mathTotal: (st.bySubject.math && st.bySubject.math.total) || 0
+    };
+  }
+
+  function catalogTag(item) {
+    if (item.year) return `${item.year} 年`;
+    if (item.source === 'zh-kb') return '常識';
+    if (item.subject === 'math') return '練習';
+    return '題庫';
+  }
+
+  async function runCatalogQuiz(app, item) {
+    if (item.source === 'pro') return viewExamQuestion(app, item.subject === 'em' ? 'em' : 'ee', item.id);
+    const q = item.raw || {};
+    if (item.source === 'math') {
+      return runQuiz(app, {
+        title: item.type,
+        questions: [{
+          id: item.id, stem: q.stem, choices: q.choices, answer: q.answer,
+          explain: q.explain || '', label: item.type,
+          figurePath: q.figurePath || '', hasFigure: !!q.hasFigure
+        }],
+        mode: 'practice', subjectTab: 'math', source: '題庫・' + item.type
+      });
+    }
+    if (item.subject === 'en') {
+      return runQuiz(app, {
+        title: '英文', questions: [mapEnQuestion(q)],
+        mode: 'practice', subjectTab: 'en', source: '題庫・英文'
+      });
+    }
+    return runQuiz(app, {
+      title: '國文',
+      questions: [{ ...q, lang: 'zh', label: item.type, hasFigure: false }],
+      mode: 'practice', subjectTab: 'zh', source: '題庫・國文'
+    });
+  }
+
+  async function viewBank(app, parts) {
+    const items = await questionCatalog();
+    if (parts[0] === 'q' && parts[1]) {
+      const item = items.find((x) => x.id === parts[1]);
+      if (!item) {
+        app.innerHTML = `<section class="card"><h2>找不到這題</h2><a class="btn btn-primary" href="#bank">回題庫</a></section>`;
+        return;
+      }
+      $('#pageTitle').textContent = '作答';
+      return runCatalogQuiz(app, item);
+    }
+    const paint = () => {
+      const yearOk = (it) => bankState.year === 'all' || String(it.year || '') === String(bankState.year);
+      const subOk = (it) => bankState.subject === 'all' || it.subject === bankState.subject;
+      const base = items.filter((it) => yearOk(it) && subOk(it));
+      const byChapter = bankState.subject === 'math';
+      const typeKeyOf = (it) => byChapter ? (it.chapterKey || it.typeKey) : it.typeKey;
+      const typeNameOf = (it) => byChapter ? (it.chapter || it.type) : it.type;
+      const types = [];
+      const seenType = new Set();
+      base.forEach((it) => {
+        const key = typeKeyOf(it);
+        if (seenType.has(key)) return;
+        seenType.add(key);
+        types.push({ key, name: typeNameOf(it) });
+      });
+      if (bankState.type !== 'all' && !seenType.has(bankState.type)) bankState.type = 'all';
+      const matched = bankState.type === 'all' ? base : base.filter((it) => typeKeyOf(it) === bankState.type);
+      const shown = matched.slice(0, bankState.limit);
+      const years = [...new Set(items.map((it) => it.year).filter(Boolean))].sort((a, b) => b - a);
+      const head = typeof pageHead === 'function'
+        ? pageHead('學習題庫', '題庫', '先縮小年份、科目或類型，再從一題開始作答。難度沒有標，所以這裡不篩難度。')
+        : '<h2>題庫</h2>';
+      app.innerHTML = `
+        ${head}
+        <section class="card">
+          <div class="filter-bar">
+            <label class="field"><span class="field-title">年份</span>
+              <select id="bankYear"><option value="all">全部</option>${years.map((y) => `<option value="${y}" ${String(bankState.year) === String(y) ? 'selected' : ''}>${y}</option>`).join('')}</select>
+            </label>
+            <label class="field"><span class="field-title">科目</span>
+              <select id="bankSubject">
+                ${[['all', '全部'], ['ee', '電工原理'], ['em', '電工機械'], ['zh', '國文'], ['en', '英文'], ['math', '數學基礎']].map(([v, n]) => `<option value="${v}" ${bankState.subject === v ? 'selected' : ''}>${n}</option>`).join('')}
+              </select>
+            </label>
+            <label class="field"><span class="field-title">類型</span>
+              <select id="bankType"><option value="all">全部</option>${types.map((it) => `<option value="${esc(it.key)}" ${bankState.type === it.key ? 'selected' : ''}>${esc(it.name)}</option>`).join('')}</select>
+            </label>
+            <button type="button" class="btn btn-soft" id="bankClear">清除篩選</button>
+          </div>
+        </section>
+        <p class="bank-meta muted small">共 ${matched.length} 題符合條件，目前顯示前 ${shown.length} 題</p>
+        <div class="bank-list">
+          ${shown.map((it) => `<article class="card bank-q">
+            <div class="bank-q-main">
+              <div class="subj-kicker"><span class="tag">${esc(catalogTag(it))}</span><span>${esc(it.subjectName)}／${esc(it.chapter || it.type)}</span></div>
+              <div class="bank-stem">${formatRichText(it.stem || '')}</div>
+              ${it.hasFigure && it.figure ? `<figure class="bank-fig"><img src="${esc(figSrc(it.figure))}" alt="題目附圖" loading="lazy"></figure>` : ''}
+            </div>
+            <a class="btn btn-primary bank-start" href="#bank/q/${encodeURIComponent(it.id)}">開始作答</a>
+          </article>`).join('') || '<section class="card"><p class="muted">沒有符合的題目。</p></section>'}
+        </div>
+        ${matched.length > shown.length ? `<button type="button" class="btn btn-soft" id="bankMore">再顯示 50 題</button>` : ''}`;
+      typesetMath(app);
+      const rerun = (reset) => { if (reset) bankState.limit = 50; paint(); };
+      $('#bankYear').onchange = () => { bankState.year = $('#bankYear').value; rerun(true); };
+      $('#bankSubject').onchange = () => { bankState.subject = $('#bankSubject').value; bankState.type = 'all'; rerun(true); };
+      $('#bankType').onchange = () => { bankState.type = $('#bankType').value; rerun(true); };
+      $('#bankClear').onclick = () => { bankState.year = 'all'; bankState.subject = 'all'; bankState.type = 'all'; rerun(true); };
+      const more = $('#bankMore');
+      if (more) more.onclick = () => { bankState.limit += 50; paint(); };
+    };
+    paint();
+  }
+
+  const EE_FORMULA_UNITS = new Set(['wire-r', 'rc-tau', 'trig']);
+  async function viewFormulas(app) {
+    const math = await loadMath();
+    const units = (math.units || []).map((u) => ({
+      id: u.id,
+      subject: EE_FORMULA_UNITS.has(u.id) ? 'ee' : 'math',
+      subjectName: EE_FORMULA_UNITS.has(u.id) ? '電工原理' : '數學基礎',
+      name: u.name || '',
+      blurb: u.blurb || '',
+      explain: u.explain || '',
+      given: (u.examples && u.examples[0] && u.examples[0].given) || ''
+    }));
+    const state = { subject: 'all', unit: 'all', q: '' };
+    const paint = () => {
+      const q = state.q.trim().toLowerCase();
+      const pool = units.filter((u) => state.subject === 'all' || u.subject === state.subject);
+      const chapters = pool.map((u) => u.id);
+      if (state.unit !== 'all' && !chapters.includes(state.unit)) state.unit = 'all';
+      const shown = pool.filter((u) => {
+        if (state.unit !== 'all' && u.id !== state.unit) return false;
+        if (!q) return true;
+        return (u.name + u.blurb + u.explain + u.given).toLowerCase().includes(q);
+      });
+      const head = typeof pageHead === 'function'
+        ? pageHead('數學基礎', '公式庫', '每一張卡是一個數學單元的代表式與用途。詳情打開原本的單元頁（例題與練習）。')
+        : '<h2>公式庫</h2>';
+      app.innerHTML = `
+        ${head}
+        <section class="card">
+          <div class="filter-bar">
+            <label class="field"><span class="field-title">科目</span>
+              <select id="fxSubject">
+                <option value="all" ${state.subject === 'all' ? 'selected' : ''}>全部科目</option>
+                <option value="math" ${state.subject === 'math' ? 'selected' : ''}>數學基礎</option>
+                <option value="ee" ${state.subject === 'ee' ? 'selected' : ''}>電工原理</option>
+              </select>
+            </label>
+            <label class="field"><span class="field-title">章節</span>
+              <select id="fxUnit"><option value="all">全部章節</option>${pool.map((u) => `<option value="${esc(u.id)}" ${state.unit === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select>
+            </label>
+            <label class="field"><span class="field-title">搜尋</span>
+              <input type="search" id="fxQ" value="${esc(state.q)}" placeholder="公式名稱或關鍵字">
+            </label>
+          </div>
+        </section>
+        <p class="bank-meta muted small">共 ${shown.length} 筆公式</p>
+        <div class="formula-grid">
+          ${shown.map((u) => `<article class="card formula-card">
+            <p class="muted small">${esc(u.subjectName)}／${esc(u.name)}</p>
+            <h3>${esc(u.name)}</h3>
+            <div class="formula-eq">${u.given ? displayMath(u.given) : (u.explain ? formatRichText(u.explain) : '<p class="muted small">這個單元沒有單獨的代表式</p>')}</div>
+            <p class="small"><b>用在哪裡</b>　${formatRichText(u.blurb || u.explain || '')}</p>
+            <a class="btn btn-soft btn-sm" href="#learn-math/${esc(u.id)}">查看詳情</a>
+          </article>`).join('') || '<p class="muted">沒有符合的公式。</p>'}
+        </div>`;
+      typesetMath(app);
+      $('#fxSubject').onchange = () => { state.subject = $('#fxSubject').value; state.unit = 'all'; paint(); };
+      $('#fxUnit').onchange = () => { state.unit = $('#fxUnit').value; paint(); };
+      const input = $('#fxQ');
+      input.oninput = () => { state.q = input.value; paint(); };
+      const again = $('#fxQ');
+      if (again && state.q) { again.focus(); const n = again.value.length; try { again.setSelectionRange(n, n); } catch (_) {} }
+    };
+    paint();
+  }
+
   return {
     viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips, viewFavs,
-    todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank
+    viewBank, viewFormulas,
+    todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank,
+    bankSummary, countSeen, practicedToday, pathSnapshot
   };
 })();

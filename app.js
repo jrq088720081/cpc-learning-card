@@ -336,9 +336,16 @@ async function loadSettings() {
     lastBackup: await DB.meta('lastBackup', null),
     driveBackup: Object.assign(DriveBackup.DEFAULT_DRIVE(), await DB.meta('driveBackup', null) || {}),
     learnLinks: mergeLearnLinks(await DB.meta('learnLinks', null)),
+    learnFavs: await DB.meta('learnFavs', {}) || {},
     dailyGoal: Math.max(1, Math.min(50, Number(await DB.meta('dailyGoal', 10)) || 10)),
-    examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null))
+    examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null)),
+    enTtsRate: await DB.meta('enTtsRate', 'normal') || 'normal'
   };
+  DriveBackup.normalizeSchedule(settings.driveBackup);
+  const scheduleMigrated = !!settings.driveBackup._scheduleMigrated;
+  delete settings.driveBackup._scheduleMigrated;
+  if (!['slow', 'normal', 'fast'].includes(settings.enTtsRate)) settings.enTtsRate = 'normal';
+  if (scheduleMigrated) await saveSettings('driveBackup');
   currentTab = await DB.meta('currentTab', '');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) currentTab = '';
 }
@@ -525,7 +532,31 @@ async function renderTabstrip(show) {
 }
 
 /* ---------- 路由 ---------- */
-const TITLES = { learn: '學習', home: '中油學習卡', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
+const TITLES = { learn: '學習', home: '今日學習', bank: '題庫', path: '學習路徑', notebook: '錯題與公式', formulas: '公式庫', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
+function pageHead(kicker, title, sub, actionHtml) {
+  return `<header class="desk-head"><div class="desk-head-text">${kicker ? `<p class="kicker">${kicker}</p>` : ''}<h2 class="desk-title">${title}</h2>${sub ? `<p class="desk-sub muted">${sub}</p>` : ''}</div>${actionHtml ? `<div class="desk-head-action">${actionHtml}</div>` : ''}</header>`;
+}
+function bottomTabFor(view) {
+  if (view === 'add-done') return 'add';
+  if (view === 'session') return 'review';
+  if (view === 'edit' || view === 'detail' || view === 'practice' || view === 'notebook') return 'list';
+  if (view === 'learn-tips') return 'learn-tips';
+  if (view === 'favs' || view === 'learn-favs') return 'favs';
+  if (view === 'path') return 'home';
+  if (view === 'bank' || view === 'formulas' || view === 'learn-mock' || view.startsWith('learn')) return 'learn';
+  return view;
+}
+function sideTabFor(view) {
+  if (view === 'learn-math') return 'learn-math';
+  if (view === 'learn-mock') return 'learn-mock';
+  if (view === 'learn-tips') return 'learn-tips';
+  if (view === 'favs' || view === 'learn-favs') return 'favs';
+  if (view === 'add-done') return 'add';
+  if (view === 'session') return 'review';
+  if (view === 'edit' || view === 'detail' || view === 'practice') return 'list';
+  if (view.startsWith('learn')) return 'learn';
+  return view;
+}
 function parseHash() {
   const parts = (location.hash.replace(/^#/, '') || 'home').split('/').filter(Boolean).map((p) => {
     try { return decodeURIComponent(p); } catch (_) { return p; }
@@ -540,16 +571,30 @@ async function render() {
     const inQuiz = /^(learn-(ee|em|en|zh|math|tips|mock|favs)|favs)/.test(v);
     if (!inQuiz && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
-  const { view, id } = parseHash();
-  const tab = view === 'add-done' ? 'add' : view === 'session' ? 'review' : view === 'edit' || view === 'detail' || view === 'practice' ? 'list' : view.startsWith('learn') ? 'learn' : view;
-  $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
+  const { view, id, parts } = parseHash();
+  const bottom = bottomTabFor(view);
+  const side = sideTabFor(view);
+  $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === bottom));
+  $$('.desk-nav a.nav-link').forEach((a) => {
+    const on = a.dataset.tab === side;
+    a.classList.toggle('active', on);
+    if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
   $('#pageTitle').textContent = TITLES[view] || TITLES.home;
-  $('#backBtn').hidden = !['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view);
+  const inBankQuiz = view === 'bank' && parts[1] === 'q';
+  const inMockRun = view === 'learn-mock' && parts[1] === 'run';
+  const hero = !inBankQuiz && !inMockRun && ['home', 'bank', 'path', 'notebook', 'formulas', 'learn-mock'].includes(view);
+  document.body.classList.toggle('has-page-hero', hero);
+  $('#backBtn').hidden = !(inBankQuiz || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
   const app = $('#app');
   app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
-  await renderTabstrip(['home', 'review', 'list'].includes(view));
+  await renderTabstrip(['review', 'list'].includes(view));
   try {
     switch (view) {
+      case 'bank': await LearnUI.viewBank(app, parts.slice(1)); break;
+      case 'path': await viewPath(app); break;
+      case 'notebook': await viewNotebook(app); break;
+      case 'formulas': await LearnUI.viewFormulas(app); break;
       case 'learn': await LearnUI.viewLearn(app); break;
       case 'learn-en': await LearnUI.viewEn(app, parseHash().parts.slice(1)); break;
       case 'learn-zh': await viewLearnZh(app, parseHash().parts.slice(1)); break;
@@ -579,7 +624,7 @@ async function render() {
 }
 async function updateBadge() {
   const n = (await DB.all()).filter((m) => isDue(m)).length;
-  const b = $('#dueBadge'); b.hidden = n === 0; b.textContent = n > 99 ? '99+' : n;
+  $$('.due-badge').forEach((b) => { b.hidden = n === 0; b.textContent = n > 99 ? '99+' : String(n); });
 }
 
 /* ---------- 首頁 ---------- */
@@ -707,7 +752,7 @@ async function viewLearnZh(app, parts) {
     <section class="card learn-shell">
       <h2>常識總表 <span class="tag tag-ok">第一批</span></h2>
       <p>依字音字形、古典文學、國學常識、應用文、現代文學分類查表複習。標「考古」者附年份；「延伸補充」為考卷未直接出、但常考的補強。</p>
-      <p class="muted small">本批共 <b>${totals.rows || 0}</b> 筆（考古約 ${totals.exam || 0}、延伸 ${totals.extension || 0}）。離線可讀。刷題區已可用（114＋常識自出）。</p>
+      <p class="muted small">本批共 <b>${totals.rows || 0}</b> 筆（考古約 ${totals.exam || 0}、延伸 ${totals.extension || 0}）。離線可讀。刷題區可多年份複選＋常識自出。</p>
     </section>
     <div class="learn-subjects">${cats || '<p class="muted">尚未載入資料。</p>'}</div>
     <div class="btn-row"><a class="btn btn-soft" href="#learn">回學習</a></div>`;
@@ -762,7 +807,7 @@ async function viewZhTable(app, data, cat, sec) {
         return `<td class="zh-td-note">${zhNoteTag(tag, note)} <span>${esc(val)}</span></td>`;
       }
       if (headCols.includes(i) && doAnnotate) {
-        return `<td>${annotateZhText(val)} ${zhSpeakBtn(val)}</td>`;
+        return `<td>${annotateZhText(val)}</td>`;
       }
       if (i === readingIdx) {
         return `<td class="zh-reading">${esc(val)}</td>`;
@@ -836,116 +881,213 @@ async function viewLearnSubject(app, subject) {
 }
 
 
+const TODAY_SUBJECTS = [
+  { id: 'ee', name: '電工原理', href: '#learn-ee/drill', tone: 'ee', keys: ['ee'] },
+  { id: 'em', name: '電工機械', href: '#learn-em/drill', tone: 'em', keys: ['em'] },
+  { id: 'en', name: '英文', href: '#learn-en', tone: 'en', keys: ['en', 'english'] },
+  { id: 'zh', name: '國文', href: '#learn-zh/quiz', tone: 'zh', keys: ['zh'] }
+];
 async function viewHome(app) {
   const t = today();
   const everything = await DB.all();
-  const all = everything.filter(inTab);
-  const due = all.filter((m) => isDue(m, t));
-  const doneToday = all.filter((m) => reviewedToday(m, t) && !isDue(m, t)).length;
-  const doneN = all.filter((m) => m.status === 'done').length;
-  const quizN = all.filter((m) => isQuizzable(m, t)).length;
   const age = backupAgeDays();
   const canCloud = DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected;
   const backupHtml = everything.length > 0 && (age === null || age > BACKUP_REMIND_DAYS)
     ? `<div class="alert alert-warn" id="backupAlert"><div><b>${age === null ? '你還沒有備份過' : `已經 ${age} 天沒有備份了`}</b><br><span class="small">手機壞掉或清除資料，錯題就會不見。${canCloud ? '可以一鍵備份到 Google 雲端硬碟。' : '建議先下載備份，或到設定連接雲端硬碟。'}</span></div>
        <button class="btn btn-primary btn-sm" id="homeBackup">${canCloud ? '☁ 備份到雲端硬碟' : '立刻備份'}</button></div>` : '';
-  const counts = {};
-  all.forEach((m) => (m.reasons || []).forEach((r) => { counts[r] = (counts[r] || 0) + 1; }));
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const max = sorted.length ? sorted[0][1] : 1;
-  const statHtml = sorted.length
-    ? `<p class="lead">最常錯的是 <b class="hl">${esc(sorted[0][0])}</b>，共 ${sorted[0][1]} 次</p>` +
-      sorted.slice(0, 6).map(([r, n], i) => `<div class="bar-row ${i === 0 ? 'top' : ''}"><div class="bar-label"><span>${esc(r)}</span><b>${n}</b></div><div class="bar"><i style="--w:${Math.round(n / max * 100)}%"></i></div></div>`).join('')
-    : '<p class="muted">還沒有資料。新增錯題時勾選錯誤原因，這裡會統計你最常犯哪一種錯。</p>';
-  const tabName = currentTab ? tabOf(currentTab).name : '全部科目';
-  const iv = currentTab ? intervalsFor(currentTab) : settings.intervals;
-  const totalToday = due.length + doneToday;
-  const donePct = all.length ? Math.round(doneN / all.length * 100) : 0;
   const goal = settings.dailyGoal || 10;
-  const reviewedN = doneToday + due.filter((m) => reviewedToday(m, t)).length; // 今日已判過的 due 也算
-  // 今日該做：以「今天要複習」為主，目標約 goal 題（可在設定改）
-  const todayPlanN = Math.min(due.length, goal);
-  const starN = all.filter((m) => m.starred).length;
+  const summary = await LearnUI.bankSummary();
+  const st = await LearnUI.getStats();
+  let seenAll = 0, bankAll = 0;
+  const cards = TODAY_SUBJECTS.map((s) => {
+    const idSet = summary.ids[s.id] || new Set();
+    const bankN = summary.by[s.id] || 0;
+    const seen = LearnUI.countSeen(st, everything, idSet);
+    const todayN = LearnUI.practicedToday(st, s.keys, t);
+    seenAll += seen;
+    bankAll += bankN;
+    const bar = goal ? Math.min(100, Math.round(todayN / goal * 100)) : 0;
+    return `<article class="card subj-card tone-${s.tone}">
+      <div class="subj-kicker"><span>今日任務</span><span>今日目標 ${goal} 題</span></div>
+      <h3>${esc(s.name)}</h3>
+      <p class="muted small">今天完成 ${todayN} / ${goal} 題、總進度 ${seen} / ${bankN} 題</p>
+      <div class="bar bar-lg"><i class="ok" style="--w:${bar}%"></i></div>
+      <a class="btn btn-primary" href="${s.href}">開始${esc(s.name)}</a>
+    </article>`;
+  }).join('');
+  const pctAll = bankAll ? Math.round(seenAll / bankAll * 100) : 0;
   const ex = settings.examSchedule || DEFAULT_EXAM_SCHEDULE();
   const cd = countdownText(ex.writtenDate, t);
-  const aside = writtenAside(ex);
   const regAlerts = examRegAlerts(ex, t);
   const regAlertHtml = regAlerts.map((a) => `<div class="alert alert-warn exam-reg-alert" role="status"><div><b>報名提醒</b><br><span class="small">${esc(a.text)}（以中油公布為準）</span></div><a class="btn btn-soft btn-sm" href="#settings">看時程</a></div>`).join('');
-  const todaySug = await LearnUI.todaySuggestions();
-  const weakHtml = await LearnUI.weaknessHtml();
-  const sugBtns = todaySug.tips.slice(0, 5).map((x) => `<a class="btn ${x.primary ? 'btn-primary' : 'btn-soft'} btn-sm" href="${x.href}">${esc(x.text)}</a>`).join('');
+  const examHtml = ex.writtenDate
+    ? `<div class="exam-strip"><span>筆試 ${prettyDate(ex.writtenDate)}　${esc(cd)}${ex.status !== 'official' ? '　·　可能為歷屆推估' : ''}　·　${esc(examDisclaimerShort(ex))}</span><a href="#settings">編輯時程</a></div>`
+    : `<div class="alert alert-warn" role="status"><div><b>尚未設定考試日期</b><br><span class="small">倒數與每日節奏會用設定裡的筆試日。目前沒有有效日期。</span></div><a class="btn btn-soft btn-sm" href="#settings">設定考試日期</a></div>`;
+  const known = new Set(['english', 'en', 'zh', 'ee', 'em', 'math']);
+  const extra = (settings.tabs || []).filter((x) => !known.has(x.id));
+  const extraHtml = extra.length ? `<section class="card"><h3>其他分頁</h3>${extra.map((x) => {
+    const items = everything.filter((m) => m.subject === x.id);
+    const d = items.filter((m) => isDue(m, t)).length;
+    return `<button type="button" class="overview-tab" data-tab="${esc(x.id)}"><span><b>${esc(x.name)}</b><br><span class="muted small">${items.length} 題錯題</span></span><span class="${d ? 'pill-bad' : 'pill-ok'}">${d ? `${d} 題要複習` : '今天已清空'}</span></button>`;
+  }).join('')}</section>` : '';
 
   app.innerHTML = `
+    ${pageHead('完成進度', '今日學習', '依每日目標練習國文、英文、電工原理與電工機械。題庫裡做過的題會記成首次完成。')}
+    <nav class="today-jumps" aria-label="相關頁面">
+      <a href="#bank">題庫</a><a href="#path">學習路徑</a><a href="#notebook">錯題</a><a href="#formulas">公式庫</a><a href="#learn-mock">模擬考</a>
+    </nav>
     ${backupHtml}
-    <section class="hero card">
-      ${ring(doneToday, totalToday, due.length, due.length ? '題待複習' : '今天完成')}
-      <div class="hero-text">
-        <div class="eyebrow">${esc(tabName)}・${prettyDate(t)}</div>
-        <h2>${due.length ? `今天還有 ${due.length} 題` : totalToday ? '今天的複習都完成了' : '今天沒有要複習的題目'}</h2>
-        <p class="muted small">${totalToday ? `今天做完 ${doneToday} / ${totalToday}` : '新增的錯題會在明天出現'}</p>
-        ${due.length ? `<a class="btn btn-primary" href="#session" id="homeStart">開始複習</a>` : `<a class="btn btn-soft" href="#add">新增錯題</a>`}
-      </div>
-    </section>
-    ${regAlertHtml}
-    <section class="card exam-countdown" id="examCountdown">
-      <div class="bar-label">
+    <section class="card progress-hero">
+      <div class="progress-hero-top">
         <div>
-          <div class="eyebrow">考試倒數・${esc(ex.title || '甄試')}</div>
-          <h3>${ex.writtenDate ? `${prettyDate(ex.writtenDate)}　${cd}` : '尚未設定筆試日期'}</h3>
-          ${ex.status !== 'official' && ex.writtenDate ? `<span class="tag tag-est">可能為歷屆考試時間</span>` : ''}
+          <div class="eyebrow">每日節奏</div>
+          <h3>先建立每天都做得到的節奏</h3>
+          <p class="muted small">首次完成 ${seenAll} / ${bankAll} 題（本機作答過的題，含已寫進錯題本的題）。四科的今日目標都用設定裡的 ${goal} 題。</p>
         </div>
-        <a class="btn btn-soft btn-sm" href="#settings">編輯時程</a>
+        <div class="progress-pct">${pctAll}%</div>
       </div>
-      <p class="muted small">${esc(aside)}　·　${esc(writtenSourceLabel(ex.status))}　·　${esc(examDisclaimerShort(ex))}</p>
-      <p class="exam-disc muted small">${esc(examDisclaimer(ex))}</p>
-      <ul class="exam-meta muted small">
-        ${ex.prospectusDate ? `<li>簡章公告：${prettyDate(ex.prospectusDate)}</li>` : ''}
-        ${(ex.registerStart || ex.registerEnd) ? `<li>報名：${ex.registerStart ? prettyDate(ex.registerStart) : '？'}${ex.registerEnd ? '～' + prettyDate(ex.registerEnd) : ''}</li>` : ''}
-        ${ex.secondStart ? `<li>第二試：${prettyDate(ex.secondStart)}${ex.secondEnd ? '～' + prettyDate(ex.secondEnd) : ''}</li>` : ''}
-        ${ex.certDeadline ? `<li>證書繳交截止：${prettyDate(ex.certDeadline)}</li>` : ''}
-      </ul>
-      <div class="exam-links btn-row" style="margin-top:8px;flex-wrap:wrap">
-        ${(ex.links || []).filter((l) => l.url).map((l) => `<a class="btn btn-soft btn-sm" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join('') || `<a class="btn btn-soft btn-sm" href="https://www.cpc.com.tw/News.aspx?n=32" target="_blank" rel="noopener">中油就業資訊</a>`}
-      </div>
-      ${ex.note ? `<p class="muted small">備註：${esc(ex.note)}</p>` : ''}
+      <div class="bar bar-lg"><i class="ok" style="--w:${pctAll}%"></i></div>
     </section>
-    <section class="card today-plan" id="todayPlan">
-      <div class="eyebrow">今日該做</div>
-      <h3>複習 ${due.length} 題${due.length > goal ? `（建議先做 ${goal} 題）` : ''}　·　學習建議</h3>
-      <p class="muted small">一次大約 ${goal} 題（設定可改）。今日已複習進度：${Math.min(doneToday, goal)} / ${goal}</p>
-      <div class="bar bar-lg" style="margin:8px 0 12px"><i class="ok" style="--w:${Math.min(100, Math.round(doneToday / goal * 100))}%"></i></div>
-      <div class="btn-row" style="flex-wrap:wrap">
-        ${due.length ? `<a class="btn btn-primary" href="#session">開始今日複習</a>` : `<a class="btn btn-soft" href="#add">沒有待複習・去新增</a>`}
-        ${sugBtns}
-        ${starN ? `<a class="btn btn-soft" href="#list">★ 收藏 ${starN}</a>` : ''}<a class="btn btn-soft" href="#favs">★ 我的最愛 ${Object.keys(settings.learnFavs || {}).length}</a>
-      </div>
-    </section>
-    <div class="stats">
-      <div class="stat"><b id="statDue" class="c-bad">${due.length}</b><span>今天要複習</span></div>
-      <div class="stat"><b id="statTotal">${all.length}</b><span>總題數</span></div>
-      <button type="button" class="stat stat-link" id="statDoneBtn"><b id="statDone" class="c-ok">${doneN}</b><span>已完成複習</span></button>
-    </div>
-    ${quizN ? `<button type="button" class="quiz-hint" id="quizHint"><span class="quiz-ico">🎯</span><span><b>有 ${quizN} 題可以抽考</b><br><span class="small">完成複習已超過 ${QUIZ_AFTER_DAYS} 天，有空可以抽幾題看看還記不記得（不會自動排進複習）。</span></span><span class="chev">›</span></button>` : ''}
-    <div class="card">
-      <div class="bar-label"><h3>完成進度</h3><b>${donePct}%</b></div>
-      <div class="bar bar-lg"><i class="ok" style="--w:${donePct}%"></i></div>
-      <p class="muted small" style="margin-top:8px">複習間隔：${iv.map((d) => d + ' 天').join(' → ')}${isEbb(iv) ? '（預設：艾賓浩斯記憶曲線）' : '（自訂）'}</p>
-    </div>
-    ${!currentTab && settings.tabs.length ? `<div class="card"><h3>各分頁</h3>${settings.tabs.map((x) => {
-      const items = everything.filter((m) => m.subject === x.id); const d = items.filter((m) => isDue(m, t)).length;
-      return `<button type="button" class="overview-tab" data-tab="${esc(x.id)}"><span><b>${esc(x.name)}</b><br><span class="muted small">${items.length} 題・${esc(categoryOf(x.category).name)}</span></span><span class="${d ? 'pill-bad' : 'pill-ok'}">${d ? `${d} 題要複習` : '今天已清空'}</span></button>`;
-    }).join('')}</div>` : ''}
-    <div class="card" id="weakBoard"><div class="bar-label"><h3>弱點看板</h3></div>
-      <p class="muted small">依科目分頁＋錯因；學習區練習正確率一併顯示。</p>
-      ${weakHtml}</div>
+    ${examHtml}
+    ${regAlertHtml}
+    <div class="subj-grid">${cards}</div>
+    ${extraHtml}
     <p class="muted small center">上次備份：${age === null ? '從沒備份過' : age === 0 ? '今天' : `${age} 天前`}</p>`;
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
     if (DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected) await uploadBackupToDrive();
     else await exportBackup();
   };
-  $('#statDoneBtn').onclick = () => { Object.assign(filters, { status: 'done', quiz: false, onlyDue: false }); location.hash = '#list'; };
-  const qh = $('#quizHint'); if (qh) qh.onclick = () => { Object.assign(filters, { status: 'done', quiz: true, onlyDue: false }); location.hash = '#list'; };
-  $$('.overview-tab', app).forEach((b) => { b.onclick = async () => { await setCurrentTab(b.dataset.tab); render(); }; });
+  $$('.overview-tab', app).forEach((b) => { b.onclick = async () => { await setCurrentTab(b.dataset.tab); location.hash = '#list'; }; });
+}
+
+async function viewPath(app) {
+  const t = today();
+  const everything = await DB.all();
+  const due = everything.filter((m) => isDue(m, t));
+  const snap = await LearnUI.pathSnapshot();
+  const st = snap.st || { bySubject: {} };
+  const names = { ee: '電工原理', em: '電工機械', en: '英文', english: '英文', zh: '國文', math: '數學基礎' };
+  const hrefs = { ee: '#learn-ee/drill', em: '#learn-em/drill', en: '#learn-en', english: '#learn-en', zh: '#learn-zh/quiz', math: '#learn-math' };
+  const weak = Object.entries(st.bySubject || {})
+    .filter(([, s]) => s && s.total >= 5)
+    .sort((a, b) => (a[1].correct / a[1].total) - (b[1].correct / b[1].total))[0];
+  const method = snap.methodTip;
+  let stageTitle = '建立節奏';
+  let stageBody = method ? method.title : '先養成每天固定的練習時間';
+  if (due.length) {
+    stageTitle = '先處理待複習';
+    stageBody = `錯題本今天有 ${due.length} 題要複習`;
+  } else if (weak) {
+    stageTitle = '弱科加強';
+    stageBody = `${names[weak[0]] || weak[0]}　練習正確率 ${LearnUI.accuracyOf(st, weak[0])}%（${weak[1].total} 題）`;
+  } else {
+    const total = Object.values(st.bySubject || {}).reduce((n, s) => n + (s.total || 0), 0);
+    if (total > 0) {
+      stageTitle = '持續練習';
+      stageBody = `學習區累計作答 ${total} 題`;
+    }
+  }
+  let nextTitle = '數學基礎';
+  let nextBody = '打開數學單元，從教材順序往下練';
+  let nextHref = '#learn-math';
+  if (due.length) {
+    nextTitle = '今日複習';
+    nextBody = `先做 ${Math.min(due.length, snap.goal || 10)} 題待複習錯題`;
+    nextHref = '#session';
+  } else if (weak && hrefs[weak[0]]) {
+    nextTitle = names[weak[0]] || weak[0];
+    nextBody = '正確率最低、且已作答至少 5 題的科目';
+    nextHref = hrefs[weak[0]];
+  } else if (!snap.mathTotal && snap.units[0]) {
+    nextTitle = snap.units[0].name;
+    nextBody = '數學基礎尚無練習紀錄。這是教材第一個單元，不是估出來的章節進度。';
+    nextHref = `#learn-math/${snap.units[0].id}`;
+  } else if (snap.mathTotal) {
+    nextBody = `數學已練習 ${snap.mathTotal} 題。各單元完成度沒有逐題記錄，所以不標「已學到哪一章」。`;
+  }
+  const steps = [];
+  if (due.length) steps.push({ href: '#session', text: `複習錯題 ${Math.min(due.length, snap.goal || 10)} 題` });
+  steps.push({ href: '#learn-zh/quiz', text: '國文刷題' });
+  steps.push({ href: '#learn-ee/drill', text: '電工原理刷題' });
+  steps.push({ href: '#learn-em/drill', text: '電工機械刷題' });
+  steps.push({ href: '#learn-en', text: '英文練習' });
+  if (!snap.mathTotal && snap.units[0]) steps.push({ href: `#learn-math/${snap.units[0].id}`, text: `數學：${snap.units[0].name}` });
+  else steps.push({ href: '#learn-math', text: '數學基礎' });
+  steps.push({ href: '#learn-tips', text: '備考技巧' });
+  steps.push({ href: '#learn-mock', text: '計時模擬考' });
+  app.innerHTML = `
+    ${pageHead('學習工作區', '學習路徑', '用錯題待複習、練習正確率、數學單元順序和備考技巧，排出現在該做的下一步。', '<a class="btn btn-primary" href="#home">查看今日學習</a>')}
+    <div class="path-grid">
+      <section class="card">
+        <p class="kicker">目前階段</p>
+        <h3>${esc(stageTitle)}</h3>
+        <p class="muted">${esc(stageBody)}</p>
+      </section>
+      <section class="card">
+        <p class="kicker">下一個節點</p>
+        <h3>${esc(nextTitle)}</h3>
+        <p class="muted">${esc(nextBody)}</p>
+        <a class="btn btn-primary" href="${nextHref}">前往</a>
+      </section>
+    </div>
+    <section class="card">
+      <h3>本週路徑</h3>
+      <p class="muted small">清單接現有頁面：錯題複習、四科練習、數學基礎、備考技巧、模擬考。每日題數沿用設定的 ${snap.goal || 10} 題。</p>
+      <ul class="path-list">${steps.map((s) => `<li><a href="${s.href}">${esc(s.text)}</a></li>`).join('')}</ul>
+    </section>`;
+}
+
+async function viewNotebook(app) {
+  const t = today();
+  const everything = await DB.all();
+  const due = everything.filter((m) => isDue(m, t));
+  const quizN = everything.filter((m) => isQuizzable(m, t)).length;
+  const snap = await LearnUI.pathSnapshot();
+  const iv = settings.intervals || [];
+  const counts = {};
+  everything.forEach((m) => (m.reasons || []).forEach((r) => { counts[r] = (counts[r] || 0) + 1; }));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  const duePreview = due.slice(0, 3).map((m) => `<li>${esc(m.chapter || m.qText || '未填章節')}</li>`).join('');
+  app.innerHTML = `
+    ${pageHead('錯題與公式', '錯題與公式', '待複習的錯題在錯題本；常用公式收在數學基礎，這裡只做入口。', '<a class="btn btn-primary" href="#formulas">前往公式庫</a>')}
+    <div class="path-grid">
+      <section class="card">
+        <p class="kicker">待複習錯題</p>
+        <h3>${due.length ? `${due.length} 題` : '尚無待複習'}</h3>
+        ${due.length ? `<ul class="path-list">${duePreview}</ul>${due.length > 3 ? `<p class="muted small">另有 ${due.length - 3} 題在複習清單。</p>` : ''}<a class="btn btn-primary" href="#session">開始複習</a>` : `<p class="muted">今天沒有到期的錯題。新題會依間隔出現。</p><a class="btn btn-soft" href="#list">打開錯題列表</a>`}
+      </section>
+      <section class="card">
+        <p class="kicker">常用公式</p>
+        <h3>${snap.units.length} 個數學單元</h3>
+        <p class="muted">公式與例題在數學基礎。電工相關的電阻、時間常數、相位差也列在公式庫。</p>
+        <a class="btn btn-soft" href="#formulas">從公式庫查看</a>
+      </section>
+    </div>
+    <section class="card">
+      <h3>複習方式</h3>
+      <p class="muted small">${top ? `目前最常勾的錯因是「${esc(top[0])}」（${top[1]} 次）。` : '還沒有錯因紀錄。新增或刷題答錯時可以勾原因。'}</p>
+      <ul class="path-list">
+        <li>間隔：${iv.map((d) => esc(String(d)) + ' 天').join(' → ')}${isEbb(iv) ? '（預設艾賓浩斯）' : '（自訂）'}</li>
+        <li>答錯回到第 1 關，${esc(String(iv[0] || 1))} 天後再出現</li>
+        <li>標記完成後，超過 ${QUIZ_AFTER_DAYS} 天可以抽考，不會自動排進今天${quizN ? `（目前 ${quizN} 題可抽考）` : ''}</li>
+        <li>學習區答錯可勾原因，寫進同一本錯題本</li>
+      </ul>
+      <div class="btn-row" style="margin-top:12px">
+        <a class="btn btn-soft" href="#list">錯題列表</a>
+        <a class="btn btn-soft" href="#learn-math">數學基礎</a>
+      </div>
+    </section>`;
+  if (quizN) {
+    const row = document.createElement('p');
+    row.className = 'muted small';
+    row.innerHTML = `<a href="#list" id="quizHintLink">查看可抽考的 ${quizN} 題</a>`;
+    app.appendChild(row);
+    $('#quizHintLink').onclick = (e) => {
+      e.preventDefault();
+      Object.assign(filters, { status: 'done', quiz: true, onlyDue: false });
+      location.hash = '#list';
+    };
+  }
 }
 
 /* ---------- 今天要複習 ---------- */
@@ -1601,6 +1743,7 @@ async function buildBackupBlob() {
     folderName: settings.driveBackup.folderName || '',
     scheduleEnabled: !!settings.driveBackup.scheduleEnabled,
     scheduleKind: settings.driveBackup.scheduleKind || 'weekly',
+    scheduleEveryDays: DriveBackup.clampEveryDays(settings.driveBackup.scheduleEveryDays),
     scheduleTime: settings.driveBackup.scheduleTime || '21:00',
     scheduleWeekday: settings.driveBackup.scheduleWeekday ?? 0,
     lastCloudBackupAt: settings.driveBackup.lastCloudBackupAt || null,
@@ -1703,11 +1846,14 @@ async function importBackup(file, mode) {
         folderName: s.driveBackup.folderName || settings.driveBackup.folderName,
         scheduleEnabled: !!s.driveBackup.scheduleEnabled,
         scheduleKind: s.driveBackup.scheduleKind || settings.driveBackup.scheduleKind,
+        scheduleEveryDays: s.driveBackup.scheduleEveryDays ?? settings.driveBackup.scheduleEveryDays,
         scheduleTime: s.driveBackup.scheduleTime || settings.driveBackup.scheduleTime,
         scheduleWeekday: s.driveBackup.scheduleWeekday ?? settings.driveBackup.scheduleWeekday,
         lastCloudBackupAt: s.driveBackup.lastCloudBackupAt || null,
         lastCloudBackupDate: s.driveBackup.lastCloudBackupDate || null
       });
+      DriveBackup.normalizeSchedule(settings.driveBackup);
+      delete settings.driveBackup._scheduleMigrated;
     }
   } else {
     const existing = new Map((await DB.all()).map((m) => [m.id, m]));
@@ -1815,8 +1961,11 @@ async function viewSettings(app) {
                   <select id="schedKind">
                     <option value="daily" ${db.scheduleKind === 'daily' ? 'selected' : ''}>每天</option>
                     <option value="weekly" ${db.scheduleKind === 'weekly' ? 'selected' : ''}>每週</option>
-                    <option value="monthly30" ${db.scheduleKind === 'monthly30' ? 'selected' : ''}>每 30 天</option>
+                    <option value="custom" ${db.scheduleKind === 'custom' ? 'selected' : ''}>自訂天數</option>
                   </select>
+                </label>
+                <label class="field" id="schedDaysWrap" ${db.scheduleKind === 'custom' ? '' : 'hidden'}><span class="field-title">每隔幾天</span>
+                  <input type="number" id="schedEveryDays" min="1" max="365" step="1" inputmode="numeric" value="${DriveBackup.clampEveryDays(db.scheduleEveryDays)}">
                 </label>
                 <label class="field" id="schedWdWrap" ${db.scheduleKind === 'weekly' ? '' : 'hidden'}><span class="field-title">星期</span>
                   <select id="schedWeekday">${weekNames.map((n, i) => `<option value="${i}" ${(+db.scheduleWeekday === i) ? 'selected' : ''}>週${n}</option>`).join('')}</select>
@@ -1964,13 +2113,20 @@ async function viewSettings(app) {
     } catch (err) { toast('選擇資料夾失敗：' + err.message); }
   };
   const sk = $('#schedKind');
-  if (sk) sk.onchange = () => { $('#schedWdWrap').hidden = sk.value !== 'weekly'; };
+  if (sk) sk.onchange = () => {
+    const wd = $('#schedWdWrap'); if (wd) wd.hidden = sk.value !== 'weekly';
+    const days = $('#schedDaysWrap'); if (days) days.hidden = sk.value !== 'custom';
+  };
   const bs = $('#btnSaveSched');
   if (bs) bs.onclick = async () => {
     settings.driveBackup.scheduleEnabled = $('#schedEnabled').checked;
     settings.driveBackup.scheduleKind = $('#schedKind').value;
+    settings.driveBackup.scheduleEveryDays = DriveBackup.clampEveryDays($('#schedEveryDays') && $('#schedEveryDays').value);
     settings.driveBackup.scheduleTime = $('#schedTime').value || '21:00';
     settings.driveBackup.scheduleWeekday = +$('#schedWeekday').value;
+    DriveBackup.normalizeSchedule(settings.driveBackup);
+    delete settings.driveBackup._scheduleMigrated;
+    if ($('#schedEveryDays')) $('#schedEveryDays').value = settings.driveBackup.scheduleEveryDays;
     await saveDrive();
     toast('已儲存排程'); $('#schedHint').textContent = DriveBackup.nextDueLabel(settings.driveBackup);
   };
