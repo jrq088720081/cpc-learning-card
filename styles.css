@@ -263,7 +263,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 /* 底部導覽 */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-  display: grid; grid-template-columns: repeat(7, 1fr);
+  display: grid; grid-template-columns: repeat(8, 1fr);
   background: color-mix(in srgb, var(--card) 92%, transparent);
   backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
   border-top: 1px solid var(--line);
@@ -377,7 +377,7 @@ button.stat.stat-link:active { transform: scale(.97); }
     width: 100%;
     height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(8, 1fr);
     flex-direction: unset;
     justify-content: stretch;
     align-items: stretch;
@@ -476,15 +476,16 @@ button.stat.stat-link:active { transform: scale(.97); }
   .learn-subjects { grid-template-columns: 1fr 1fr; gap: 14px; }
 }
 
-/* 六項底欄：略縮小標籤以免擠爆（手機與電腦相同底欄） */
-.tabbar a { font-size: .68rem; gap: 2px; min-width: 0; }
-.tabbar a .ico { width: 22px; height: 22px; }
-.tabbar .fab { width: 46px; height: 46px; margin-top: -18px; border-radius: 15px; }
-.tabbar .fab .ico { width: 24px; height: 24px; }
+/* 八項底欄：略縮小標籤以免擠爆（手機與電腦相同底欄） */
+.tabbar a { font-size: .64rem; gap: 1px; min-width: 0; padding: 0 1px; }
+.tabbar a span { white-space: nowrap; letter-spacing: 0; }
+.tabbar a .ico { width: 20px; height: 20px; }
+.tabbar .fab { width: 44px; height: 44px; margin-top: -16px; border-radius: 14px; }
+.tabbar .fab .ico { width: 22px; height: 22px; }
 @media (min-width: 768px) {
-  .tabbar a { font-size: .72rem; }
-  .tabbar a .ico { width: 24px; height: 24px; }
-  .tabbar .fab { width: 50px; height: 50px; margin-top: -22px; }
+  .tabbar a { font-size: .72rem; gap: 2px; padding: 0; }
+  .tabbar a .ico { width: 22px; height: 22px; }
+  .tabbar .fab { width: 48px; height: 48px; margin-top: -20px; }
 }
 
 
