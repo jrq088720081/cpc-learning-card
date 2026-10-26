@@ -633,11 +633,26 @@ button.stat.stat-link:active { transform: scale(.97); }
   overflow-x: auto; font-size: 1.05rem;
   text-align: left;
 }
-/* katex.min.css 的 .katex-display 預設置中；這裡用更高特異性改回靠左（含最終答案） */
+/* katex.min.css 的 .katex-display 預設置中；例題、最終答案與詳解改靠左 */
 .math-block .katex-display,
-.math-final .katex-display {
+.math-final .katex-display,
+.math-step-calcs .katex-display,
+.math-ex .katex-display,
+.q-explain .katex-display,
+.explain-body .katex-display,
+.tip-body .katex-display {
+  display: block;
   text-align: left;
   margin: 0.4em 0;
+}
+.math-block .katex-display > .katex,
+.math-final .katex-display > .katex,
+.math-step-calcs .katex-display > .katex,
+.math-ex .katex-display > .katex,
+.q-explain .katex-display > .katex,
+.explain-body .katex-display > .katex,
+.tip-body .katex-display > .katex {
+  text-align: left;
 }
 .math-ex .katex { font-size: 1.08em; }
 .mc-choice .katex, .q-stem .katex { font-size: 1.02em; }
@@ -681,8 +696,15 @@ button.stat.stat-link:active { transform: scale(.97); }
 }
 .math-step-title { font-weight: 700; margin-bottom: 4px; }
 .math-step-reason { margin: 0 0 6px; }
-.math-step-calcs .katex-display { margin: 0.35em 0; }
+.math-step-calcs { text-align: left; }
+.math-step-calcs .katex-display { margin: 0.35em 0; text-align: left; }
+.math-final,
+.math-given { text-align: left; }
 .math-final { border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line)); }
+.q-explain,
+.explain-body,
+.explain-line,
+.tip-body { text-align: left; }
 .explain-body { margin-top: 6px; }
 .explain-line { margin: 6px 0; line-height: 1.55; }
 .explain-answer { font-weight: 600; }
