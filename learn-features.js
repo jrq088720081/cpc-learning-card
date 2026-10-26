@@ -68,6 +68,52 @@ const LearnUI = (() => {
     }
     return _examLinks;
   }
+  let _formulas;
+  async function loadFormulas() {
+    if (_formulas) return _formulas;
+    let raw = window.__EXAM_FORMULAS__;
+    if (!raw) {
+      try { raw = await (await fetch('./data/exam/formulas.json')).json(); }
+      catch { raw = { formulas: [] }; }
+    }
+    const formulas = raw.formulas || [];
+    const byId = {};
+    const byQuestion = {};
+    formulas.forEach((f) => {
+      byId[f.id] = f;
+      (f.questionIds || []).forEach((qid) => {
+        if (!byQuestion[qid]) byQuestion[qid] = [];
+        if (!byQuestion[qid].includes(f.id)) byQuestion[qid].push(f.id);
+      });
+    });
+    _formulas = { formulas, byId, byQuestion, meta: raw.meta || {} };
+    return _formulas;
+  }
+  const FORMULA_SUBJECT = { ee: '電工原理', em: '電工機械', math: '數學' };
+  function formulaSubjectName(subject) {
+    return FORMULA_SUBJECT[subject] || subject || '';
+  }
+  function formulaChipsForQuestion(q, data) {
+    if (!q || !data || !q.id) return '';
+    const ids = (data.byQuestion || {})[q.id] || [];
+    if (!ids.length) return '';
+    const chips = ids.map((fid) => {
+      const f = (data.byId || {})[fid];
+      if (!f) return '';
+      return `<a class="chip chip-formula" href="#formulas/${esc(fid)}">${esc(f.name)}</a>`;
+    }).filter(Boolean).join('');
+    if (!chips) return '';
+    return `<div class="link-chips muted small"><span>相關公式：</span>${chips}</div>`;
+  }
+  function stemSummary(stem, n) {
+    const s = String(stem || '').replace(/\s+/g, ' ').trim();
+    const lim = n || 72;
+    return s.length > lim ? s.slice(0, lim) + '…' : s;
+  }
+  function examQuestionHref(q) {
+    const track = q && q.track === 'em' ? 'em' : 'ee';
+    return `#learn-${track}/q/${encodeURIComponent(q.id)}`;
+  }
   function mathChipsForQuestion(q, links) {
     if (!q || !links) return '';
     const units = (links.byQuestion || {})[q.id] || q.mathUnits || [];
@@ -547,6 +593,7 @@ const LearnUI = (() => {
       ? `<div class="q-explain card soft-card"><b>詳解</b><div class="explain-body">${explainHtml}</div>
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
           ${sourceTagHtml(q)}
+          ${reveal ? (q._formulaChipsHtml || '') : ''}
           ${reveal ? (q._mathChipsHtml || '') : ''}
         </div>` : '';
     return `
@@ -657,10 +704,16 @@ const LearnUI = (() => {
       startedAt: Date.now(),
       endsAt: durationSec ? Date.now() + durationSec * 1000 : null,
       finished: false,
-      examLinks: null
+      examLinks: null,
+      formulas: null
     };
     _runner = state;
-    loadExamLinks().then((L) => { state.examLinks = L; }).catch(() => {});
+    try {
+      const [examLinks, formulas] = await Promise.all([loadExamLinks(), loadFormulas()]);
+      if (_runner !== state) return;
+      state.examLinks = examLinks;
+      state.formulas = formulas;
+    } catch (_) {}
 
     const tick = () => {
       if (!state.endsAt || state.finished) return;
@@ -745,6 +798,8 @@ const LearnUI = (() => {
       const reveal = state.mode === 'mock' ? false : !!state.revealed[q.id];
       if (reveal && state.examLinks) q._mathChipsHtml = mathChipsForQuestion(q, state.examLinks);
       else q._mathChipsHtml = '';
+      if (reveal && state.formulas) q._formulaChipsHtml = formulaChipsForQuestion(q, state.formulas);
+      else q._formulaChipsHtml = '';
       const left = state.endsAt ? (state.endsAt - Date.now()) / 1000 : null;
       q._fav = !!(settings.learnFavs || {})[q.id];
       q.lang = q.lang || (subjectTab === 'en' || subjectTab === 'english' ? 'en' : (subjectTab === 'zh' ? 'zh' : ''));
@@ -1774,68 +1829,108 @@ const LearnUI = (() => {
     paint();
   }
 
-  const EE_FORMULA_UNITS = new Set(['wire-r', 'rc-tau', 'trig']);
-  async function viewFormulas(app) {
-    const math = await loadMath();
-    const units = (math.units || []).map((u) => ({
-      id: u.id,
-      subject: EE_FORMULA_UNITS.has(u.id) ? 'ee' : 'math',
-      subjectName: EE_FORMULA_UNITS.has(u.id) ? '電工原理' : '數學基礎',
-      name: u.name || '',
-      blurb: u.blurb || '',
-      explain: u.explain || '',
-      given: (u.examples && u.examples[0] && u.examples[0].given) || ''
-    }));
-    const state = { subject: 'all', unit: 'all', q: '' };
+  async function viewFormulaDetail(app, formula, bank, examLinks) {
+    $('#pageTitle').textContent = formula.name || '公式';
+    const byId = new Map();
+    (bank.questions || []).forEach((q) => { if (q && q.id && !byId.has(q.id)) byId.set(q.id, q); });
+    const related = (formula.questionIds || []).map((id) => byId.get(id)).filter(Boolean);
+    related.sort((a, b) => (b.year - a.year) || ((a.qnum || 0) - (b.qnum || 0)));
+    const names = (examLinks.meta && examLinks.meta.unitNames) || {};
+    const unitChips = (formula.mathUnitIds || []).map((uid) => {
+      const name = names[uid] || uid;
+      return `<a class="chip chip-math" href="#learn-math/${esc(uid)}">對應數學單元：${esc(name)}</a>`;
+    }).join('');
+    const origin = formula.origin || '歷屆';
+    app.innerHTML = `
+      <section class="card formula-card">
+        <div class="formula-tags">
+          <span class="tag">${esc(formulaSubjectName(formula.subject))}</span>
+          <span class="tag tag-exam">${esc(origin)}</span>
+        </div>
+        <h2>${esc(formula.name || '')}</h2>
+        <div class="formula-eq">${formula.tex ? displayMath(formula.tex) : ''}</div>
+        <p>${esc(formula.plain || formula.blurb || '')}</p>
+        ${unitChips ? `<div class="link-chips muted small"><span>數學基礎：</span>${unitChips}</div>` : ''}
+        <div class="btn-row" style="margin-top:12px"><a class="btn btn-soft" href="#formulas">回公式庫</a></div>
+      </section>
+      <section class="card">
+        <h3>相關歷屆</h3>
+        <p class="muted small">點一題就進原題作答，詳解旁可再連回這條公式。</p>
+        <div class="formula-related">
+          ${related.map((q) => `<a class="formula-q" href="${examQuestionHref(q)}">
+            <b>${esc(String(q.year || ''))} 年 #${esc(String(q.qnum || ''))}　${esc(q.track === 'em' ? '電工機械' : '電工原理')}</b>
+            <span class="small">${esc(stemSummary(q.stem))}</span>
+          </a>`).join('') || '<p class="muted">這條公式還沒有對上的歷屆題。</p>'}
+        </div>
+      </section>`;
+    typesetMath(app);
+  }
+
+  async function viewFormulas(app, parts) {
+    const data = await loadFormulas();
+    const formulas = data.formulas || [];
+    const fid = parts && parts[0];
+    if (fid) {
+      const formula = (data.byId || {})[fid];
+      if (!formula) {
+        $('#pageTitle').textContent = '公式庫';
+        app.innerHTML = `<section class="card"><h2>找不到這條公式</h2><a class="btn btn-primary" href="#formulas">回公式庫</a></section>`;
+        return;
+      }
+      const [bank, examLinks] = await Promise.all([loadBank(), loadExamLinks()]);
+      return viewFormulaDetail(app, formula, bank, examLinks);
+    }
+    const state = { subject: 'all', q: '' };
     const paint = () => {
       const q = state.q.trim().toLowerCase();
-      const pool = units.filter((u) => state.subject === 'all' || u.subject === state.subject);
-      const chapters = pool.map((u) => u.id);
-      if (state.unit !== 'all' && !chapters.includes(state.unit)) state.unit = 'all';
-      const shown = pool.filter((u) => {
-        if (state.unit !== 'all' && u.id !== state.unit) return false;
+      const shown = formulas.filter((f) => {
+        if (state.subject !== 'all' && f.subject !== state.subject) return false;
         if (!q) return true;
-        return (u.name + u.blurb + u.explain + u.given).toLowerCase().includes(q);
+        const blob = [f.name, f.blurb, f.plain, f.tex, formulaSubjectName(f.subject), f.origin].join(' ');
+        return blob.toLowerCase().includes(q);
       });
       const head = typeof pageHead === 'function'
-        ? pageHead('數學基礎', '公式庫', '每一張卡是一個數學單元的代表式與用途。詳情打開原本的單元頁（例題與練習）。')
+        ? pageHead('歷屆公式', '公式庫', '每一張卡是歷屆試題會用到的一條公式。點進去看說明，並連到相關考題。')
         : '<h2>公式庫</h2>';
       app.innerHTML = `
         ${head}
         <section class="card">
-          <div class="filter-bar">
+          <div class="filter-bar formula-filters">
             <label class="field"><span class="field-title">科目</span>
               <select id="fxSubject">
                 <option value="all" ${state.subject === 'all' ? 'selected' : ''}>全部科目</option>
-                <option value="math" ${state.subject === 'math' ? 'selected' : ''}>數學基礎</option>
                 <option value="ee" ${state.subject === 'ee' ? 'selected' : ''}>電工原理</option>
+                <option value="em" ${state.subject === 'em' ? 'selected' : ''}>電工機械</option>
+                <option value="math" ${state.subject === 'math' ? 'selected' : ''}>數學</option>
               </select>
             </label>
-            <label class="field"><span class="field-title">章節</span>
-              <select id="fxUnit"><option value="all">全部章節</option>${pool.map((u) => `<option value="${esc(u.id)}" ${state.unit === u.id ? 'selected' : ''}>${esc(u.name)}</option>`).join('')}</select>
-            </label>
             <label class="field"><span class="field-title">搜尋</span>
-              <input type="search" id="fxQ" value="${esc(state.q)}" placeholder="公式名稱或關鍵字">
+              <input type="search" id="fxQ" value="${esc(state.q)}" placeholder="公式名稱、用途或式子">
             </label>
           </div>
         </section>
         <p class="bank-meta muted small">共 ${shown.length} 筆公式</p>
         <div class="formula-grid">
-          ${shown.map((u) => `<article class="card formula-card">
-            <p class="muted small">${esc(u.subjectName)}／${esc(u.name)}</p>
-            <h3>${esc(u.name)}</h3>
-            <div class="formula-eq">${u.given ? displayMath(u.given) : (u.explain ? formatRichText(u.explain) : '<p class="muted small">這個單元沒有單獨的代表式</p>')}</div>
-            <p class="small"><b>用在哪裡</b>　${formatRichText(u.blurb || u.explain || '')}</p>
-            <a class="btn btn-soft btn-sm" href="#learn-math/${esc(u.id)}">查看詳情</a>
+          ${shown.map((f) => `<article class="card formula-card">
+            <div class="formula-tags">
+              <span class="tag">${esc(formulaSubjectName(f.subject))}</span>
+              <span class="tag tag-exam">${esc(f.origin || '歷屆')}</span>
+            </div>
+            <h3>${esc(f.name || '')}</h3>
+            <div class="formula-eq">${f.tex ? displayMath(f.tex) : ''}</div>
+            <p class="small">${esc(f.blurb || '')}</p>
+            <a class="btn btn-soft btn-sm" href="#formulas/${esc(f.id)}">查看詳情</a>
           </article>`).join('') || '<p class="muted">沒有符合的公式。</p>'}
         </div>`;
       typesetMath(app);
-      $('#fxSubject').onchange = () => { state.subject = $('#fxSubject').value; state.unit = 'all'; paint(); };
-      $('#fxUnit').onchange = () => { state.unit = $('#fxUnit').value; paint(); };
+      $('#fxSubject').onchange = () => { state.subject = $('#fxSubject').value; paint(); };
       const input = $('#fxQ');
       input.oninput = () => { state.q = input.value; paint(); };
-      const again = $('#fxQ');
-      if (again && state.q) { again.focus(); const n = again.value.length; try { again.setSelectionRange(n, n); } catch (_) {} }
+      if (input && state.q) {
+        input.focus();
+        const n = input.value.length;
+        try { input.setSelectionRange(n, n); } catch (_) {}
+      }
     };
     paint();
   }
