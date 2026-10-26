@@ -525,7 +525,7 @@ async function renderTabstrip(show) {
 }
 
 /* ---------- 路由 ---------- */
-const TITLES = { learn: '學習', home: '中油學習卡', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-mock': '計時模擬考' };
+const TITLES = { learn: '學習', home: '中油學習卡', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考' };
 function parseHash() {
   const parts = (location.hash.replace(/^#/, '') || 'home').split('/').filter(Boolean).map((p) => {
     try { return decodeURIComponent(p); } catch (_) { return p; }
@@ -537,14 +537,14 @@ async function render() {
   // 離開刷題／模擬考時清掉計時器（同頁 paint 不走 render）
   try {
     const v = (location.hash.replace(/^#/,'').split('/')[0]||'');
-    const inQuiz = /^learn-(ee|em|en|zh|math|mock)/.test(v);
+    const inQuiz = /^learn-(ee|em|en|zh|math|tips|mock)/.test(v);
     if (!inQuiz && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
   const { view, id } = parseHash();
   const tab = view === 'add-done' ? 'add' : view === 'session' ? 'review' : view === 'edit' || view === 'detail' || view === 'practice' ? 'list' : view.startsWith('learn') ? 'learn' : view;
   $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   $('#pageTitle').textContent = TITLES[view] || TITLES.home;
-  $('#backBtn').hidden = !['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-mock'].includes(view);
+  $('#backBtn').hidden = !['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock'].includes(view);
   const app = $('#app');
   app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
   await renderTabstrip(['home', 'review', 'list'].includes(view));
@@ -556,6 +556,7 @@ async function render() {
       case 'learn-ee': await LearnUI.viewPro(app, 'ee', parseHash().parts.slice(1)); break;
       case 'learn-em': await LearnUI.viewPro(app, 'em', parseHash().parts.slice(1)); break;
       case 'learn-math': await LearnUI.viewMath(app, parseHash().parts.slice(1)); break;
+      case 'learn-tips': await LearnUI.viewTips(app, parseHash().parts.slice(1)); break;
       case 'learn-mock': await LearnUI.viewMock(app, parseHash().parts.slice(1)); break;
       case 'review': await viewReview(app); break;
       case 'session': await viewSession(app); break;

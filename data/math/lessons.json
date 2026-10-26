@@ -1,6 +1,691 @@
 {
   "units": [
     {
+      "id": "arith",
+      "name": "四則與括號",
+      "blurb": "先乘除後加減；小括號→中括號→大括號。電學代入公式前先算對括號。",
+      "explain": "運算順序：括號內優先，再乘除，最後加減。同層由左而右。",
+      "examples": [
+        {
+          "title": "例1",
+          "kind": "四則混合",
+          "intro": "這是一題四則混合，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "2\\\\times 3+4\\\\times 5",
+          "steps": [
+            {
+              "title": "先做兩組乘法",
+              "reason": "",
+              "calcs": [
+                "2\\\\times 3=6",
+                "4\\\\times 5=20"
+              ]
+            },
+            {
+              "title": "再相加",
+              "reason": "",
+              "calcs": [
+                "6+20=26"
+              ]
+            }
+          ],
+          "answer": "26",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例2",
+          "kind": "含括號",
+          "intro": "這是一題含括號，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "3(2\\\\times 3+6\\\\times 3)",
+          "steps": [
+            {
+              "title": "括號內先乘",
+              "reason": "",
+              "calcs": [
+                "2\\\\times 3=6",
+                "6\\\\times 3=18"
+              ]
+            },
+            {
+              "title": "括號內相加再乘外層",
+              "reason": "",
+              "calcs": [
+                "6+18=24",
+                "3\\\\times 24=72"
+              ]
+            }
+          ],
+          "answer": "72",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例3",
+          "kind": "嵌套括號",
+          "intro": "這是一題嵌套括號，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "5+[5+(5\\\\div 5-1)]",
+          "steps": [
+            {
+              "title": "最內層",
+              "reason": "",
+              "calcs": [
+                "5\\\\div 5-1=1-1=0"
+              ]
+            },
+            {
+              "title": "中層",
+              "reason": "",
+              "calcs": [
+                "5+0=5"
+              ]
+            },
+            {
+              "title": "外層",
+              "reason": "",
+              "calcs": [
+                "5+5=10"
+              ]
+            }
+          ],
+          "answer": "10",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例4",
+          "kind": "中括號乘法",
+          "intro": "這是一題中括號乘法，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "3[(1\\\\times 2+3)+(4\\\\times 5\\\\div 2)]",
+          "steps": [
+            {
+              "title": "兩小括號",
+              "reason": "",
+              "calcs": [
+                "1\\\\times 2+3=5",
+                "4\\\\times 5\\\\div 2=10"
+              ]
+            },
+            {
+              "title": "相加再乘 3",
+              "reason": "",
+              "calcs": [
+                "5+10=15",
+                "3\\\\times 15=45"
+              ]
+            }
+          ],
+          "answer": "45",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例5",
+          "kind": "較深括號",
+          "intro": "這是一題較深括號，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "4\\\\{2[(3+1\\\\times 2)\\\\div 5]+6\\\\times 5\\\\}",
+          "steps": [
+            {
+              "title": "最內：$3+2=5$，再 $\\div 5$",
+              "reason": "",
+              "calcs": [
+                "(3+2)\\\\div 5=1"
+              ]
+            },
+            {
+              "title": "中層",
+              "reason": "",
+              "calcs": [
+                "2\\\\times 1+30=32"
+              ]
+            },
+            {
+              "title": "外層乘 4",
+              "reason": "",
+              "calcs": [
+                "4\\\\times 32=128"
+              ]
+            }
+          ],
+          "answer": "128",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "四則（電學代換）",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "P=VI,\\quad V=12,\\quad I=3;\\quad \\text{先算 }2\\times V+4\\times I",
+          "steps": [
+            {
+              "title": "代入",
+              "reason": "把 $V$、$I$ 代入：",
+              "calcs": [
+                "2\\times 12+4\\times 3"
+              ]
+            },
+            {
+              "title": "先乘後加",
+              "reason": "",
+              "calcs": [
+                "24+12=36"
+              ]
+            }
+          ],
+          "answer": "36",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "括號順序",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "5[2(3+1)+4]",
+          "steps": [
+            {
+              "title": "內括號",
+              "reason": "",
+              "calcs": [
+                "3+1=4"
+              ]
+            },
+            {
+              "title": "中層",
+              "reason": "",
+              "calcs": [
+                "2\\times 4+4=12"
+              ]
+            },
+            {
+              "title": "外層",
+              "reason": "",
+              "calcs": [
+                "5\\times 12=60"
+              ]
+            }
+          ],
+          "answer": "60",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        }
+      ],
+      "practice": [
+        {
+          "stem": "$2\\\\times 3+4\\\\times 5=$？",
+          "choices": [
+            "A. $26$",
+            "B. $50$",
+            "C. $14$",
+            "D. $22$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$6+20=26$。\n最終答案：$26$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$3(2\\\\times 3+6\\\\times 3)=$？",
+          "choices": [
+            "A. $72$",
+            "B. $36$",
+            "C. $54$",
+            "D. $24$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：括號內 $6+18=24$。\n步驟二：$3\\times 24=72$。\n最終答案：$72$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$5+[5+(5\\\\div 5-1)]=$？",
+          "choices": [
+            "A. $10$",
+            "B. $5$",
+            "C. $11$",
+            "D. $9$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：內層 $1-1=0$。\n步驟二：$5+[5+0]=10$。\n最終答案：$10$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$3[(1\\\\times 2+3)+(4\\\\times 5\\\\div 2)]=$？",
+          "choices": [
+            "A. $45$",
+            "B. $30$",
+            "C. $15$",
+            "D. $60$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$5+10=15$。\n步驟二：$3\\times 15=45$。\n最終答案：$45$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$4\\\\{2[(3+1\\\\times 2)\\\\div 5]+6\\\\times 5\\\\}=$？",
+          "choices": [
+            "A. $128$",
+            "B. $64$",
+            "C. $32$",
+            "D. $96$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：內 $(3+2)\\div5=1$；中 $2\\times1+30=32$；外 $4\\times32=128$。\n最終答案：$128$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$10(1\\\\times 3+2\\\\times 4+3\\\\times 5-4\\\\times 5)=$？",
+          "choices": [
+            "A. $60$",
+            "B. $10$",
+            "C. $0$",
+            "D. $30$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$3+8+15-20=6$。\n步驟二：$10\\times 6=60$。\n最終答案：$60$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$8\\\\times 7-6\\\\times 5+3\\\\times 2-10\\\\div 2=$？",
+          "choices": [
+            "A. $27$",
+            "B. $32$",
+            "C. $22$",
+            "D. $37$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$56-30+6-5$。\n步驟二：$26+6-5=27$。\n最終答案：$27$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "先算哪一步？$2+3\\\\times 4$",
+          "choices": [
+            "A. 先乘：$3\\\\times 4$",
+            "B. 先加：$2+3$",
+            "C. 隨便",
+            "D. 由右而左"
+          ],
+          "answer": "A",
+          "explain": "步驟一：先乘除後加減。\n步驟二：$2+12=14$。\n最終答案：先乘。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "【變題1】$3\\times 4+2\\times 5=$？",
+          "level": "變",
+          "choices": [
+            "A. $22$",
+            "B. $50$",
+            "C. $17$",
+            "D. $30$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$12+10=22$。\n最終答案：$22$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】$2[3(4+1)-5]=$？",
+          "level": "變",
+          "choices": [
+            "A. $20$",
+            "B. $10$",
+            "C. $25$",
+            "D. $15$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：內 $4+1=5$；中 $3\\times5-5=10$；外 $2\\times10=20$。\n最終答案：$20$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】串聯壓降 $2\\\\times 5+3\\\\times 4$（單位 V）總和？",
+          "level": "變",
+          "choices": [
+            "A. $22$",
+            "B. $14$",
+            "C. $40$",
+            "D. $9$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$10+12=22$。\n最終答案：$22$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        }
+      ]
+    },
+    {
+      "id": "percent",
+      "name": "小數與百分率",
+      "blurb": "效率、調整率、誤差常用 %；小數點移位與×10／÷10 是電學換算底子。",
+      "explain": "百分率：$a\\%=\\dfrac{a}{100}$。小數化百分率：乘 100 再加 %。$\\times 10$ 小數點右移一位，$\\div 10$ 左移一位。",
+      "examples": [
+        {
+          "title": "例1",
+          "kind": "小數化百分率",
+          "intro": "這是一題小數化百分率，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "0.56,\\;0.05,\\;1.21",
+          "steps": [
+            {
+              "title": "乘 100 加 %",
+              "reason": "",
+              "calcs": [
+                "0.56=56\\\\%",
+                "0.05=5\\\\%",
+                "1.21=121\\\\%"
+              ]
+            }
+          ],
+          "answer": "56\\\\%,\\;5\\\\%,\\;121\\\\%",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例2",
+          "kind": "×10／÷10",
+          "intro": "這是一題×10／÷10，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "5\\\\times 10,\\;5\\\\div 10,\\;0.25\\\\times 10,\\;0.25\\\\div 10",
+          "steps": [
+            {
+              "title": "移位法則",
+              "reason": "×10 右移一位，÷10 左移一位：",
+              "calcs": [
+                "50",
+                "0.5",
+                "2.5",
+                "0.025"
+              ]
+            }
+          ],
+          "answer": "50,\\;0.5,\\;2.5,\\;0.025",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例3",
+          "kind": "小數四則",
+          "intro": "這是一題小數四則，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "1.2+2.3\\\\quad\\\\text{與}\\\\quad 1.2\\\\times 1.2",
+          "steps": [
+            {
+              "title": "加法對齊小數點",
+              "reason": "",
+              "calcs": [
+                "1.2+2.3=3.5"
+              ]
+            },
+            {
+              "title": "乘法",
+              "reason": "",
+              "calcs": [
+                "1.2\\\\times 1.2=1.44"
+              ]
+            }
+          ],
+          "answer": "3.5,\\;1.44",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例4",
+          "kind": "效率",
+          "intro": "這是一題效率，我們一步一步來計算：",
+          "givenLabel": "已知：",
+          "given": "\\\\eta=80\\\\%,\\;P_{in}=880\\\\,\\\\mathrm{W}",
+          "steps": [
+            {
+              "title": "百分率改小數",
+              "reason": "",
+              "calcs": [
+                "0.8\\\\times 880=704"
+              ]
+            }
+          ],
+          "answer": "P_{out}=704\\\\,\\\\mathrm{W}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例5",
+          "kind": "複合小數",
+          "intro": "這是一題複合小數，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "[(0.1+3\\\\times 2)\\\\div 10+8]\\\\div 100",
+          "steps": [
+            {
+              "title": "括號內",
+              "reason": "",
+              "calcs": [
+                "0.1+6=6.1",
+                "6.1\\\\div 10=0.61",
+                "0.61+8=8.61"
+              ]
+            },
+            {
+              "title": "再 ÷100",
+              "reason": "",
+              "calcs": [
+                "0.0861"
+              ]
+            }
+          ],
+          "answer": "0.0861",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "效率百分率",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "\\\\eta=90\\\\%,\\quad P_{in}=500\\\\,\\\\mathrm{W}",
+          "steps": [
+            {
+              "title": "改小數",
+              "reason": "",
+              "calcs": [
+                "0.9\\\\times 500=450"
+              ]
+            },
+            {
+              "title": "輸出",
+              "reason": "",
+              "calcs": [
+                "P_{out}=450\\\\,\\\\mathrm{W}"
+              ]
+            }
+          ],
+          "answer": "P_{out}=450\\\\,\\\\mathrm{W}",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "小數化 %",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "0.08",
+          "steps": [
+            {
+              "title": "×100",
+              "reason": "",
+              "calcs": [
+                "0.08\\times 100=8\\%"
+              ]
+            }
+          ],
+          "answer": "8\\%",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        }
+      ],
+      "practice": [
+        {
+          "stem": "$0.327=$？%",
+          "choices": [
+            "A. $32.7\\\\%$",
+            "B. $3.27\\\\%$",
+            "C. $327\\\\%$",
+            "D. $0.327\\\\%$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：乘 100。\n最終答案：$32.7\\%$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$0.9=$？%",
+          "choices": [
+            "A. $90\\\\%$",
+            "B. $9\\\\%$",
+            "C. $0.9\\\\%$",
+            "D. $900\\\\%$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$0.9\\times 100=90$。\n最終答案：$90\\%$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$0.01=$？%",
+          "choices": [
+            "A. $1\\\\%$",
+            "B. $10\\\\%$",
+            "C. $0.1\\\\%$",
+            "D. $100\\\\%$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$0.01\\times 100=1$。\n最終答案：$1\\%$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$5.2\\\\times 10+5.2\\\\div 10=$？",
+          "choices": [
+            "A. $52.52$",
+            "B. $5.252$",
+            "C. $57.2$",
+            "D. $52.052$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$52+0.52=52.52$。\n最終答案：$52.52$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$1.1\\\\times 1.1+2.2\\\\times 2.2=$？",
+          "choices": [
+            "A. $6.05$",
+            "B. $5.05$",
+            "C. $4.84$",
+            "D. $3.3$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$1.21+4.84=6.05$。\n最終答案：$6.05$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "效率 $75\\\\%$ 的輸出若為 $600\\\\,\\\\mathrm{W}$，輸入約？",
+          "choices": [
+            "A. $800\\\\,\\\\mathrm{W}$",
+            "B. $450\\\\,\\\\mathrm{W}$",
+            "C. $600\\\\,\\\\mathrm{W}$",
+            "D. $75\\\\,\\\\mathrm{W}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$P_{in}=P_{out}/\\eta=600/0.75=800$。\n最終答案：$800\\,\\mathrm{W}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$4(0.1+0.2\\\\times 3)=$？",
+          "choices": [
+            "A. $2.8$",
+            "B. $1.2$",
+            "C. $3.6$",
+            "D. $0.7$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$0.2\\times 3=0.6$，$0.1+0.6=0.7$。\n步驟二：$4\\times 0.7=2.8$。\n最終答案：$2.8$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "速率調整率 $\\\\dfrac{n_0-n}{n}\\\\times 100\\\\%$，$n_0=1800$，$n=1739$，約？",
+          "choices": [
+            "A. $3.5\\\\%$",
+            "B. $35\\\\%$",
+            "C. $0.35\\\\%$",
+            "D. $61\\\\%$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$1800-1739=61$。\n步驟二：$61/1739\\approx 0.035\\approx 3.5\\%$。\n最終答案：約 $3.5\\%$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "【變題1】$0.45=$？%",
+          "level": "變",
+          "choices": [
+            "A. $45\\\\%$",
+            "B. $4.5\\\\%$",
+            "C. $0.45\\\\%$",
+            "D. $450\\\\%$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$0.45\\times100=45$。\n最終答案：$45\\%$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】效率 $80\\\\%$，輸入 $200\\\\,\\\\mathrm{W}$，輸出？",
+          "level": "變",
+          "choices": [
+            "A. $160\\\\,\\\\mathrm{W}$",
+            "B. $180\\\\,\\\\mathrm{W}$",
+            "C. $240\\\\,\\\\mathrm{W}$",
+            "D. $80\\\\,\\\\mathrm{W}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$0.8\\\\times 200=160$。\n最終答案：$160\\\\,\\\\mathrm{W}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$5\\\\times 10+5\\\\div 10=$？",
+          "level": "變",
+          "choices": [
+            "A. $50.5$",
+            "B. $5.05$",
+            "C. $55$",
+            "D. $50.05$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$50+0.5=50.5$。\n最終答案：$50.5$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        }
+      ]
+    },
+    {
       "id": "frac",
       "name": "分數四則",
       "blurb": "通分、約分、加減乘除；電學算並聯電阻也常用。",
@@ -29,7 +714,9 @@
               ]
             }
           ],
-          "answer": "\\dfrac{5}{6}"
+          "answer": "\\dfrac{5}{6}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -53,7 +740,9 @@
               ]
             }
           ],
-          "answer": "\\dfrac{1}{2}"
+          "answer": "\\dfrac{1}{2}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例3",
@@ -77,7 +766,110 @@
               ]
             }
           ],
-          "answer": "\\dfrac{3}{2}"
+          "answer": "\\dfrac{3}{2}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例4",
+          "kind": "分數加減混合",
+          "intro": "這是習題改編的分數加減混合題：",
+          "givenLabel": "給定算式：",
+          "given": "\\dfrac{5}{6}-4+\\dfrac{3}{2}-\\dfrac{1}{2}",
+          "steps": [
+            {
+              "title": "先把整數改成分數",
+              "reason": "4 寫成 $\\dfrac{4}{1}$，並通分到分母 6：",
+              "calcs": [
+                "4=\\dfrac{24}{6}",
+                "\\dfrac{3}{2}=\\dfrac{9}{6}",
+                "\\dfrac{1}{2}=\\dfrac{3}{6}"
+              ]
+            },
+            {
+              "title": "依序加減",
+              "reason": "分子依符號加減：",
+              "calcs": [
+                "\\dfrac{5}{6}-\\dfrac{24}{6}+\\dfrac{9}{6}-\\dfrac{3}{6}=\\dfrac{5-24+9-3}{6}=\\dfrac{-13}{6}"
+              ]
+            }
+          ],
+          "answer": "-\\dfrac{13}{6}",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例5",
+          "kind": "並聯三電阻分數",
+          "intro": "電學並聯常用分數加法：",
+          "givenLabel": "給定：",
+          "given": "\\dfrac{1}{R}=\\dfrac{1}{3}+\\dfrac{1}{3}+\\dfrac{1}{3}",
+          "steps": [
+            {
+              "title": "同分母相加",
+              "reason": "三個同分母分數直接加分子：",
+              "calcs": [
+                "\\dfrac{1}{3}+\\dfrac{1}{3}+\\dfrac{1}{3}=\\dfrac{3}{3}=1"
+              ]
+            },
+            {
+              "title": "求 $R$",
+              "reason": "由 $\\dfrac{1}{R}=1$ 得：",
+              "calcs": [
+                "R=1"
+              ]
+            }
+          ],
+          "answer": "R=1",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "並聯兩電阻",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "\\\\dfrac{1}{R}=\\\\dfrac{1}{4}+\\\\dfrac{1}{12}",
+          "steps": [
+            {
+              "title": "通分",
+              "reason": "公分母 12：",
+              "calcs": [
+                "\\\\dfrac{3}{12}+\\\\dfrac{1}{12}=\\\\dfrac{4}{12}=\\\\dfrac{1}{3}"
+              ]
+            },
+            {
+              "title": "求 $R$",
+              "reason": "",
+              "calcs": [
+                "R=3"
+              ]
+            }
+          ],
+          "answer": "R=3",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "分數乘除",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "\\\\dfrac{3}{8}\\\\div\\\\dfrac{1}{4}",
+          "steps": [
+            {
+              "title": "乘倒數",
+              "reason": "",
+              "calcs": [
+                "\\\\dfrac{3}{8}\\\\times\\\\dfrac{4}{1}=\\\\dfrac{12}{8}=\\\\dfrac{3}{2}"
+              ]
+            }
+          ],
+          "answer": "\\\\dfrac{3}{2}",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -90,7 +882,9 @@
             "D. $\\dfrac{5}{24}$"
           ],
           "answer": "A",
-          "explain": "步驟一：公分母取 12，通分成 $\\dfrac{3}{12}+\\dfrac{2}{12}$。\n步驟二：分子相加得 $\\dfrac{5}{12}$。\n最終答案：$\\dfrac{5}{12}$。"
+          "explain": "步驟一：公分母取 12，通分成 $\\dfrac{3}{12}+\\dfrac{2}{12}$。\n步驟二：分子相加得 $\\dfrac{5}{12}$。\n最終答案：$\\dfrac{5}{12}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$\\dfrac{2}{5}\\times\\dfrac{5}{8}=$？",
@@ -101,7 +895,9 @@
             "D. $\\dfrac{1}{2}$"
           ],
           "answer": "A",
-          "explain": "步驟一：分子分母相乘得 $\\dfrac{2\\times 5}{5\\times 8}=\\dfrac{10}{40}$。\n步驟二：約分（或先約掉 5）得 $\\dfrac{2}{8}=\\dfrac{1}{4}$。\n最終答案：$\\dfrac{1}{4}$。"
+          "explain": "步驟一：分子分母相乘得 $\\dfrac{2\\times 5}{5\\times 8}=\\dfrac{10}{40}$。\n步驟二：約分（或先約掉 5）得 $\\dfrac{2}{8}=\\dfrac{1}{4}$。\n最終答案：$\\dfrac{1}{4}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$\\dfrac{3}{5}\\div\\dfrac{6}{7}=$？",
@@ -112,7 +908,9 @@
             "D. $\\dfrac{9}{10}$"
           ],
           "answer": "A",
-          "explain": "步驟一：改成乘倒數 $\\dfrac{3}{5}\\times\\dfrac{7}{6}$。\n步驟二：相乘得 $\\dfrac{21}{30}$，約分得 $\\dfrac{7}{10}$。\n最終答案：$\\dfrac{7}{10}$。"
+          "explain": "步驟一：改成乘倒數 $\\dfrac{3}{5}\\times\\dfrac{7}{6}$。\n步驟二：相乘得 $\\dfrac{21}{30}$，約分得 $\\dfrac{7}{10}$。\n最終答案：$\\dfrac{7}{10}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "並聯兩電阻 $\\dfrac{1}{R}=\\dfrac{1}{3}+\\dfrac{1}{6}$，$R=$？",
@@ -123,7 +921,116 @@
             "D. $9$"
           ],
           "answer": "A",
-          "explain": "步驟一：通分，$\\dfrac{1}{3}+\\dfrac{1}{6}=\\dfrac{2}{6}+\\dfrac{1}{6}=\\dfrac{3}{6}=\\dfrac{1}{2}$。\n步驟二：由 $\\dfrac{1}{R}=\\dfrac{1}{2}$ 得 $R=2$。\n最終答案：$R=2$。"
+          "explain": "步驟一：通分，$\\dfrac{1}{3}+\\dfrac{1}{6}=\\dfrac{2}{6}+\\dfrac{1}{6}=\\dfrac{3}{6}=\\dfrac{1}{2}$。\n步驟二：由 $\\dfrac{1}{R}=\\dfrac{1}{2}$ 得 $R=2$。\n最終答案：$R=2$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$\\dfrac{1}{2}\\times\\dfrac{1}{3}=$？",
+          "choices": [
+            "A. $\\dfrac{1}{6}$",
+            "B. $\\dfrac{2}{5}$",
+            "C. $\\dfrac{1}{5}$",
+            "D. $\\dfrac{2}{6}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：分子分母相乘 $\\dfrac{1\\times 1}{2\\times 3}=\\dfrac{1}{6}$。\n最終答案：$\\dfrac{1}{6}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$\\dfrac{5}{6}\\times\\dfrac{3}{4}\\times\\dfrac{2}{3}\\times\\dfrac{1}{2}=$？",
+          "choices": [
+            "A. $\\dfrac{5}{24}$",
+            "B. $\\dfrac{5}{12}$",
+            "C. $\\dfrac{15}{48}$",
+            "D. $\\dfrac{1}{4}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：分子 $5\\times 3\\times 2\\times 1=30$，分母 $6\\times 4\\times 3\\times 2=144$。\n步驟二：$\\dfrac{30}{144}=\\dfrac{5}{24}$。\n最終答案：$\\dfrac{5}{24}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$\\dfrac{1}{2}\\\\div 2=$？",
+          "choices": [
+            "A. $\\dfrac{1}{4}$",
+            "B. $1$",
+            "C. $\\dfrac{1}{2}$",
+            "D. $4$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：除以 2 等於乘 $\\dfrac{1}{2}$：$\\dfrac{1}{2}\\times\\dfrac{1}{2}=\\dfrac{1}{4}$。\n最終答案：$\\dfrac{1}{4}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "三電阻並聯 $\\dfrac{1}{R}=\\dfrac{1}{2}+\\dfrac{1}{3}+\\dfrac{1}{6}$，$R=$？",
+          "choices": [
+            "A. $1$",
+            "B. $2$",
+            "C. $3$",
+            "D. $6$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：通分到 6：$\\dfrac{3}{6}+\\dfrac{2}{6}+\\dfrac{1}{6}=\\dfrac{6}{6}=1$。\n步驟二：$R=1$。\n最終答案：$R=1$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$\\dfrac{1}{2}\\\\times 2=$？",
+          "choices": [
+            "A. $1$",
+            "B. $\\dfrac{1}{4}$",
+            "C. $4$",
+            "D. $\\dfrac{1}{2}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\dfrac{1}{2}\\times\\dfrac{2}{1}=\\dfrac{2}{2}=1$。\n最終答案：$1$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "【變題1】$\\\\dfrac{1}{5}+\\\\dfrac{1}{20}=$？",
+          "level": "變",
+          "choices": [
+            "A. $\\\\dfrac{1}{4}$",
+            "B. $\\\\dfrac{2}{25}$",
+            "C. $\\\\dfrac{1}{10}$",
+            "D. $\\\\dfrac{5}{20}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：通分 $\\dfrac{4}{20}+\\dfrac{1}{20}=\\dfrac{5}{20}=\\dfrac{1}{4}$。\n最終答案：$\\dfrac{1}{4}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】並聯 $\\\\dfrac{1}{R}=\\\\dfrac{1}{6}+\\\\dfrac{1}{3}$，$R=$？",
+          "level": "變",
+          "choices": [
+            "A. $2$",
+            "B. $3$",
+            "C. $9$",
+            "D. $1$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\dfrac{1}{6}+\\dfrac{2}{6}=\\dfrac{3}{6}=\\dfrac{1}{2}$。\n步驟二：$R=2$。\n最終答案：$2$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$\\\\dfrac{2}{7}\\\\times\\\\dfrac{7}{10}=$？",
+          "level": "變",
+          "choices": [
+            "A. $\\\\dfrac{1}{5}$",
+            "B. $\\\\dfrac{2}{10}$",
+            "C. $\\\\dfrac{14}{70}$",
+            "D. $\\\\dfrac{4}{17}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：約分後 $\\dfrac{2}{10}=\\dfrac{1}{5}$。\n最終答案：$\\dfrac{1}{5}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     },
@@ -157,7 +1064,9 @@
               ]
             }
           ],
-          "answer": "x=4"
+          "answer": "x=4",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -183,7 +1092,9 @@
               ]
             }
           ],
-          "answer": "x=6"
+          "answer": "x=6",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例3",
@@ -209,7 +1120,135 @@
               ]
             }
           ],
-          "answer": "x=8"
+          "answer": "x=8",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例4",
+          "kind": "一元一次方程式",
+          "intro": "這是一題一元一次方程式，我們一步一步來計算：",
+          "givenLabel": "給定方程式：",
+          "given": "X+3=5",
+          "steps": [
+            {
+              "title": "常數移項",
+              "reason": "兩邊同時減 3：",
+              "calcs": [
+                "X=5-3",
+                "X=2"
+              ]
+            }
+          ],
+          "answer": "X=2",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例5",
+          "kind": "歐姆定律求電流",
+          "intro": "電路未知電流常化成一元一次：",
+          "givenLabel": "已知：",
+          "given": "V=IR,\\quad V=12,\\quad R=4,\\quad \\text{求 }I",
+          "steps": [
+            {
+              "title": "寫出公式",
+              "reason": "歐姆定律 $I=\\dfrac{V}{R}$：",
+              "calcs": [
+                "I=\\dfrac{12}{4}"
+              ]
+            },
+            {
+              "title": "計算",
+              "reason": "相除得：",
+              "calcs": [
+                "I=3"
+              ]
+            }
+          ],
+          "answer": "I=3",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例6",
+          "kind": "含括號一元一次",
+          "intro": "這是一題含括號一元一次，我們一步一步來計算：",
+          "givenLabel": "給定方程式：",
+          "given": "2[(X+2)+3]=20",
+          "steps": [
+            {
+              "title": "先算括號內",
+              "reason": "內層 $X+2+3=X+5$：",
+              "calcs": [
+                "2(X+5)=20"
+              ]
+            },
+            {
+              "title": "兩邊同除 2",
+              "reason": "",
+              "calcs": [
+                "X+5=10"
+              ]
+            },
+            {
+              "title": "移項",
+              "reason": "兩邊減 5：",
+              "calcs": [
+                "X=5"
+              ]
+            }
+          ],
+          "answer": "X=5",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "歐姆求 $R$",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "V=IR,\\quad V=36,\\quad I=3",
+          "steps": [
+            {
+              "title": "移項",
+              "reason": "$R=\\\\dfrac{V}{I}$",
+              "calcs": [
+                "R=\\\\dfrac{36}{3}=12"
+              ]
+            }
+          ],
+          "answer": "R=12",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "一元一次",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "3x-4=11",
+          "steps": [
+            {
+              "title": "加 4",
+              "reason": "",
+              "calcs": [
+                "3x=15"
+              ]
+            },
+            {
+              "title": "除以 3",
+              "reason": "",
+              "calcs": [
+                "x=5"
+              ]
+            }
+          ],
+          "answer": "x=5",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -222,7 +1261,9 @@
             "D. $2.2$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩邊同時加 7，得 $5x=25$。\n步驟二：兩邊同除以 5，得 $x=5$。\n最終答案：$x=5$。"
+          "explain": "步驟一：兩邊同時加 7，得 $5x=25$。\n步驟二：兩邊同除以 5，得 $x=5$。\n最終答案：$x=5$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$2(x+3)=14$，$x=$？",
@@ -233,7 +1274,9 @@
             "D. $11$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩邊同除以 2，得 $x+3=7$。\n步驟二：兩邊同時減 3，得 $x=4$。\n最終答案：$x=4$。"
+          "explain": "步驟一：兩邊同除以 2，得 $x+3=7$。\n步驟二：兩邊同時減 3，得 $x=4$。\n最終答案：$x=4$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$\\dfrac{x}{3}-2=1$，$x=$？",
@@ -244,7 +1287,9 @@
             "D. $1$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩邊同時加 2，得 $\\dfrac{x}{3}=3$。\n步驟二：兩邊同乘 3，得 $x=9$。\n最終答案：$x=9$。"
+          "explain": "步驟一：兩邊同時加 2，得 $\\dfrac{x}{3}=3$。\n步驟二：兩邊同乘 3，得 $x=9$。\n最終答案：$x=9$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$4x+2=2x+10$，$x=$？",
@@ -255,7 +1300,129 @@
             "D. $8$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩邊同時減 $2x$，得 $2x+2=10$。\n步驟二：兩邊同時減 2，得 $2x=8$，再除以 2 得 $x=4$。\n最終答案：$x=4$。"
+          "explain": "步驟一：兩邊同時減 $2x$，得 $2x+2=10$。\n步驟二：兩邊同時減 2，得 $2x=8$，再除以 2 得 $x=4$。\n最終答案：$x=4$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$2X+8=20$，$X=$？",
+          "choices": [
+            "A. $6$",
+            "B. $4$",
+            "C. $14$",
+            "D. $28$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：兩邊減 8 得 $2X=12$。\n步驟二：兩邊除以 2 得 $X=6$。\n最終答案：$X=6$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$X-0.5=3$，$X=$？",
+          "choices": [
+            "A. $3.5$",
+            "B. $2.5$",
+            "C. $3$",
+            "D. $0.5$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：兩邊加 $0.5$。\n步驟二：$X=3.5$。\n最終答案：$3.5$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$\\dfrac{X}{2}+\\dfrac{1}{2}=1$，$X=$？",
+          "choices": [
+            "A. $1$",
+            "B. $2$",
+            "C. $\\dfrac{1}{2}$",
+            "D. $0$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：兩邊減 $\\dfrac{1}{2}$ 得 $\\dfrac{X}{2}=\\dfrac{1}{2}$。\n步驟二：兩邊乘 2 得 $X=1$。\n最終答案：$X=1$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$2X+6=X+8$，$X=$？",
+          "choices": [
+            "A. $2$",
+            "B. $1$",
+            "C. $14$",
+            "D. $6$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：兩邊減 $X$ 得 $X+6=8$。\n步驟二：兩邊減 6 得 $X=2$。\n最終答案：$X=2$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$V=IR$，$V=24\\\\,\\\\mathrm{V}$，$R=8\\\\,\\\\Omega$，$I=$？",
+          "choices": [
+            "A. $3\\\\,\\\\mathrm{A}$",
+            "B. $192\\\\,\\\\mathrm{A}$",
+            "C. $0.33\\\\,\\\\mathrm{A}$",
+            "D. $16\\\\,\\\\mathrm{A}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$I=\\dfrac{V}{R}=\\dfrac{24}{8}$。\n步驟二：$I=3\\,\\mathrm{A}$。\n最終答案：$3\\,\\mathrm{A}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$6X+5-4X+3+2X-1=8$，$X=$？",
+          "choices": [
+            "A. $\\dfrac{1}{4}$",
+            "B. $1$",
+            "C. $0$",
+            "D. $4$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：合併同類項 $(6-4+2)X+(5+3-1)=8X+7=8$… 實際 $6X-4X+2X=4X$，$5+3-1=7$，得 $4X+7=8$。\n步驟二：$4X=1$，$X=\\dfrac{1}{4}$。\n最終答案：$X=\\dfrac{1}{4}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "【變題1】$V=IR$，$I=20\\,\\mathrm{mA}$，$R=1\\,\\mathrm{k}\\Omega$，$V=$？",
+          "level": "變",
+          "choices": [
+            "A. $20\\\\,\\\\mathrm{V}$",
+            "B. $0.02\\\\,\\\\mathrm{V}$",
+            "C. $50\\\\,\\\\mathrm{V}$",
+            "D. $2\\\\,\\\\mathrm{V}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$I=0.02\\,\\mathrm{A}$，$R=1000\\,\\Omega$。\n步驟二：$V=0.02\\times 1000=20\\,\\mathrm{V}$。\n最終答案：$20\\,\\mathrm{V}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】$7x+3=24$，$x=$？",
+          "level": "變",
+          "choices": [
+            "A. $3$",
+            "B. $4$",
+            "C. $21$",
+            "D. $27/7$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$7x=21$。\n步驟二：$x=3$。\n最終答案：$3$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$\\\\dfrac{x}{4}+5=9$，$x=$？",
+          "level": "變",
+          "choices": [
+            "A. $16$",
+            "B. $4$",
+            "C. $36$",
+            "D. $1$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\dfrac{x}{4}=4$。\n步驟二：$x=16$。\n最終答案：$16$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     },
@@ -297,7 +1464,9 @@
               ]
             }
           ],
-          "answer": "x=3,\\; y=2"
+          "answer": "x=3,\\; y=2",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -332,7 +1501,149 @@
               ]
             }
           ],
-          "answer": "x=3,\\; y=1"
+          "answer": "x=3,\\; y=1",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例3",
+          "kind": "加減消去法",
+          "intro": "這是一題加減消去法，我們一步一步來計算：",
+          "givenLabel": "給定聯立方程式：",
+          "given": "\\begin{cases} A+B=2 \\\\ A-B=0 \\end{cases}",
+          "steps": [
+            {
+              "title": "兩式相加",
+              "reason": "消去 $B$：",
+              "calcs": [
+                "2A=2",
+                "A=1"
+              ]
+            },
+            {
+              "title": "代回",
+              "reason": "由 $A+B=2$：",
+              "calcs": [
+                "1+B=2",
+                "B=1"
+              ]
+            }
+          ],
+          "answer": "A=1,\\\\; B=1",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例4",
+          "kind": "代入法",
+          "intro": "這是一題代入法，我們一步一步來計算：",
+          "givenLabel": "給定聯立方程式：",
+          "given": "\\begin{cases} X+Y=4 \\\\ 2X+Y=2 \\end{cases}",
+          "steps": [
+            {
+              "title": "兩式相減",
+              "reason": "消 $Y$：",
+              "calcs": [
+                "(2X+Y)-(X+Y)=2-4",
+                "X=-2"
+              ]
+            },
+            {
+              "title": "代回求 $Y$",
+              "reason": "",
+              "calcs": [
+                "-2+Y=4",
+                "Y=6"
+              ]
+            }
+          ],
+          "answer": "X=-2,\\\\; Y=6",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "【延伸】例5",
+          "kind": "兩電壓聯立（電學）",
+          "intro": "這是一題兩電壓聯立（電學），我們一步一步來計算：",
+          "givenLabel": "給定：",
+          "given": "\\begin{cases} \\dfrac{V_1}{1}+\\dfrac{V_2}{2}=6 \\\\ 2V_1+V_2=12 \\end{cases}",
+          "steps": [
+            {
+              "title": "化簡第一式",
+              "reason": "通分：$2V_1+V_2=12$",
+              "calcs": [
+                "2V_1+V_2=12"
+              ]
+            },
+            {
+              "title": "與第二式比較",
+              "reason": "兩式相同，為相依方程組，解不唯一；若再給條件才有唯一解。此處取與第二式一致的一組特解：令 $V_1=3$",
+              "calcs": [
+                "2(3)+V_2=12",
+                "V_2=6"
+              ]
+            }
+          ],
+          "answer": "V_1=3,\\\\; V_2=6\\\\;(\\\\text{特解})",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "兩電流聯立",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "\\\\begin{cases} I_1+I_2=9 \\\\\\\\ I_1-I_2=3 \\\\end{cases}",
+          "steps": [
+            {
+              "title": "相加",
+              "reason": "",
+              "calcs": [
+                "2I_1=12",
+                "I_1=6"
+              ]
+            },
+            {
+              "title": "代回",
+              "reason": "",
+              "calcs": [
+                "6+I_2=9",
+                "I_2=3"
+              ]
+            }
+          ],
+          "answer": "I_1=6,\\\\; I_2=3",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "加減消去",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "\\\\begin{cases} 2x+y=11 \\\\\\\\ x+y=7 \\\\end{cases}",
+          "steps": [
+            {
+              "title": "相減",
+              "reason": "",
+              "calcs": [
+                "x=4"
+              ]
+            },
+            {
+              "title": "代回",
+              "reason": "",
+              "calcs": [
+                "4+y=7",
+                "y=3"
+              ]
+            }
+          ],
+          "answer": "x=4,\\\\; y=3",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -345,7 +1656,9 @@
             "D. $6$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩式相加消去 $y$，得 $2x=10$。\n步驟二：兩邊同除以 2，得 $x=5$。\n最終答案：$x=5$。"
+          "explain": "步驟一：兩式相加消去 $y$，得 $2x=10$。\n步驟二：兩邊同除以 2，得 $x=5$。\n最終答案：$x=5$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$2x+y=10$，$x+y=6$，$y=$？",
@@ -356,7 +1669,9 @@
             "D. $8$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩式相減得 $x=4$。\n步驟二：代回 $x+y=6$，得 $4+y=6$，所以 $y=2$。\n最終答案：$y=2$。"
+          "explain": "步驟一：兩式相減得 $x=4$。\n步驟二：代回 $x+y=6$，得 $4+y=6$，所以 $y=2$。\n最終答案：$y=2$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$x+2y=7$，$2x+y=8$，$x=$？",
@@ -367,7 +1682,9 @@
             "D. $1$"
           ],
           "answer": "A",
-          "explain": "步驟一：第一式乘 2 得 $2x+4y=14$，再減第二式得 $3y=6$，$y=2$。\n步驟二：代回 $x+2y=7$ 得 $x+4=7$，$x=3$。\n最終答案：$x=3$。"
+          "explain": "步驟一：第一式乘 2 得 $2x+4y=14$，再減第二式得 $3y=6$，$y=2$。\n步驟二：代回 $x+2y=7$ 得 $x+4=7$，$x=3$。\n最終答案：$x=3$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$3x-y=5$，$x+y=3$，$x=$？",
@@ -378,7 +1695,116 @@
             "D. $4$"
           ],
           "answer": "A",
-          "explain": "步驟一：兩式相加消去 $y$，得 $4x=8$。\n步驟二：兩邊同除以 4，得 $x=2$。\n最終答案：$x=2$。"
+          "explain": "步驟一：兩式相加消去 $y$，得 $4x=8$。\n步驟二：兩邊同除以 4，得 $x=2$。\n最終答案：$x=2$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$A+B=2$，$A-B=0$，$A=$？",
+          "choices": [
+            "A. $1$",
+            "B. $0$",
+            "C. $2$",
+            "D. $-1$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：兩式相加 $2A=2$。\n步驟二：$A=1$。\n最終答案：$A=1$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$X+Y=4$，$2X+Y=2$，$Y=$？",
+          "choices": [
+            "A. $6$",
+            "B. $2$",
+            "C. $0$",
+            "D. $4$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：相減得 $X=-2$。\n步驟二：$-2+Y=4$，$Y=6$。\n最終答案：$Y=6$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$A+B=-5$，$A-B=-5$，$A=$？",
+          "choices": [
+            "A. $-5$",
+            "B. $0$",
+            "C. $5$",
+            "D. $-10$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：兩式相加 $2A=-10$。\n步驟二：$A=-5$。\n最終答案：$A=-5$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$2X+3Y=8$，$3X+2Y=7$，$X=$？",
+          "choices": [
+            "A. $1$",
+            "B. $2$",
+            "C. $3$",
+            "D. $0$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：第一式×2、第二式×3：$4X+6Y=16$，$9X+6Y=21$。\n步驟二：相減 $5X=5$，$X=1$。\n最終答案：$X=1$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "兩迴路 $I_1+I_2=5$，$I_1-I_2=1$，則 $I_1=$？",
+          "choices": [
+            "A. $3$",
+            "B. $2$",
+            "C. $4$",
+            "D. $1$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：相加 $2I_1=6$。\n步驟二：$I_1=3$。\n最終答案：$3$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "【變題1】$I_1+I_2=10$，$I_1-I_2=2$，$I_1=$？",
+          "level": "變",
+          "choices": [
+            "A. $6$",
+            "B. $4$",
+            "C. $8$",
+            "D. $5$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：相加 $2I_1=12$。\n步驟二：$I_1=6$。\n最終答案：$6$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】$x+y=9$，$x-y=1$，$y=$？",
+          "level": "變",
+          "choices": [
+            "A. $4$",
+            "B. $5$",
+            "C. $8$",
+            "D. $10$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：相加 $2x=10$，$x=5$。\n步驟二：$5+y=9$，$y=4$。\n最終答案：$4$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$3a+b=10$，$a+b=4$，$a=$？",
+          "level": "變",
+          "choices": [
+            "A. $3$",
+            "B. $2$",
+            "C. $4$",
+            "D. $1$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：相減 $2a=6$，$a=3$。\n最終答案：$3$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     },
@@ -410,7 +1836,9 @@
               ]
             }
           ],
-          "answer": "-8"
+          "answer": "-8",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -434,7 +1862,9 @@
               ]
             }
           ],
-          "answer": "12"
+          "answer": "12",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例3",
@@ -458,7 +1888,110 @@
               ]
             }
           ],
-          "answer": "7"
+          "answer": "7",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例4",
+          "kind": "絕對值",
+          "intro": "這是一題絕對值，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "|3-2|\\quad\\text{與}\\quad |2-3|",
+          "steps": [
+            {
+              "title": "先算括號內",
+              "reason": "",
+              "calcs": [
+                "3-2=1",
+                "2-3=-1"
+              ]
+            },
+            {
+              "title": "取絕對值",
+              "reason": "絕對值為非負：",
+              "calcs": [
+                "|1|=1",
+                "|-1|=1"
+              ]
+            }
+          ],
+          "answer": "|3-2|=1,\\\\quad |2-3|=1",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例5",
+          "kind": "絕對值方程式",
+          "intro": "這是一題絕對值方程式，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "|X-3|=2",
+          "steps": [
+            {
+              "title": "拆成兩式",
+              "reason": "絕對值等於正數時有兩解：",
+              "calcs": [
+                "X-3=2\\\\quad\\\\text{或}\\\\quad X-3=-2"
+              ]
+            },
+            {
+              "title": "求解",
+              "reason": "",
+              "calcs": [
+                "X=5\\\\quad\\\\text{或}\\\\quad X=1"
+              ]
+            }
+          ],
+          "answer": "X=5\\\\;\\\\text{或}\\\\; X=1",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "電位差",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "V_A=5,\\\\; V_B=-3,\\\\; V_{AB}=V_A-V_B",
+          "steps": [
+            {
+              "title": "相減",
+              "reason": "",
+              "calcs": [
+                "V_{AB}=5-(-3)=8"
+              ]
+            }
+          ],
+          "answer": "V_{AB}=8",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "絕對值",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "|X-5|=4",
+          "steps": [
+            {
+              "title": "拆兩式",
+              "reason": "",
+              "calcs": [
+                "X-5=4\\\\text{ 或 }X-5=-4"
+              ]
+            },
+            {
+              "title": "解",
+              "reason": "",
+              "calcs": [
+                "X=9\\\\text{ 或 }X=1"
+              ]
+            }
+          ],
+          "answer": "X=9\\\\;\\\\text{或}\\\\;1",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -471,7 +2004,9 @@
             "D. $-15$"
           ],
           "answer": "A",
-          "explain": "步驟一：異號相加，用大減小：$9-6=3$。\n步驟二：較大絕對值是正的 9，所以結果為正。\n最終答案：$3$。"
+          "explain": "步驟一：異號相加，用大減小：$9-6=3$。\n步驟二：較大絕對值是正的 9，所以結果為正。\n最終答案：$3$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$(-4)\\times(-3)=$？",
@@ -482,7 +2017,9 @@
             "D. $-7$"
           ],
           "answer": "A",
-          "explain": "步驟一：絕對值相乘 $4\\times 3=12$。\n步驟二：負負得正，結果為 $+12$。\n最終答案：$12$。"
+          "explain": "步驟一：絕對值相乘 $4\\times 3=12$。\n步驟二：負負得正，結果為 $+12$。\n最終答案：$12$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$8-(-5)=$？",
@@ -493,7 +2030,9 @@
             "D. $-3$"
           ],
           "answer": "A",
-          "explain": "步驟一：減負等於加正，$8-(-5)=8+5$。\n步驟二：相加得 $13$。\n最終答案：$13$。"
+          "explain": "步驟一：減負等於加正，$8-(-5)=8+5$。\n步驟二：相加得 $13$。\n最終答案：$13$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$(-15)\\div 5=$？",
@@ -504,7 +2043,116 @@
             "D. $10$"
           ],
           "answer": "A",
-          "explain": "步驟一：絕對值相除 $15\\div 5=3$。\n步驟二：異號相除，商為負。\n最終答案：$-3$。"
+          "explain": "步驟一：絕對值相除 $15\\div 5=3$。\n步驟二：異號相除，商為負。\n最終答案：$-3$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$|-13-2|=$？",
+          "choices": [
+            "A. $15$",
+            "B. $-15$",
+            "C. $11$",
+            "D. $13$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$-13-2=-15$。\n步驟二：$|-15|=15$。\n最終答案：$15$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$|2-(-13)|=$？",
+          "choices": [
+            "A. $15$",
+            "B. $-15$",
+            "C. $11$",
+            "D. $-11$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$2-(-13)=2+13=15$。\n步驟二：$|15|=15$。\n最終答案：$15$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$|X-8|=5$，較大的解 $X=$？",
+          "choices": [
+            "A. $13$",
+            "B. $3$",
+            "C. $8$",
+            "D. $5$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$X-8=5$ 或 $X-8=-5$。\n步驟二：$X=13$ 或 $X=3$，較大為 13。\n最終答案：$13$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$-2\\\\times 3+(-3-(-1))=$？",
+          "choices": [
+            "A. $-8$",
+            "B. $-4$",
+            "C. $4$",
+            "D. $8$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：括號 $-3-(-1)=-3+1=-2$。\n步驟二：$-2\\times 3=-6$，再 $-6+(-2)=-8$。\n最終答案：$-8$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "電位差 $V_{AB}=V_A-V_B$，$V_A=3$，$V_B=7$，$V_{AB}=$？",
+          "choices": [
+            "A. $-4$",
+            "B. $4$",
+            "C. $10$",
+            "D. $-10$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$V_{AB}=3-7=-4$。\n最終答案：$-4$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "【變題1】$(-8)+3=$？",
+          "level": "變",
+          "choices": [
+            "A. $-5$",
+            "B. $5$",
+            "C. $-11$",
+            "D. $11$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：異號，大減小 $8-3=5$，跟較大絕對值的號（負）。\n最終答案：$-5$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】$|X-2|=6$ 較小解？",
+          "level": "變",
+          "choices": [
+            "A. $-4$",
+            "B. $8$",
+            "C. $4$",
+            "D. $-6$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$X=8$ 或 $X=-4$。\n最終答案：$-4$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$V_A=-2$，$V_B=5$，$V_{AB}=$？",
+          "level": "變",
+          "choices": [
+            "A. $-7$",
+            "B. $7$",
+            "C. $3$",
+            "D. $-3$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$-2-5=-7$。\n最終答案：$-7$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     },
@@ -536,7 +2184,9 @@
               ]
             }
           ],
-          "answer": "2^{4}=16,\\quad 10^{3}=1000"
+          "answer": "2^{4}=16,\\quad 10^{3}=1000",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -561,7 +2211,9 @@
               ]
             }
           ],
-          "answer": "\\sqrt{49}=7,\\quad \\sqrt{\\dfrac{9}{16}}=\\dfrac{3}{4}"
+          "answer": "\\sqrt{49}=7,\\quad \\sqrt{\\dfrac{9}{16}}=\\dfrac{3}{4}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例3",
@@ -585,7 +2237,131 @@
               ]
             }
           ],
-          "answer": "V_{\\mathrm{rms}}=110"
+          "answer": "V_{\\mathrm{rms}}=110",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例4",
+          "kind": "平方根基本",
+          "intro": "這是一題平方根基本，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "\\sqrt{16},\\;\\sqrt{81},\\;\\sqrt{100}",
+          "steps": [
+            {
+              "title": "對照平方數",
+              "reason": "",
+              "calcs": [
+                "4^2=16",
+                "9^2=81",
+                "10^2=100"
+              ]
+            },
+            {
+              "title": "寫出根號值",
+              "reason": "",
+              "calcs": [
+                "\\sqrt{16}=4",
+                "\\sqrt{81}=9",
+                "\\sqrt{100}=10"
+              ]
+            }
+          ],
+          "answer": "4,\\;9,\\;10",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例5",
+          "kind": "功率 $I^{2}R$",
+          "intro": "電學功率公式常用次方：",
+          "givenLabel": "已知：",
+          "given": "P=I^{2}R,\\quad I=2,\\; R=5",
+          "steps": [
+            {
+              "title": "先算 $I^{2}$",
+              "reason": "",
+              "calcs": [
+                "I^{2}=2^{2}=4"
+              ]
+            },
+            {
+              "title": "乘上 $R$",
+              "reason": "",
+              "calcs": [
+                "P=4\\\\times 5=20"
+              ]
+            }
+          ],
+          "answer": "P=20",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例6",
+          "kind": "科學記號次方相乘",
+          "intro": "這是一題科學記號次方相乘，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "10^{2}\\\\times 10^{3}\\\\times 10^{4}",
+          "steps": [
+            {
+              "title": "同底數相乘，指數相加",
+              "reason": "",
+              "calcs": [
+                "10^{2+3+4}=10^{9}"
+              ]
+            }
+          ],
+          "answer": "10^{9}",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "功率 $I^{2}R$",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "P=I^{2}R,\\\\; I=4,\\\\; R=2",
+          "steps": [
+            {
+              "title": "平方",
+              "reason": "",
+              "calcs": [
+                "I^{2}=16"
+              ]
+            },
+            {
+              "title": "乘 R",
+              "reason": "",
+              "calcs": [
+                "P=32"
+              ]
+            }
+          ],
+          "answer": "P=32",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "有效值",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "V_m=110\\\\sqrt{2},\\\\; V_{\\\\mathrm{rms}}=V_m/\\\\sqrt{2}",
+          "steps": [
+            {
+              "title": "代入約分",
+              "reason": "",
+              "calcs": [
+                "V_{\\\\mathrm{rms}}=110"
+              ]
+            }
+          ],
+          "answer": "V_{\\\\mathrm{rms}}=110",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -598,7 +2374,9 @@
             "D. $81$"
           ],
           "answer": "A",
-          "explain": "步驟一：$3^{3}$ 表示 3 乘自己 3 次。\n步驟二：$3\\times 3\\times 3=27$。\n最終答案：$27$。"
+          "explain": "步驟一：$3^{3}$ 表示 3 乘自己 3 次。\n步驟二：$3\\times 3\\times 3=27$。\n最終答案：$27$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$\\sqrt{81}=$？",
@@ -609,7 +2387,9 @@
             "D. $18$"
           ],
           "answer": "A",
-          "explain": "步驟一：找非負數使其平方為 81。\n步驟二：$9^{2}=81$，故 $\\sqrt{81}=9$。\n最終答案：$9$。"
+          "explain": "步驟一：找非負數使其平方為 81。\n步驟二：$9^{2}=81$，故 $\\sqrt{81}=9$。\n最終答案：$9$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$2^{5}=$？",
@@ -620,7 +2400,9 @@
             "D. $64$"
           ],
           "answer": "A",
-          "explain": "步驟一：$2^{5}=2\\times 2\\times 2\\times 2\\times 2$。\n步驟二：依序乘得 $4$、$8$、$16$、$32$。\n最終答案：$32$。"
+          "explain": "步驟一：$2^{5}=2\\times 2\\times 2\\times 2\\times 2$。\n步驟二：依序乘得 $4$、$8$、$16$、$32$。\n最終答案：$32$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$\\sqrt{\\dfrac{36}{100}}=$？",
@@ -631,7 +2413,116 @@
             "D. $\\dfrac{6}{50}$"
           ],
           "answer": "A",
-          "explain": "步驟一：$\\sqrt{\\dfrac{36}{100}}=\\dfrac{\\sqrt{36}}{\\sqrt{100}}=\\dfrac{6}{10}$。\n步驟二：約分得 $\\dfrac{3}{5}$。\n最終答案：$\\dfrac{3}{5}$。"
+          "explain": "步驟一：$\\sqrt{\\dfrac{36}{100}}=\\dfrac{\\sqrt{36}}{\\sqrt{100}}=\\dfrac{6}{10}$。\n步驟二：約分得 $\\dfrac{3}{5}$。\n最終答案：$\\dfrac{3}{5}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$\\sqrt{16}=$？",
+          "choices": [
+            "A. $4$",
+            "B. $8$",
+            "C. $32$",
+            "D. $256$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$4^{2}=16$。\n最終答案：$4$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$\\sqrt{2}+\\\\sqrt{3}+\\\\sqrt{4}$ 中，$\\\\sqrt{4}=$？",
+          "choices": [
+            "A. $2$",
+            "B. $4$",
+            "C. $\\\\sqrt{2}$",
+            "D. $1$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\sqrt{4}=2$（因 $2^{2}=4$）。\n最終答案：$2$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$P=I^{2}R$，$I=3\\\\,\\\\mathrm{A}$，$R=4\\\\,\\\\Omega$，$P=$？",
+          "choices": [
+            "A. $36\\\\,\\\\mathrm{W}$",
+            "B. $12\\\\,\\\\mathrm{W}$",
+            "C. $7\\\\,\\\\mathrm{W}$",
+            "D. $48\\\\,\\\\mathrm{W}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$I^{2}=9$。\n步驟二：$P=9\\times 4=36\\,\\mathrm{W}$。\n最終答案：$36\\,\\mathrm{W}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$10^{3}\\\\times 10^{5}\\\\times 10^{8}\\\\div (10^{2}\\\\times 10^{4})=$？",
+          "choices": [
+            "A. $10^{10}$",
+            "B. $10^{8}$",
+            "C. $10^{12}$",
+            "D. $10^{6}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：分子指數 $3+5+8=16$，分母 $2+4=6$。\n步驟二：$10^{16-6}=10^{10}$。\n最終答案：$10^{10}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$\\\\sqrt{2}+3\\\\sqrt{2}+4\\\\sqrt{2}=$？",
+          "choices": [
+            "A. $8\\\\sqrt{2}$",
+            "B. $9\\\\sqrt{2}$",
+            "C. $7\\\\sqrt{2}$",
+            "D. $24\\\\sqrt{2}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：同類項係數相加 $1+3+4=8$。\n最終答案：$8\\sqrt{2}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "【變題1】$4^{3}=$？",
+          "level": "變",
+          "choices": [
+            "A. $64$",
+            "B. $12$",
+            "C. $16$",
+            "D. $81$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$4\\times4\\times4=64$。\n最終答案：$64$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】$P=I^{2}R$，$I=5$，$R=2$，$P=$？",
+          "level": "變",
+          "choices": [
+            "A. $50$",
+            "B. $10$",
+            "C. $25$",
+            "D. $7$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$25\\times2=50$。\n最終答案：$50$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$\\\\sqrt{121}=$？",
+          "level": "變",
+          "choices": [
+            "A. $11$",
+            "B. $12$",
+            "C. $60.5$",
+            "D. $110$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$11^{2}=121$。\n最終答案：$11$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     },
@@ -665,7 +2556,9 @@
               ]
             }
           ],
-          "answer": "x=8"
+          "answer": "x=8",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -690,7 +2583,121 @@
               ]
             }
           ],
-          "answer": "V_{s}=200\\,\\mathrm{V}"
+          "answer": "V_{s}=200\\,\\mathrm{V}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例3",
+          "kind": "比例求未知",
+          "intro": "這是一題比例求未知，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "5:8=x:24",
+          "steps": [
+            {
+              "title": "交叉相乘",
+              "reason": "",
+              "calcs": [
+                "5\\\\times 24=8x",
+                "120=8x"
+              ]
+            },
+            {
+              "title": "解 $x$",
+              "reason": "",
+              "calcs": [
+                "x=15"
+              ]
+            }
+          ],
+          "answer": "x=15",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例4",
+          "kind": "效率百分率與比例",
+          "intro": "電動機效率常用比例／百分率：",
+          "givenLabel": "已知：",
+          "given": "\\\\eta=80\\\\%=0.8,\\\\quad P_{in}=220\\\\times 4,\\\\quad P_{out}=\\\\eta P_{in}",
+          "steps": [
+            {
+              "title": "先算輸入功率",
+              "reason": "",
+              "calcs": [
+                "P_{in}=880\\\\,\\\\mathrm{W}"
+              ]
+            },
+            {
+              "title": "乘效率",
+              "reason": "",
+              "calcs": [
+                "P_{out}=0.8\\\\times 880=704\\\\,\\\\mathrm{W}"
+              ]
+            }
+          ],
+          "answer": "P_{out}=704\\\\,\\\\mathrm{W}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例5",
+          "kind": "分流比",
+          "intro": "這是一題分流比，我們一步一步來計算：",
+          "givenLabel": "已知：",
+          "given": "兩並聯支路電阻比 R_1:R_2=1:2，電流比？",
+          "steps": [
+            {
+              "title": "並聯時電流與電阻成反比",
+              "reason": "",
+              "calcs": [
+                "I_1:I_2=R_2:R_1=2:1"
+              ]
+            }
+          ],
+          "answer": "I_1:I_2=2:1",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "匝比",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "N_p:N_s=3:1,\\\\; V_p=240\\\\,\\\\mathrm{V}",
+          "steps": [
+            {
+              "title": "正比",
+              "reason": "",
+              "calcs": [
+                "V_s=240\\\\times\\\\dfrac{1}{3}=80\\\\,\\\\mathrm{V}"
+              ]
+            }
+          ],
+          "answer": "V_s=80\\\\,\\\\mathrm{V}",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "分壓",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "R_1:R_2=3:5,\\\\; V=16\\\\,\\\\mathrm{V}\\\\text{ 串聯}，R_1\\\\text{ 分壓}",
+          "steps": [
+            {
+              "title": "份數",
+              "reason": "",
+              "calcs": [
+                "16\\\\times\\\\dfrac{3}{8}=6\\\\,\\\\mathrm{V}"
+              ]
+            }
+          ],
+          "answer": "6\\\\,\\\\mathrm{V}",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -703,7 +2710,9 @@
             "D. $12$"
           ],
           "answer": "A",
-          "explain": "步驟一：交叉相乘 $3x=4\\times 6=24$。\n步驟二：兩邊同除以 3，得 $x=8$。\n最終答案：$x=8$。"
+          "explain": "步驟一：交叉相乘 $3x=4\\times 6=24$。\n步驟二：兩邊同除以 3，得 $x=8$。\n最終答案：$x=8$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "分壓 $2\\,\\mathrm{k}\\Omega$ 與 $3\\,\\mathrm{k}\\Omega$ 串聯接 $10\\,\\mathrm{V}$，$2\\,\\mathrm{k}\\Omega$ 分得？",
@@ -714,7 +2723,9 @@
             "D. $2\\,\\mathrm{V}$"
           ],
           "answer": "A",
-          "explain": "步驟一：總阻 $2+3=5\\,\\mathrm{k}\\Omega$。\n步驟二：分壓 $10\\times\\dfrac{2}{5}=4\\,\\mathrm{V}$。\n最終答案：$4\\,\\mathrm{V}$。"
+          "explain": "步驟一：總阻 $2+3=5\\,\\mathrm{k}\\Omega$。\n步驟二：分壓 $10\\times\\dfrac{2}{5}=4\\,\\mathrm{V}$。\n最終答案：$4\\,\\mathrm{V}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$N_{p}:N_{s}=4:1$，$V_{s}=24\\,\\mathrm{V}$，$V_{p}\\approx$？",
@@ -725,7 +2736,9 @@
             "D. $48\\,\\mathrm{V}$"
           ],
           "answer": "A",
-          "explain": "步驟一：由 $\\dfrac{V_{p}}{V_{s}}=\\dfrac{N_{p}}{N_{s}}=\\dfrac{4}{1}$。\n步驟二：$V_{p}=24\\times 4=96\\,\\mathrm{V}$。\n最終答案：$96\\,\\mathrm{V}$。"
+          "explain": "步驟一：由 $\\dfrac{V_{p}}{V_{s}}=\\dfrac{N_{p}}{N_{s}}=\\dfrac{4}{1}$。\n步驟二：$V_{p}=24\\times 4=96\\,\\mathrm{V}$。\n最終答案：$96\\,\\mathrm{V}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "若 $y$ 與 $x$ 正比，$x$ 加倍則 $y$？",
@@ -736,7 +2749,103 @@
             "D. 變四倍"
           ],
           "answer": "A",
-          "explain": "步驟一：正比例寫成 $y=kx$（$k$ 為常數）。\n步驟二：$x$ 變成 $2x$ 時，$y'=k(2x)=2y$，故 $y$ 也加倍。\n最終答案：加倍。"
+          "explain": "步驟一：正比例寫成 $y=kx$（$k$ 為常數）。\n步驟二：$x$ 變成 $2x$ 時，$y'=k(2x)=2y$，故 $y$ 也加倍。\n最終答案：加倍。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$2:7=x:21$，$x=$？",
+          "choices": [
+            "A. $6$",
+            "B. $7$",
+            "C. $14$",
+            "D. $3$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$2\\times 21=7x$。\n步驟二：$x=6$。\n最終答案：$6$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "效率 $80\\\\%$，輸入 $1000\\\\,\\\\mathrm{W}$，輸出約？",
+          "choices": [
+            "A. $800\\\\,\\\\mathrm{W}$",
+            "B. $80\\\\,\\\\mathrm{W}$",
+            "C. $1250\\\\,\\\\mathrm{W}$",
+            "D. $100\\\\,\\\\mathrm{W}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$0.8\\times 1000=800$。\n最終答案：$800\\,\\mathrm{W}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "分壓 $R_1:R_2=1:4$，總壓 $20\\\\,\\\\mathrm{V}$，$R_1$ 分得？",
+          "choices": [
+            "A. $4\\\\,\\\\mathrm{V}$",
+            "B. $16\\\\,\\\\mathrm{V}$",
+            "C. $5\\\\,\\\\mathrm{V}$",
+            "D. $10\\\\,\\\\mathrm{V}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：總份 $1+4=5$。\n步驟二：$20\\times\\dfrac{1}{5}=4\\,\\mathrm{V}$。\n最終答案：$4\\,\\mathrm{V}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "匝比 $N_p:N_s=5:1$，$V_p=110\\\\,\\\\mathrm{V}$，$V_s\\\\approx$？",
+          "choices": [
+            "A. $22\\\\,\\\\mathrm{V}$",
+            "B. $550\\\\,\\\\mathrm{V}$",
+            "C. $110\\\\,\\\\mathrm{V}$",
+            "D. $11\\\\,\\\\mathrm{V}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\dfrac{V_s}{V_p}=\\dfrac{N_s}{N_p}=\\dfrac{1}{5}$。\n步驟二：$V_s=22\\,\\mathrm{V}$。\n最終答案：$22\\,\\mathrm{V}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "【變題1】$4:9=8:x$，$x=$？",
+          "level": "變",
+          "choices": [
+            "A. $18$",
+            "B. $12$",
+            "C. $36$",
+            "D. $9$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$4x=72$，$x=18$。\n最終答案：$18$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】匝比 $2:5$，$V_p=40\\\\,\\\\mathrm{V}$，$V_s=$？",
+          "level": "變",
+          "choices": [
+            "A. $100\\\\,\\\\mathrm{V}$",
+            "B. $16\\\\,\\\\mathrm{V}$",
+            "C. $80\\\\,\\\\mathrm{V}$",
+            "D. $10\\\\,\\\\mathrm{V}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$V_s=40\\times\\dfrac{5}{2}=100$。\n最終答案：$100\\,\\mathrm{V}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】分壓 $1\\\\,\\\\mathrm{k}\\\\Omega$ 與 $1\\\\,\\\\mathrm{k}\\\\Omega$ 串聯接 $12\\\\,\\\\mathrm{V}$，各分？",
+          "level": "變",
+          "choices": [
+            "A. $6\\\\,\\\\mathrm{V}$",
+            "B. $12\\\\,\\\\mathrm{V}$",
+            "C. $3\\\\,\\\\mathrm{V}$",
+            "D. $1\\\\,\\\\mathrm{V}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：等阻各半 $12\\times\\dfrac{1}{2}=6$。\n最終答案：$6\\,\\mathrm{V}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     },
@@ -768,7 +2877,9 @@
               ]
             }
           ],
-          "answer": "4700\\,\\Omega"
+          "answer": "4700\\,\\Omega",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例2",
@@ -792,7 +2903,9 @@
               ]
             }
           ],
-          "answer": "0.025\\,\\mathrm{A}"
+          "answer": "0.025\\,\\mathrm{A}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "title": "例3",
@@ -816,7 +2929,110 @@
               ]
             }
           ],
-          "answer": "1\\times 10^{-4}\\,\\mathrm{F}"
+          "answer": "1\\times 10^{-4}\\,\\mathrm{F}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "例4",
+          "kind": "科學記號加減",
+          "intro": "這是一題科學記號加減，我們一步一步來計算：",
+          "givenLabel": "給定算式：",
+          "given": "1.2\\\\times 10^{3}+3.4\\\\times 10^{4}",
+          "steps": [
+            {
+              "title": "對齊指數",
+              "reason": "都寫成 $10^{3}$：",
+              "calcs": [
+                "3.4\\\\times 10^{4}=34\\\\times 10^{3}"
+              ]
+            },
+            {
+              "title": "相加",
+              "reason": "",
+              "calcs": [
+                "(1.2+34)\\\\times 10^{3}=35.2\\\\times 10^{3}=3.52\\\\times 10^{4}"
+              ]
+            }
+          ],
+          "answer": "3.52\\\\times 10^{4}",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "title": "例5",
+          "kind": "k／m 混合換算",
+          "intro": "這是一題k／m 混合換算，我們一步一步來計算：",
+          "givenLabel": "已知：",
+          "given": "2\\\\,\\\\mathrm{k}\\\\Omega\\\\text{ 通過 }5\\\\,\\\\mathrm{mA}\\\\text{，壓降？}",
+          "steps": [
+            {
+              "title": "換成基本單位",
+              "reason": "",
+              "calcs": [
+                "R=2000\\\\,\\\\Omega",
+                "I=0.005\\\\,\\\\mathrm{A}"
+              ]
+            },
+            {
+              "title": "歐姆定律",
+              "reason": "",
+              "calcs": [
+                "V=IR=2000\\\\times 0.005=10\\\\,\\\\mathrm{V}"
+              ]
+            }
+          ],
+          "answer": "V=10\\\\,\\\\mathrm{V}",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "title": "變題1",
+          "level": "變",
+          "kind": "mA 與 kΩ",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "已知：",
+          "given": "I=10\\,\\mathrm{mA},\\; R=2\\,\\mathrm{k}\\Omega,\\; V=IR",
+          "steps": [
+            {
+              "title": "換基本單位",
+              "reason": "",
+              "calcs": [
+                "I=0.01\\,\\mathrm{A}",
+                "R=2000\\,\\Omega"
+              ]
+            },
+            {
+              "title": "相乘",
+              "reason": "",
+              "calcs": [
+                "V=20\\,\\mathrm{V}"
+              ]
+            }
+          ],
+          "answer": "V=20\\,\\mathrm{V}",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "title": "變題2",
+          "level": "變",
+          "kind": "μF→F",
+          "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
+          "givenLabel": "給定：",
+          "given": "100\\,\\mu\\mathrm{F}",
+          "steps": [
+            {
+              "title": "\\(\\times 10^{-6}\\)",
+              "reason": "$\\mu=10^{-6}$",
+              "calcs": [
+                "100\\times 10^{-6}=1\\times 10^{-4}\\,\\mathrm{F}"
+              ]
+            }
+          ],
+          "answer": "1\\times 10^{-4}\\,\\mathrm{F}",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ],
       "practice": [
@@ -829,7 +3045,9 @@
             "D. $220$"
           ],
           "answer": "A",
-          "explain": "步驟一：$\\mathrm{k}=10^{3}$，所以要乘 1000。\n步驟二：$2.2\\times 1000=2200$。\n最終答案：$2200\\,\\Omega$。"
+          "explain": "步驟一：$\\mathrm{k}=10^{3}$，所以要乘 1000。\n步驟二：$2.2\\times 1000=2200$。\n最終答案：$2200\\,\\Omega$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$150\\,\\mathrm{mA}=$？$\\mathrm{A}$",
@@ -840,7 +3058,9 @@
             "D. $1.5$"
           ],
           "answer": "A",
-          "explain": "步驟一：$\\mathrm{m}=10^{-3}$，所以要除以 1000（或乘 $10^{-3}$）。\n步驟二：$150\\times 10^{-3}=0.15$。\n最終答案：$0.15\\,\\mathrm{A}$。"
+          "explain": "步驟一：$\\mathrm{m}=10^{-3}$，所以要除以 1000（或乘 $10^{-3}$）。\n步驟二：$150\\times 10^{-3}=0.15$。\n最終答案：$0.15\\,\\mathrm{A}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$47\\,\\mu\\mathrm{F}=$？$\\mathrm{F}$",
@@ -851,7 +3071,9 @@
             "D. $0.47$"
           ],
           "answer": "A",
-          "explain": "步驟一：$\\mu=10^{-6}$，故 $47\\times 10^{-6}\\,\\mathrm{F}$。\n步驟二：化成科學記號 $4.7\\times 10^{-5}\\,\\mathrm{F}$。\n最終答案：$4.7\\times 10^{-5}\\,\\mathrm{F}$。"
+          "explain": "步驟一：$\\mu=10^{-6}$，故 $47\\times 10^{-6}\\,\\mathrm{F}$。\n步驟二：化成科學記號 $4.7\\times 10^{-5}\\,\\mathrm{F}$。\n最終答案：$4.7\\times 10^{-5}\\,\\mathrm{F}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$3\\,\\mathrm{M}\\Omega=$？$\\Omega$",
@@ -862,7 +3084,9 @@
             "D. $3000$"
           ],
           "answer": "A",
-          "explain": "步驟一：$\\mathrm{M}=10^{6}$（百萬）。\n步驟二：$3\\times 10^{6}\\,\\Omega$。\n最終答案：$3\\times 10^{6}\\,\\Omega$。"
+          "explain": "步驟一：$\\mathrm{M}=10^{6}$（百萬）。\n步驟二：$3\\times 10^{6}\\,\\Omega$。\n最終答案：$3\\times 10^{6}\\,\\Omega$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
         },
         {
           "stem": "$10\\,\\mathrm{mH}=$？$\\mathrm{H}$",
@@ -873,9 +3097,122 @@
             "D. $100$"
           ],
           "answer": "A",
-          "explain": "步驟一：$\\mathrm{m}=10^{-3}$。\n步驟二：$10\\times 10^{-3}=0.01\\,\\mathrm{H}$。\n最終答案：$0.01\\,\\mathrm{H}$。"
+          "explain": "步驟一：$\\mathrm{m}=10^{-3}$。\n步驟二：$10\\times 10^{-3}=0.01\\,\\mathrm{H}$。\n最終答案：$0.01\\,\\mathrm{H}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "$0.25\\\\times 10=$？",
+          "choices": [
+            "A. $2.5$",
+            "B. $0.025$",
+            "C. $25$",
+            "D. $0.25$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：小數點右移一位得 $2.5$。\n最終答案：$2.5$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$326\\\\div 100=$？",
+          "choices": [
+            "A. $3.26$",
+            "B. $32.6$",
+            "C. $32600$",
+            "D. $0.326$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：除以 100，小數點左移兩位。\n最終答案：$3.26$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$1.234\\\\times 1000=$？",
+          "choices": [
+            "A. $1234$",
+            "B. $1.234$",
+            "C. $12.34$",
+            "D. $0.001234$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：乘 1000，小數點右移三位。\n最終答案：$1234$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$5.6\\\\times 10^{6}-2.3\\\\times 10^{3}\\\\approx$？（數量級）",
+          "choices": [
+            "A. 約 $5.6\\\\times 10^{6}$",
+            "B. 約 $3.3\\\\times 10^{6}$",
+            "C. 約 $2.3\\\\times 10^{3}$",
+            "D. $0$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$2.3\\times 10^{3}$ 遠小於 $5.6\\times 10^{6}$，相減後幾乎仍是 $5.5977\\times 10^{6}$。\n最終答案：約 $5.6\\times 10^{6}$。",
+          "source": "靜心電學教室",
+          "sourceNote": "習題改編"
+        },
+        {
+          "stem": "$47\\\\,\\\\mathrm{nF}=$？$\\\\mathrm{F}$",
+          "choices": [
+            "A. $4.7\\\\times 10^{-8}$",
+            "B. $47\\\\times 10^{-6}$",
+            "C. $47\\\\times 10^{-3}$",
+            "D. $4.7\\\\times 10^{-6}$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\mathrm{n}=10^{-9}$。\n步驟二：$47\\times 10^{-9}=4.7\\times 10^{-8}$。\n最終答案：$4.7\\times 10^{-8}\\,\\mathrm{F}$。",
+          "source": "自編",
+          "sourceNote": "本卡自編"
+        },
+        {
+          "stem": "【變題1】$2\\\\,\\\\mathrm{k}\\\\Omega=$？$\\\\Omega$",
+          "level": "變",
+          "choices": [
+            "A. $2000$",
+            "B. $2$",
+            "C. $0.002$",
+            "D. $200$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\\\times 1000$。\n最終答案：$2000$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題2】$80\\\\,\\\\mathrm{mA}=$？$\\\\mathrm{A}$",
+          "level": "變",
+          "choices": [
+            "A. $0.08$",
+            "B. $80$",
+            "C. $0.8$",
+            "D. $0.008$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$\\times10^{-3}$。\n最終答案：$0.08$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
+        },
+        {
+          "stem": "【變題3】$100\\\\,\\\\mathrm{nF}=$？$\\\\mathrm{F}$",
+          "level": "變",
+          "choices": [
+            "A. $1\\\\times 10^{-7}$",
+            "B. $100\\\\times 10^{-6}$",
+            "C. $1\\\\times 10^{-6}$",
+            "D. $100$"
+          ],
+          "answer": "A",
+          "explain": "步驟一：$100\\\\times 10^{-9}=1\\\\times 10^{-7}$。\n最終答案：$1\\\\times 10^{-7}\\\\,\\\\mathrm{F}$。",
+          "source": "自編變題",
+          "sourceNote": "同單元技巧改寫"
         }
       ]
     }
-  ]
+  ],
+  "meta": {
+    "difficultyNote": "難度上限：高中／高職統測電機電子群。高職統測內靜電習題數學盡量放入；超綱電磁理論不進數學核心。",
+    "sourcePolicy": "改編自靜心電學教室者標 source；自編標「自編」。"
+  }
 }
