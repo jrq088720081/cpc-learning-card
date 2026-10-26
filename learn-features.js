@@ -3,7 +3,7 @@
 
 const LearnUI = (() => {
   /* ---------- data loaders ---------- */
-  let _bank, _concepts, _zhQuiz, _enQuiz, _math;
+  let _bank, _concepts, _zhQuiz, _enQuiz, _math, _tips;
   async function loadBank() {
     if (_bank) return _bank;
     if (window.__EXAM_BANK__) _bank = window.__EXAM_BANK__;
@@ -48,6 +48,56 @@ const LearnUI = (() => {
       catch { _math = { units: [] }; }
     }
     return _math;
+  }
+  async function loadTips() {
+    if (_tips) return _tips;
+    if (window.__TIPS__) _tips = window.__TIPS__;
+    else {
+      try { _tips = await (await fetch('./data/tips/tips.json')).json(); }
+      catch { _tips = { sourceNote: '', categories: [] }; }
+    }
+    return _tips;
+  }
+  let _examLinks;
+  async function loadExamLinks() {
+    if (_examLinks) return _examLinks;
+    if (window.__MATH_EXAM_LINKS__) _examLinks = window.__MATH_EXAM_LINKS__;
+    else {
+      try { _examLinks = await (await fetch('./data/math/exam-links.json')).json(); }
+      catch { _examLinks = { byUnit: {}, byQuestion: {}, questions: {}, meta: {} }; }
+    }
+    return _examLinks;
+  }
+  function mathChipsForQuestion(q, links) {
+    if (!q || !links) return '';
+    const units = (links.byQuestion || {})[q.id] || q.mathUnits || [];
+    if (!units.length) return '';
+    const names = (links.meta && links.meta.unitNames) || {};
+    const chips = units.map((uid) => {
+      const name = names[uid] || uid;
+      return `<a class="chip chip-math" href="#learn-math/${esc(uid)}">不會？先練：${esc(name)}</a>`;
+    }).join(' ');
+    return `<div class="link-chips muted small"><span>數學補強：</span>${chips}</div>`;
+  }
+  function examChipsForUnit(unitId, links) {
+    if (!unitId || !links) return '';
+    const ids = ((links.byUnit || {})[unitId] || []).slice(0, 8);
+    if (!ids.length) return '';
+    const qm = links.questions || {};
+    const chips = ids.map((id) => {
+      const m = qm[id] || {};
+      const label = m.label || id.replace(/^cpc-/, '');
+      const track = m.track === 'em' ? 'em' : 'ee';
+      return `<a class="chip chip-exam" href="#learn-${track}/q/${esc(id)}">相關歷屆：${esc(label)}</a>`;
+    }).join(' ');
+    return `<div class="link-chips muted small"><span>相關歷屆：</span>${chips}</div>`;
+  }
+  function sourceTagHtml(item) {
+    if (!item) return '';
+    const s = item.source || '';
+    if (!s) return '';
+    const note = item.sourceNote ? `・${item.sourceNote}` : '';
+    return `<p class="muted small source-tag">出處：${esc(s)}${esc(note)}</p>`;
   }
 
   /* ---------- practice stats (IndexedDB meta) ---------- */
@@ -360,6 +410,8 @@ const LearnUI = (() => {
     const explain = reveal && (q.explain || q.answer)
       ? `<div class="q-explain card soft-card"><b>詳解</b><div class="explain-body">${explainHtml}</div>
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
+          ${sourceTagHtml(q)}
+          ${reveal ? (q._mathChipsHtml || '') : ''}
         </div>` : '';
     return `
       <section class="card learn-shell quiz-head">
@@ -411,9 +463,11 @@ const LearnUI = (() => {
       revealed: {}, // id -> bool
       startedAt: Date.now(),
       endsAt: durationSec ? Date.now() + durationSec * 1000 : null,
-      finished: false
+      finished: false,
+      examLinks: null
     };
     _runner = state;
+    loadExamLinks().then((L) => { state.examLinks = L; }).catch(() => {});
 
     const tick = () => {
       if (!state.endsAt || state.finished) return;
@@ -495,6 +549,8 @@ const LearnUI = (() => {
       if (state.finished) return;
       const q = state.qs[state.index];
       const reveal = state.mode === 'mock' ? false : !!state.revealed[q.id];
+      if (reveal && state.examLinks) q._mathChipsHtml = mathChipsForQuestion(q, state.examLinks);
+      else q._mathChipsHtml = '';
       const left = state.endsAt ? (state.endsAt - Date.now()) / 1000 : null;
       q.lang = q.lang || (subjectTab === 'en' || subjectTab === 'english' ? 'en' : (subjectTab === 'zh' ? 'zh' : ''));
       app.innerHTML = renderMcShell({
@@ -561,15 +617,18 @@ const LearnUI = (() => {
     const zh = await loadZhQuiz();
     const en = await loadEnQuiz();
     const math = await loadMath();
+    const tipsData = await loadTips();
+    const tipN = (tipsData.categories || []).reduce((n, c) => n + (c.tips || []).length, 0);
     const meta = bank.meta || {};
     app.innerHTML = `
       <section class="card learn-shell">
         <h2>學習區</h2>
-        <p>考古題刷題、觀念卡、計時模擬考、國英發音與數學基礎都在這裡。寫錯可勾原因寫進同一本錯題本。</p>
-        <p class="muted small">專業題庫 ${meta.total || 0} 題（有圖 ${meta.withFigure || 0}）・國文 114 選擇 ${zh.exam114?.length || 0}＋常識自出 ${zh.fromKnowledge?.length || 0}・英文 114 共 ${en.exam114?.length || 0}・數學 ${math.units?.length || 0} 單元</p>
+        <p>考古題刷題、觀念卡、計時模擬考、國英發音、數學基礎與備考技巧都在這裡。寫錯可勾原因寫進同一本錯題本。</p>
+        <p class="muted small">專業題庫 ${meta.total || 0} 題（有圖 ${meta.withFigure || 0}）・國文 114 選擇 ${zh.exam114?.length || 0}＋常識自出 ${zh.fromKnowledge?.length || 0}・英文 114 共 ${en.exam114?.length || 0}・數學 ${math.units?.length || 0} 單元・備考技巧 ${tipN} 則</p>
       </section>
       <div class="learn-subjects">
         <a class="overview-tab learn-card" href="#learn-math"><b>數學基礎</b><span class="muted small">分數・方程式・單位換算</span><span class="tag tag-ok">可用</span></a>
+        <a class="overview-tab learn-card" href="#learn-tips"><b>備考技巧</b><span class="muted small">讀書方法・大範圍・心態</span><span class="tag tag-ok">可用</span></a>
         <a class="overview-tab learn-card" href="#learn-en"><b>英文</b><span class="muted small">114 考古・點字發音・回想卡</span><span class="tag tag-ok">可用</span></a>
         <a class="overview-tab learn-card" href="#learn-zh"><b>國文</b><span class="muted small">常識總表・刷題</span><span class="tag tag-ok">可用</span></a>
         <a class="overview-tab learn-card" href="#learn-ee"><b>電工原理</b><span class="muted small">觀念＋刷題＋模擬</span><span class="tag tag-ok">可用</span></a>
@@ -597,6 +656,7 @@ const LearnUI = (() => {
     const name = track === 'em' ? '電工機械' : '電工原理';
     const sub = parts[0] || 'hub';
     $('#pageTitle').textContent = name;
+    if (sub === 'q' && parts[1]) return viewExamQuestion(app, track, parts[1]);
     if (sub === 'concepts') return viewProConcepts(app, track);
     if (sub === 'drill') return viewProDrill(app, track, parts.slice(1));
     if (sub === 'quiz') return viewProDrill(app, track, parts.slice(1));
@@ -690,12 +750,40 @@ const LearnUI = (() => {
     return a;
   }
 
+
+  async function viewExamQuestion(app, track, qid) {
+    const bank = await loadBank();
+    const links = await loadExamLinks();
+    const q = (bank.questions || []).find((x) => x.id === qid);
+    if (!q) {
+      app.innerHTML = `<section class="card"><h2>找不到試題</h2><p class="muted small">${esc(qid)}</p>
+        <a class="btn btn-primary" href="#learn-${track}/drill">回刷題</a></section>`;
+      return;
+    }
+    const mapped = {
+      id: q.id, stem: q.stem, choices: q.choices, answer: q.answer,
+      explain: q.explain || (q.answer ? `歷屆答案：${q.answer}` : '題庫無答案'),
+      hasFigure: q.hasFigure, figurePath: q.figurePath,
+      label: `${q.year} #${q.qnum}・${q.track === 'em' ? '機械' : '原理'}`,
+      answerConfidence: q.answerConfidence,
+      mathUnits: (links.byQuestion || {})[q.id] || []
+    };
+    return runQuiz(app, {
+      title: '歷屆單題',
+      questions: [mapped],
+      mode: 'practice',
+      subjectTab: q.track === 'em' ? 'em' : 'ee',
+      source: `歷屆 ${q.year}#${q.qnum}`
+    });
+  }
+
   async function viewProDrill(app, track, rest) {
     const bank = await loadBank();
     $('#pageTitle').textContent = '刷題';
     // if rest[0]==='run' → start with filters in sessionStorage
     if (rest[0] === 'run') {
       const cfg = JSON.parse(sessionStorage.getItem('drillCfg') || '{}');
+      const links = await loadExamLinks();
       let qs = bank.questions.slice();
       const scope = cfg.scope || track;
       if (scope === 'ee' || scope === 'em') qs = qs.filter((q) => q.track === scope);
@@ -712,7 +800,8 @@ const LearnUI = (() => {
           hasFigure: q.hasFigure, figurePath: q.figurePath,
           label: `${q.year} #${q.qnum}・${q.track === 'em' ? '機械' : '原理'}`,
           answerConfidence: q.answerConfidence,
-          extension: false
+          extension: false,
+          mathUnits: (links.byQuestion || {})[q.id] || []
         })),
         mode: 'practice', subjectTab: scope === 'em' ? 'em' : 'ee', source: '專業刷題'
       });
@@ -829,6 +918,7 @@ const LearnUI = (() => {
     const bank = await loadBank();
     const zh = await loadZhQuiz();
     const en = await loadEnQuiz();
+    const examLinks = await loadExamLinks();
     const n = cfg.n || 30;
     let pool = [];
     const scope = cfg.scope || 'pro';
@@ -836,7 +926,8 @@ const LearnUI = (() => {
       id: q.id, stem: q.stem, choices: q.choices, answer: q.answer,
       explain: q.explain || (q.answer ? `答案 ${q.answer}` : ''),
       hasFigure: q.hasFigure, figurePath: q.figurePath,
-      label: `${q.year}#${q.qnum}`, answerConfidence: q.answerConfidence
+      label: `${q.year}#${q.qnum}`, answerConfidence: q.answerConfidence,
+      mathUnits: (examLinks.byQuestion || {})[q.id] || []
     });
     const mapLang = (q, lang) => ({
       id: q.id, stem: q.stem, choices: q.choices, answer: q.answer,
@@ -1054,7 +1145,7 @@ const LearnUI = (() => {
         </li>`;
       }).join('');
       return `<div class="math-ex">
-        <b class="math-ex-title">${esc(ex.title || '例題')}</b>
+        <b class="math-ex-title">${esc(ex.title || '例題')}${ex.level === '變' ? ' <span class="tag">變題</span>' : ''}</b>
         <div class="math-worked">
           <p class="math-intro">${esc(intro)}</p>
           <p class="math-given-label">${esc(givenLabel)}</p>
@@ -1063,27 +1154,34 @@ const LearnUI = (() => {
           <ol class="math-steps">${stepsHtml}</ol>
           <h4 class="math-answer-h">最終答案</h4>
           <div class="math-block math-final">${displayMath(ex.answer || '')}</div>
+          ${sourceTagHtml(ex)}
         </div>
       </div>`;
     }
     // Backward compatible: plain body string
-    return `<div class="math-ex"><b class="math-ex-title">${esc(ex.title || '例題')}</b><div class="math-block">${formatRichText(ex.body || '')}</div></div>`;
+    return `<div class="math-ex"><b class="math-ex-title">${esc(ex.title || '例題')}${ex.level === '變' ? ' <span class="tag">變題</span>' : ''}</b><div class="math-block">${formatRichText(ex.body || '')}</div>${sourceTagHtml(ex)}</div>`;
   }
   async function viewMathUnit(app, unit) {
     $('#pageTitle').textContent = unit.name;
     const links = (settings.learnLinks || []).filter((l) => l.subject === 'math' && (!l.unit || l.unit === unit.name || (unit.id === 'frac' && /分數/.test(l.unit)) || (unit.id === 'linear1' && /一元/.test(l.unit)) || (unit.id === 'linear2' && /二元/.test(l.unit)) || (unit.id === 'signed' && /正負/.test(l.unit))));
+    const examLinks = await loadExamLinks();
+    const examChipBlock = examChipsForUnit(unit.id, examLinks);
+    const varN = (unit.practice || []).filter((p) => p.level === '變' || /^【變題/.test(p.stem || '')).length;
     app.innerHTML = `
       <section class="card learn-shell">
         <h2>${esc(unit.name)}</h2>
         <p class="math-inline">${formatRichText(unit.blurb || '')}</p>
         <div class="math-explain"><b>精簡說明</b><p class="math-inline">${formatRichText(unit.explain || '')}</p></div>
+        ${examChipBlock}
       </section>
       <section class="card soft-card"><h3>例題</h3>
+        <p class="muted small">含原題／習題改編與「變題」（同技巧換數字）。</p>
         ${(unit.examples || []).map((ex) => renderMathExample(ex)).join('') || '<p class="muted">無</p>'}
       </section>
       <section class="card soft-card">
         <h3>練習題</h3>
-        <p class="muted small">選完才顯示詳解。公式以 LaTeX（KaTeX）顯示，離線可用。</p>
+        <p class="muted small">選完才顯示詳解。含 ${varN} 道變題。公式以 LaTeX（KaTeX）顯示，離線可用。</p>
+        ${examChipBlock}
         <button type="button" class="btn btn-primary" id="mathPractice">開始練習（${(unit.practice || []).length} 題）</button>
       </section>
       ${links.length ? `<section class="card soft-card"><h3>搞不懂再點</h3><ul class="link-list">${links.map((l) => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a></li>`).join('')}</ul></section>` : ''}
@@ -1093,10 +1191,57 @@ const LearnUI = (() => {
       title: unit.name,
       questions: (unit.practice || []).map((p, i) => ({
         id: `math-${unit.id}-${i}`, stem: p.stem, choices: p.choices, answer: p.answer,
-        explain: p.explain || '', label: '數學練習'
+        explain: p.explain || '', label: '數學練習',
+        source: p.source || '', sourceNote: p.sourceNote || ''
       })),
       mode: 'practice', subjectTab: 'math', source: '數學・' + unit.name
     });
+  }
+
+
+  /* ---------- TIPS (備考技巧) ---------- */
+  async function viewTips(app, parts) {
+    const data = await loadTips();
+    const catId = parts[0];
+    if (catId) {
+      const cat = (data.categories || []).find((c) => c.id === catId);
+      if (!cat) {
+        app.innerHTML = `<section class="card"><h2>找不到分類</h2><a class="btn btn-primary" href="#learn-tips">回備考技巧</a></section>`;
+        return;
+      }
+      $('#pageTitle').textContent = cat.name;
+      app.innerHTML = `
+        <section class="card learn-shell">
+          <h2>${esc(cat.name)}</h2>
+          <p class="muted small">${esc(data.sourceNote || '')}</p>
+        </section>
+        ${(cat.tips || []).map((tip) => `
+          <section class="card soft-card tip-card">
+            <h3>${esc(tip.title || '')}</h3>
+            <p>${esc(tip.body || '')}</p>
+            ${(tip.tags || []).length ? `<p class="muted small">${(tip.tags || []).map((tg) => `<span class="tag">${esc(tg)}</span>`).join(' ')}</p>` : ''}
+            ${sourceTagHtml(tip)}
+          </section>`).join('') || '<p class="muted">尚無內容</p>'}
+        <div class="btn-row"><a class="btn btn-soft" href="#learn-tips">回備考技巧</a><a class="btn btn-soft" href="#learn">回學習</a></div>`;
+      return;
+    }
+    $('#pageTitle').textContent = '備考技巧';
+    const cats = data.categories || [];
+    app.innerHTML = `
+      <section class="card learn-shell">
+        <h2>備考技巧</h2>
+        <p>讀書方法、大範圍練習、答卷關鍵、數學基礎與心態——整理成可執行的短卡。</p>
+        <p class="muted small">${esc(data.sourceNote || '整理自靜心電學教室公開備考文，僅摘要')}</p>
+      </section>
+      <div class="learn-subjects">
+        ${cats.map((c) => `
+          <a class="overview-tab learn-card" href="#learn-tips/${esc(c.id)}">
+            <b>${esc(c.name)}</b>
+            <span class="muted small">${(c.tips || []).length} 則</span>
+            <span class="tag tag-ok">可用</span>
+          </a>`).join('') || '<p class="muted">尚無分類</p>'}
+      </div>
+      <div class="btn-row" style="margin-top:12px"><a class="btn btn-soft" href="#learn">回學習</a></div>`;
   }
 
   /* ---------- HOME helpers ---------- */
@@ -1110,6 +1255,7 @@ const LearnUI = (() => {
     tips.push({ href: '#learn-ee/drill', text: `專業刷題 ${goal} 題` });
     tips.push({ href: '#learn-en/recall', text: '英文回想卡 5 張' });
     tips.push({ href: '#learn-math', text: '數學基礎一單元' });
+    tips.push({ href: '#learn-tips', text: '備考技巧幾則' });
     tips.push({ href: '#learn-mock', text: '計時模擬考一段' });
     const weak = Object.entries(st.bySubject || {}).sort((a, b) => (a[1].correct / (a[1].total || 1)) - (b[1].correct / (b[1].total || 1)))[0];
     if (weak && weak[1].total >= 5) {
@@ -1152,7 +1298,7 @@ const LearnUI = (() => {
   }
 
   return {
-    viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath,
+    viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips,
     todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank
   };
 })();

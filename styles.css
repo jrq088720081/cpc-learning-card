@@ -705,3 +705,17 @@ button.stat.stat-link:active { transform: scale(.97); }
 .item-select { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .item-select .sel-box { width: 18px; height: 18px; flex-shrink: 0; }
 .item-select.is-selected { outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); }
+
+
+/* 數學↔歷屆 chips、出處 */
+.chip-math, .chip-exam {
+  display: inline-flex; align-items: center; text-decoration: none;
+  border: 1px solid var(--line); background: var(--bg);
+  border-radius: 999px; padding: 6px 12px; margin: 4px 6px 0 0;
+  font-size: .86rem; color: var(--text); min-height: 36px;
+}
+.chip-math { border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
+  background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.chip-exam { border-color: color-mix(in srgb, var(--ok, #2a7) 35%, var(--line)); }
+.source-tag { margin: 4px 0 8px; }
+.math-chips, .exam-chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 4px; }
