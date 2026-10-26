@@ -20,7 +20,8 @@
     folderName: '',
     folderUrl: '',
     scheduleEnabled: false,
-    scheduleKind: 'weekly', // daily | weekly | monthly30
+    scheduleKind: 'weekly', // daily | weekly | custom
+    scheduleEveryDays: 30, // custom：1–365；舊的 monthly30 會遷成 custom 30
     scheduleTime: '21:00',
     scheduleWeekday: 0, // 0=日 … 6=六（每週用）
     lastCloudBackupAt: null, // ISO
@@ -275,6 +276,32 @@
     return new File([text], 'drive-backup.json', { type: 'application/json' });
   }
 
+  function clampEveryDays(n) {
+    const x = parseInt(n, 10);
+    if (!Number.isFinite(x)) return 30;
+    return Math.min(365, Math.max(1, x));
+  }
+
+  /** 自訂天數；舊 monthly30 一律改成 custom、30 天 */
+  function normalizeSchedule(cfg) {
+    if (!cfg || typeof cfg !== 'object') return cfg;
+    if (cfg.scheduleKind === 'monthly30') {
+      cfg.scheduleKind = 'custom';
+      cfg.scheduleEveryDays = 30;
+      cfg._scheduleMigrated = true;
+    }
+    if (cfg.scheduleKind !== 'daily' && cfg.scheduleKind !== 'weekly' && cfg.scheduleKind !== 'custom') {
+      cfg.scheduleKind = 'weekly';
+    }
+    cfg.scheduleEveryDays = clampEveryDays(cfg.scheduleEveryDays);
+    return cfg;
+  }
+
+  function scheduleEveryDaysOf(cfg) {
+    if (cfg && cfg.scheduleKind === 'monthly30') return 30;
+    return clampEveryDays(cfg && cfg.scheduleEveryDays);
+  }
+
   /** 排程是否到期（純函式，方便測試） */
   function isScheduleDue(cfg, now = new Date()) {
     if (!cfg || !cfg.scheduleEnabled) return false;
@@ -293,9 +320,9 @@
     if (cfg.scheduleKind === 'daily') {
       earliest = atTime(last);
       earliest.setDate(earliest.getDate() + 1);
-    } else if (cfg.scheduleKind === 'monthly30') {
+    } else if (cfg.scheduleKind === 'custom' || cfg.scheduleKind === 'monthly30') {
       earliest = atTime(last);
-      earliest.setDate(earliest.getDate() + 30);
+      earliest.setDate(earliest.getDate() + scheduleEveryDaysOf(cfg));
     } else {
       // weekly：從上次起算至少 7 天，且落在指定星期幾的設定時間之後
       const wd = Number.isFinite(+cfg.scheduleWeekday) ? +cfg.scheduleWeekday : 0;
@@ -314,16 +341,22 @@
     return now.getTime() >= earliest.getTime();
   }
 
+  function scheduleKindLabel(cfg) {
+    if (!cfg) return '每週';
+    if (cfg.scheduleKind === 'daily') return '每天';
+    if (cfg.scheduleKind === 'custom' || cfg.scheduleKind === 'monthly30') return `每 ${scheduleEveryDaysOf(cfg)} 天`;
+    return '每週';
+  }
+
   function nextDueLabel(cfg, now = new Date()) {
     if (!cfg || !cfg.scheduleEnabled) return '未開啟排程';
     if (isScheduleDue(cfg, now)) return '已到期，打開 App 時會自動上傳';
-    const kind = cfg.scheduleKind === 'daily' ? '每天' : cfg.scheduleKind === 'monthly30' ? '每 30 天' : '每週';
-    return `${kind} ${cfg.scheduleTime || '21:00'}（僅在 App 打開時檢查）`;
+    return `${scheduleKindLabel(cfg)} ${cfg.scheduleTime || '21:00'}（僅在 App 打開時檢查）`;
   }
 
   const api = {
     SCOPE, FOLDER_NAME, DEFAULT_DRIVE, getClientId, hasClientId, isConnected, online,
-    cloudFileName, isScheduleDue, nextDueLabel, folderOpenUrl, clearToken,
+    cloudFileName, isScheduleDue, nextDueLabel, clampEveryDays, normalizeSchedule, folderOpenUrl, clearToken,
     requestToken, ensureBackupFolder, pickFolder, resumableUpload, listBackupFiles, downloadFile,
     getAccessToken: () => accessToken,
     /** 給 app.js：連接帳號並確保資料夾 */

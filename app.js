@@ -336,9 +336,16 @@ async function loadSettings() {
     lastBackup: await DB.meta('lastBackup', null),
     driveBackup: Object.assign(DriveBackup.DEFAULT_DRIVE(), await DB.meta('driveBackup', null) || {}),
     learnLinks: mergeLearnLinks(await DB.meta('learnLinks', null)),
+    learnFavs: await DB.meta('learnFavs', {}) || {},
     dailyGoal: Math.max(1, Math.min(50, Number(await DB.meta('dailyGoal', 10)) || 10)),
-    examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null))
+    examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null)),
+    enTtsRate: await DB.meta('enTtsRate', 'normal') || 'normal'
   };
+  DriveBackup.normalizeSchedule(settings.driveBackup);
+  const scheduleMigrated = !!settings.driveBackup._scheduleMigrated;
+  delete settings.driveBackup._scheduleMigrated;
+  if (!['slow', 'normal', 'fast'].includes(settings.enTtsRate)) settings.enTtsRate = 'normal';
+  if (scheduleMigrated) await saveSettings('driveBackup');
   currentTab = await DB.meta('currentTab', '');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) currentTab = '';
 }
@@ -541,7 +548,7 @@ async function render() {
     if (!inQuiz && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
   const { view, id } = parseHash();
-  const tab = view === 'add-done' ? 'add' : view === 'session' ? 'review' : view === 'edit' || view === 'detail' || view === 'practice' ? 'list' : view.startsWith('learn') ? 'learn' : view;
+  const tab = view === 'add-done' ? 'add' : view === 'session' ? 'review' : view === 'edit' || view === 'detail' || view === 'practice' ? 'list' : view === 'learn-tips' ? 'learn-tips' : view.startsWith('learn') ? 'learn' : view;
   $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   $('#pageTitle').textContent = TITLES[view] || TITLES.home;
   $('#backBtn').hidden = !['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view);
@@ -707,7 +714,7 @@ async function viewLearnZh(app, parts) {
     <section class="card learn-shell">
       <h2>常識總表 <span class="tag tag-ok">第一批</span></h2>
       <p>依字音字形、古典文學、國學常識、應用文、現代文學分類查表複習。標「考古」者附年份；「延伸補充」為考卷未直接出、但常考的補強。</p>
-      <p class="muted small">本批共 <b>${totals.rows || 0}</b> 筆（考古約 ${totals.exam || 0}、延伸 ${totals.extension || 0}）。離線可讀。刷題區已可用（114＋常識自出）。</p>
+      <p class="muted small">本批共 <b>${totals.rows || 0}</b> 筆（考古約 ${totals.exam || 0}、延伸 ${totals.extension || 0}）。離線可讀。刷題區可多年份複選＋常識自出。</p>
     </section>
     <div class="learn-subjects">${cats || '<p class="muted">尚未載入資料。</p>'}</div>
     <div class="btn-row"><a class="btn btn-soft" href="#learn">回學習</a></div>`;
@@ -762,7 +769,7 @@ async function viewZhTable(app, data, cat, sec) {
         return `<td class="zh-td-note">${zhNoteTag(tag, note)} <span>${esc(val)}</span></td>`;
       }
       if (headCols.includes(i) && doAnnotate) {
-        return `<td>${annotateZhText(val)} ${zhSpeakBtn(val)}</td>`;
+        return `<td>${annotateZhText(val)}</td>`;
       }
       if (i === readingIdx) {
         return `<td class="zh-reading">${esc(val)}</td>`;
@@ -1601,6 +1608,7 @@ async function buildBackupBlob() {
     folderName: settings.driveBackup.folderName || '',
     scheduleEnabled: !!settings.driveBackup.scheduleEnabled,
     scheduleKind: settings.driveBackup.scheduleKind || 'weekly',
+    scheduleEveryDays: DriveBackup.clampEveryDays(settings.driveBackup.scheduleEveryDays),
     scheduleTime: settings.driveBackup.scheduleTime || '21:00',
     scheduleWeekday: settings.driveBackup.scheduleWeekday ?? 0,
     lastCloudBackupAt: settings.driveBackup.lastCloudBackupAt || null,
@@ -1703,11 +1711,14 @@ async function importBackup(file, mode) {
         folderName: s.driveBackup.folderName || settings.driveBackup.folderName,
         scheduleEnabled: !!s.driveBackup.scheduleEnabled,
         scheduleKind: s.driveBackup.scheduleKind || settings.driveBackup.scheduleKind,
+        scheduleEveryDays: s.driveBackup.scheduleEveryDays ?? settings.driveBackup.scheduleEveryDays,
         scheduleTime: s.driveBackup.scheduleTime || settings.driveBackup.scheduleTime,
         scheduleWeekday: s.driveBackup.scheduleWeekday ?? settings.driveBackup.scheduleWeekday,
         lastCloudBackupAt: s.driveBackup.lastCloudBackupAt || null,
         lastCloudBackupDate: s.driveBackup.lastCloudBackupDate || null
       });
+      DriveBackup.normalizeSchedule(settings.driveBackup);
+      delete settings.driveBackup._scheduleMigrated;
     }
   } else {
     const existing = new Map((await DB.all()).map((m) => [m.id, m]));
@@ -1815,8 +1826,11 @@ async function viewSettings(app) {
                   <select id="schedKind">
                     <option value="daily" ${db.scheduleKind === 'daily' ? 'selected' : ''}>每天</option>
                     <option value="weekly" ${db.scheduleKind === 'weekly' ? 'selected' : ''}>每週</option>
-                    <option value="monthly30" ${db.scheduleKind === 'monthly30' ? 'selected' : ''}>每 30 天</option>
+                    <option value="custom" ${db.scheduleKind === 'custom' ? 'selected' : ''}>自訂天數</option>
                   </select>
+                </label>
+                <label class="field" id="schedDaysWrap" ${db.scheduleKind === 'custom' ? '' : 'hidden'}><span class="field-title">每隔幾天</span>
+                  <input type="number" id="schedEveryDays" min="1" max="365" step="1" inputmode="numeric" value="${DriveBackup.clampEveryDays(db.scheduleEveryDays)}">
                 </label>
                 <label class="field" id="schedWdWrap" ${db.scheduleKind === 'weekly' ? '' : 'hidden'}><span class="field-title">星期</span>
                   <select id="schedWeekday">${weekNames.map((n, i) => `<option value="${i}" ${(+db.scheduleWeekday === i) ? 'selected' : ''}>週${n}</option>`).join('')}</select>
@@ -1964,13 +1978,20 @@ async function viewSettings(app) {
     } catch (err) { toast('選擇資料夾失敗：' + err.message); }
   };
   const sk = $('#schedKind');
-  if (sk) sk.onchange = () => { $('#schedWdWrap').hidden = sk.value !== 'weekly'; };
+  if (sk) sk.onchange = () => {
+    const wd = $('#schedWdWrap'); if (wd) wd.hidden = sk.value !== 'weekly';
+    const days = $('#schedDaysWrap'); if (days) days.hidden = sk.value !== 'custom';
+  };
   const bs = $('#btnSaveSched');
   if (bs) bs.onclick = async () => {
     settings.driveBackup.scheduleEnabled = $('#schedEnabled').checked;
     settings.driveBackup.scheduleKind = $('#schedKind').value;
+    settings.driveBackup.scheduleEveryDays = DriveBackup.clampEveryDays($('#schedEveryDays') && $('#schedEveryDays').value);
     settings.driveBackup.scheduleTime = $('#schedTime').value || '21:00';
     settings.driveBackup.scheduleWeekday = +$('#schedWeekday').value;
+    DriveBackup.normalizeSchedule(settings.driveBackup);
+    delete settings.driveBackup._scheduleMigrated;
+    if ($('#schedEveryDays')) $('#schedEveryDays').value = settings.driveBackup.scheduleEveryDays;
     await saveDrive();
     toast('已儲存排程'); $('#schedHint').textContent = DriveBackup.nextDueLabel(settings.driveBackup);
   };
