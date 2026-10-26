@@ -1,11 +1,16 @@
 // 錯題本 service worker：讓 App 不用網路也能打開
-const CACHE = 'mistake-notebook-v16';
+const CACHE = 'mistake-notebook-v17';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './learn-features.js',
+  './gate.js',
+  './data/math/figures/jingxin/p7-q1.png',
+  './data/math/figures/jingxin/p7-q2.png',
+  './data/math/figures/jingxin/p7-q3.png',
+  './data/math/figures/jingxin/p7-q8.png',
   './backup-config.js',
   './drive-backup.js',
   './manifest.json',

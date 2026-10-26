@@ -525,7 +525,7 @@ async function renderTabstrip(show) {
 }
 
 /* ---------- 路由 ---------- */
-const TITLES = { learn: '學習', home: '中油學習卡', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考' };
+const TITLES = { learn: '學習', home: '中油學習卡', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
 function parseHash() {
   const parts = (location.hash.replace(/^#/, '') || 'home').split('/').filter(Boolean).map((p) => {
     try { return decodeURIComponent(p); } catch (_) { return p; }
@@ -537,14 +537,14 @@ async function render() {
   // 離開刷題／模擬考時清掉計時器（同頁 paint 不走 render）
   try {
     const v = (location.hash.replace(/^#/,'').split('/')[0]||'');
-    const inQuiz = /^learn-(ee|em|en|zh|math|tips|mock)/.test(v);
+    const inQuiz = /^(learn-(ee|em|en|zh|math|tips|mock|favs)|favs)/.test(v);
     if (!inQuiz && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
   const { view, id } = parseHash();
   const tab = view === 'add-done' ? 'add' : view === 'session' ? 'review' : view === 'edit' || view === 'detail' || view === 'practice' ? 'list' : view.startsWith('learn') ? 'learn' : view;
   $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   $('#pageTitle').textContent = TITLES[view] || TITLES.home;
-  $('#backBtn').hidden = !['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock'].includes(view);
+  $('#backBtn').hidden = !['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view);
   const app = $('#app');
   app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
   await renderTabstrip(['home', 'review', 'list'].includes(view));
@@ -557,6 +557,7 @@ async function render() {
       case 'learn-em': await LearnUI.viewPro(app, 'em', parseHash().parts.slice(1)); break;
       case 'learn-math': await LearnUI.viewMath(app, parseHash().parts.slice(1)); break;
       case 'learn-tips': await LearnUI.viewTips(app, parseHash().parts.slice(1)); break;
+      case 'learn-favs': case 'favs': await LearnUI.viewFavs(app, parseHash().parts.slice(1)); break;
       case 'learn-mock': await LearnUI.viewMock(app, parseHash().parts.slice(1)); break;
       case 'review': await viewReview(app); break;
       case 'session': await viewSession(app); break;
@@ -916,7 +917,7 @@ async function viewHome(app) {
       <div class="btn-row" style="flex-wrap:wrap">
         ${due.length ? `<a class="btn btn-primary" href="#session">開始今日複習</a>` : `<a class="btn btn-soft" href="#add">沒有待複習・去新增</a>`}
         ${sugBtns}
-        ${starN ? `<a class="btn btn-soft" href="#list">★ 收藏 ${starN}</a>` : ''}
+        ${starN ? `<a class="btn btn-soft" href="#list">★ 收藏 ${starN}</a>` : ''}<a class="btn btn-soft" href="#favs">★ 我的最愛 ${Object.keys(settings.learnFavs || {}).length}</a>
       </div>
     </section>
     <div class="stats">
@@ -1751,6 +1752,15 @@ async function viewSettings(app) {
   const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
   const folderLink = db.folderId ? (db.folderUrl || DriveBackup.folderOpenUrl(db.folderId)) : '';
   app.innerHTML = `
+    <section class="card" id="gateCard">
+      <h2>通行碼</h2>
+      <p class="muted small">開 App 要輸入通行碼（只存雜湊在這台裝置）。網址請勿公開張貼。</p>
+      <div class="btn-row" style="flex-wrap:wrap">
+        <button type="button" class="btn btn-soft" id="gateChange">變更通行碼</button>
+        <button type="button" class="btn btn-soft" id="gateLock">立即上鎖</button>
+        <label class="chk"><input type="checkbox" id="gateOn" ${window.CpcGate && CpcGate.isOn() ? 'checked' : ''}> 開啟通行碼（建議）</label>
+      </div>
+    </section>
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
@@ -1772,16 +1782,20 @@ async function viewSettings(app) {
           <p class="muted small warn-note">⚠ 自動備份只在 App <b>打開、回到前景或重新連上網路</b>時檢查；App 完全關閉時無法在背景上傳。</p>
           ${!online ? '<p class="alert alert-warn" id="cloudOffline">目前沒有網路，雲端功能暫時隱藏。本機下載備份仍可用。</p>' : ''}
           <div id="cloudOnlineBlock" ${online ? '' : 'hidden'}>
-            <label class="field"><span class="field-title">Google Client ID <small>可暫時填在這台裝置</small></span>
-              <input type="text" id="clientIdInput" placeholder="xxxxx.apps.googleusercontent.com" value="${esc(db.clientIdOverride || '')}" autocomplete="off" spellcheck="false">
-            </label>
-            <p class="hint" id="clientIdHint">${hasCid ? '已設定 Client ID（設定檔或上方欄位）。' : '尚未設定 Client ID：請在 backup-config.js 填入，或在上方暫時輸入。沒填也能用本機下載備份。'}</p>
+            <p class="muted small">會用你自己的 Google 帳號；別人用同一網址也會登入他們自己的帳號，備份互不相通。</p>
             <div class="btn-row">
-              <button type="button" class="btn btn-soft" id="btnSaveClientId">儲存 Client ID</button>
               ${cloudOn
                 ? '<button type="button" class="btn btn-text-bad" id="btnDisconnect">中斷連接</button>'
-                : '<button type="button" class="btn btn-primary" id="btnConnect">連接 Google</button>'}
+                : '<button type="button" class="btn btn-primary btn-big" id="btnConnect">☁ 備份到 Google 雲端硬碟</button>'}
             </div>
+            <details class="adv-cid" ${hasCid ? '' : 'open'}>
+              <summary class="muted small">進階：自行填 Client ID</summary>
+              <label class="field"><span class="field-title">Google Client ID <small>只存在這台裝置</small></span>
+                <input type="text" id="clientIdInput" placeholder="xxxxx.apps.googleusercontent.com" value="${esc(db.clientIdOverride || '')}" autocomplete="off" spellcheck="false">
+              </label>
+              <p class="hint" id="clientIdHint">${hasCid ? '已內建 Client ID，一般不用填。' : '尚未設定 Client ID：請在這裡填入。沒填也能用本機下載備份。'}</p>
+              <button type="button" class="btn btn-soft" id="btnSaveClientId">儲存 Client ID</button>
+            </details>
             <div class="cloud-status" id="cloudStatus">
               ${cloudOn
                 ? `<p class="small">✅ 已連接${db.accountHint ? '・' + esc(db.accountHint) : ''}<br>資料夾：<b id="folderNameLabel">${esc(db.folderName || '中油錯題本備份')}</b>
@@ -1790,7 +1804,7 @@ async function viewSettings(app) {
                 : '<p class="muted small">尚未連接。連接後會在雲端硬碟建立或使用「中油錯題本備份」資料夾。</p>'}
             </div>
             <div class="btn-row" ${cloudOn ? '' : 'hidden'} id="cloudActions">
-              <button type="button" class="btn btn-primary" id="btnCloudUpload">☁ 立刻備份到雲端硬碟</button>
+              <button type="button" class="btn btn-primary" id="btnCloudUpload">☁ 立刻備份</button>
               <button type="button" class="btn btn-soft" id="btnPickFolder">選擇資料夾</button>
             </div>
             <div class="card soft-card" id="scheduleCard" ${cloudOn ? '' : 'hidden'}>
@@ -1902,6 +1916,11 @@ async function viewSettings(app) {
       <p>外觀會跟著手機的深色／淺色模式自動切換。</p>
       <p>中油學習卡｜阿電老師・錯題複習＋學習區（國英數電機）・手機與電腦都能用</p>
     </div>`;
+  if (window.CpcGate) {
+    $('#gateChange').onclick = () => CpcGate.change();
+    $('#gateLock').onclick = () => CpcGate.lock();
+    $('#gateOn').onchange = async (ev) => { const ok = await CpcGate.toggleOff(!ev.target.checked); if (!ok) ev.target.checked = !ev.target.checked; };
+  }
 
   $('#btnExport').onclick = exportBackup;
   $('#importFile').onchange = async (e) => {
@@ -1922,20 +1941,13 @@ async function viewSettings(app) {
   };
   const bc = $('#btnConnect');
   if (bc) bc.onclick = async () => {
-    if (!DriveBackup.hasClientId(settings) && !($('#clientIdInput').value || '').trim()) {
-      toast('請先填寫 Google Client ID'); return;
-    }
-    if (($('#clientIdInput').value || '').trim()) {
-      settings.driveBackup.clientIdOverride = $('#clientIdInput').value.trim();
-      await saveDrive();
-    }
-    try {
-      toast('正在連接 Google…');
-      await DriveBackup.connect(settings);
-      await saveDrive();
-      toast('已連接，備份資料夾：' + (settings.driveBackup.folderName || '中油錯題本備份'));
-      render();
-    } catch (err) { toast('連接失敗：' + err.message); }
+    const typed = ($('#clientIdInput').value || '').trim();
+    if (typed) { settings.driveBackup.clientIdOverride = typed; await saveDrive(); }
+    if (!DriveBackup.hasClientId(settings)) { toast('請先在「進階」填寫 Google Client ID'); return; }
+    bc.disabled = true;
+    try { await uploadBackupToDrive({ interactive: true, silent: false }); await saveDrive(); }
+    catch (err) { toast('備份失敗：' + err.message); }
+    render();
   };
   const bd = $('#btnDisconnect');
   if (bd) bd.onclick = async () => {

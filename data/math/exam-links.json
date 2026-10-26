@@ -10,7 +10,14 @@
       "signed": "正負數",
       "power-root": "簡單次方／根號",
       "ratio": "比例",
-      "units": "單位換算（k／m／μ）"
+      "units": "單位換算（k／m／μ）",
+      "geom": "座標與直角三角形",
+      "expand": "展開與分配律",
+      "sci": "指數律與科學記號",
+      "quad": "一元二次方程式",
+      "trig": "簡單三角與相位差",
+      "wire-r": "截面積／長度與電阻",
+      "rc-tau": "RC／RL 時間常數"
     }
   },
   "byUnit": {
@@ -88,7 +95,57 @@
       "cpc-106-14",
       "cpc-109-52"
     ],
-    "arith": []
+    "arith": [],
+    "trig": [
+      "cpc-104-18",
+      "cpc-104-19",
+      "cpc-104-61",
+      "cpc-105-38",
+      "cpc-105-39",
+      "cpc-105-44",
+      "cpc-105-58",
+      "cpc-105-64",
+      "cpc-106-22",
+      "cpc-106-23",
+      "cpc-106-24",
+      "cpc-106-25"
+    ],
+    "wire-r": [
+      "cpc-106-5",
+      "cpc-108-3",
+      "cpc-109-1",
+      "cpc-109-49",
+      "cpc-113-25"
+    ],
+    "rc-tau": [
+      "cpc-109-13",
+      "cpc-111-7",
+      "cpc-111-18"
+    ],
+    "sci": [
+      "cpc-104-46",
+      "cpc-105-3",
+      "cpc-106-17",
+      "cpc-106-30",
+      "cpc-106-52",
+      "cpc-106-70",
+      "cpc-109-10",
+      "cpc-109-13",
+      "cpc-110-11",
+      "cpc-110-17",
+      "cpc-110-18",
+      "cpc-111-5"
+    ],
+    "geom": [
+      "cpc-106-28",
+      "cpc-111-2",
+      "cpc-113-21"
+    ],
+    "expand": [
+      "cpc-105-14",
+      "cpc-111-4"
+    ],
+    "quad": []
   },
   "byQuestion": {
     "cpc-104-1": [
@@ -124,10 +181,12 @@
       "ratio"
     ],
     "cpc-104-18": [
-      "power-root"
+      "power-root",
+      "trig"
     ],
     "cpc-104-19": [
-      "power-root"
+      "power-root",
+      "trig"
     ],
     "cpc-104-22": [
       "ratio"
@@ -169,7 +228,8 @@
     "cpc-104-46": [
       "linear1",
       "ratio",
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-104-48": [
       "linear1",
@@ -208,7 +268,8 @@
     ],
     "cpc-104-61": [
       "linear1",
-      "percent"
+      "percent",
+      "trig"
     ],
     "cpc-104-63": [
       "percent"
@@ -243,7 +304,8 @@
       "units"
     ],
     "cpc-105-14": [
-      "linear2"
+      "linear2",
+      "expand"
     ],
     "cpc-105-15": [
       "frac",
@@ -298,10 +360,12 @@
       "ratio"
     ],
     "cpc-105-38": [
-      "percent"
+      "percent",
+      "trig"
     ],
     "cpc-105-39": [
-      "percent"
+      "percent",
+      "trig"
     ],
     "cpc-105-41": [
       "ratio"
@@ -316,7 +380,8 @@
     ],
     "cpc-105-44": [
       "units",
-      "percent"
+      "percent",
+      "trig"
     ],
     "cpc-105-45": [
       "linear1",
@@ -357,21 +422,25 @@
       "frac"
     ],
     "cpc-106-17": [
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-106-19": [
       "ratio",
       "units"
     ],
     "cpc-106-22": [
-      "power-root"
+      "power-root",
+      "trig"
     ],
     "cpc-106-23": [
-      "power-root"
+      "power-root",
+      "trig"
     ],
     "cpc-106-30": [
       "power-root",
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-106-36": [
       "percent"
@@ -392,7 +461,8 @@
     ],
     "cpc-106-52": [
       "units",
-      "percent"
+      "percent",
+      "sci"
     ],
     "cpc-106-53": [
       "ratio"
@@ -484,10 +554,13 @@
       "percent"
     ],
     "cpc-109-10": [
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-109-13": [
-      "units"
+      "units",
+      "rc-tau",
+      "sci"
     ],
     "cpc-109-18": [
       "ratio",
@@ -575,10 +648,12 @@
     "cpc-110-17": [
       "linear1",
       "ratio",
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-110-18": [
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-110-20": [
       "linear1"
@@ -658,13 +733,16 @@
     ],
     "cpc-111-4": [
       "linear1",
-      "linear2"
+      "linear2",
+      "expand"
     ],
     "cpc-111-5": [
-      "units"
+      "units",
+      "sci"
     ],
     "cpc-111-7": [
-      "frac"
+      "frac",
+      "rc-tau"
     ],
     "cpc-111-9": [
       "power-root",
@@ -677,7 +755,8 @@
     "cpc-111-18": [
       "linear1",
       "ratio",
-      "units"
+      "units",
+      "rc-tau"
     ],
     "cpc-111-20": [
       "percent"
@@ -723,7 +802,8 @@
       "percent"
     ],
     "cpc-111-2": [
-      "signed"
+      "signed",
+      "geom"
     ],
     "cpc-111-6": [
       "units"
@@ -802,6 +882,48 @@
     ],
     "cpc-113-10": [
       "linear1"
+    ],
+    "cpc-105-58": [
+      "trig"
+    ],
+    "cpc-105-64": [
+      "trig"
+    ],
+    "cpc-106-24": [
+      "trig"
+    ],
+    "cpc-106-25": [
+      "trig"
+    ],
+    "cpc-106-5": [
+      "wire-r"
+    ],
+    "cpc-108-3": [
+      "wire-r"
+    ],
+    "cpc-109-1": [
+      "wire-r"
+    ],
+    "cpc-109-49": [
+      "wire-r"
+    ],
+    "cpc-113-25": [
+      "wire-r"
+    ],
+    "cpc-105-3": [
+      "sci"
+    ],
+    "cpc-106-70": [
+      "sci"
+    ],
+    "cpc-110-11": [
+      "sci"
+    ],
+    "cpc-106-28": [
+      "geom"
+    ],
+    "cpc-113-21": [
+      "geom"
     ]
   },
   "questions": {

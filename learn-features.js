@@ -421,6 +421,9 @@ const LearnUI = (() => {
         <p class="muted small">${label}${ext}${conf}</p>
       </section>
       <section class="card q-card" data-qid="${esc(q.id || '')}">
+        ${(mode === 'mock' && !reveal) ? '' : `<div class="q-tools">
+          <button type="button" class="q-fav ${q._fav ? 'on' : ''}" id="btnFav" aria-pressed="${q._fav ? 'true' : 'false'}" title="我的最愛">${q._fav ? '★' : '☆'}<span class="small">${q._fav ? '已收藏' : '收藏'}</span></button>
+        </div>`}
         <div class="q-stem">${stemHtml} ${q.lang === 'en' ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(q.stem)}">🔊 整句</button>` : (typeof zhSpeakBtn === 'function' ? zhSpeakBtn(plainForSpeak(q.stem), '🔊') : '')}</div>
         ${fig}
         <div class="mc-list">${choices}</div>
@@ -432,6 +435,59 @@ const LearnUI = (() => {
         </div>
         ${explain}
       </section>`;
+  }
+  function favSnapshot(q, state) {
+    return { id: q.id, stem: q.stem, choices: q.choices, answer: q.answer, explain: q.explain || '',
+      figurePath: q.figurePath || '', hasFigure: !!q.hasFigure, label: q.label || '', lang: q.lang || '',
+      source: q.source || '', sourceNote: q.sourceNote || '', subjectTab: state.subjectTab, from: state.source || '', at: Date.now() };
+  }
+  async function wireQTools(q, state) {
+    const fav = $('#btnFav');
+    if (fav) fav.onclick = async () => {
+      settings.learnFavs = settings.learnFavs || {};
+      if (settings.learnFavs[q.id]) delete settings.learnFavs[q.id];
+      else settings.learnFavs[q.id] = favSnapshot(q, state);
+      await saveSettings('learnFavs');
+      const on = !!settings.learnFavs[q.id];
+      fav.classList.toggle('on', on); fav.setAttribute('aria-pressed', on ? 'true' : 'false');
+      fav.innerHTML = `${on ? '★' : '☆'}<span class="small">${on ? '已收藏' : '收藏'}</span>`;
+      toast(on ? '已加入我的最愛' : '已取消收藏');
+    };
+  }
+  const FAV_CATS = [['all', '全部'], ['zh', '國文'], ['en', '英文'], ['ee', '電工原理'], ['em', '電工機械'], ['math', '數學'], ['other', '其他']];
+  function favCat(f) {
+    const t = String(f.subjectTab || '');
+    if (t === 'english') return 'en';
+    return ['zh', 'en', 'ee', 'em', 'math'].includes(t) ? t : 'other';
+  }
+  let _favFilter = 'all';
+  async function viewFavs(app) {
+    $('#pageTitle').textContent = '我的最愛';
+    const all = Object.values(settings.learnFavs || {}).sort((a, b) => (b.at || 0) - (a.at || 0));
+    if (!all.length) {
+      app.innerHTML = `<section class="card"><h2>★ 我的最愛</h2><p class="muted">還沒有收藏。做題時點題目右上的 ☆，就會分類收在這裡（國文、英文、電工原理、電工機械、數學）。</p><a class="btn btn-primary" href="#learn">去學習區做題</a></section>`;
+      return;
+    }
+    const counts = {}; all.forEach((f) => { const c = favCat(f); counts[c] = (counts[c] || 0) + 1; });
+    if (_favFilter !== 'all' && !counts[_favFilter]) _favFilter = 'all';
+    const favs = _favFilter === 'all' ? all : all.filter((f) => favCat(f) === _favFilter);
+    const chips = FAV_CATS.filter(([k]) => k === 'all' || counts[k]).map(([k, n]) => `<button type="button" class="chip fav-chip ${k === _favFilter ? 'active' : ''}" data-k="${k}">${n} ${k === 'all' ? all.length : counts[k]}</button>`).join('');
+    app.innerHTML = `<section class="card learn-shell"><h2>★ 我的最愛</h2>
+      <div class="fav-chips">${chips}</div>
+      <div class="btn-row"><button type="button" class="btn btn-primary" id="favRun">練習這 ${favs.length} 題</button></div></section>
+      <div class="card soft-card">${favs.map((f, i) => `<div class="fav-item"><button type="button" class="overview-tab fav-row" data-i="${i}"><span>${formatRichText((f.stem || '').slice(0, 70))}<br><span class="muted small">${esc((FAV_CATS.find(([k]) => k === favCat(f)) || [, '其他'])[1])}・${esc(f.from || '')}</span></span></button><button type="button" class="q-fav on fav-del" data-id="${esc(f.id)}" title="取消收藏" aria-label="取消收藏">★</button></div>`).join('')}</div>`;
+    typesetMath(app);
+    const run = (list) => runQuiz(app, { title: '我的最愛', questions: list.map((f) => Object.assign({}, f)), mode: 'practice', subjectTab: list[0].subjectTab || 'math', source: '我的最愛' });
+    $('#favRun').onclick = () => run(favs);
+    $$('.fav-chip', app).forEach((b) => b.onclick = () => { _favFilter = b.dataset.k; viewFavs(app); });
+    $$('.fav-row', app).forEach((b) => b.onclick = () => run([favs[+b.dataset.i]]));
+    $$('.fav-del', app).forEach((b) => b.onclick = async () => {
+      const id = b.dataset.id, snap = settings.learnFavs[id];
+      delete settings.learnFavs[id]; await saveSettings('learnFavs');
+      viewFavs(app);
+      if (typeof toastAction === 'function') toastAction('已取消收藏', '撤銷', async () => { settings.learnFavs[id] = snap; await saveSettings('learnFavs'); viewFavs(app); });
+      else toast('已取消收藏');
+    });
   }
   function chr(n) { return String.fromCharCode(n); }
   function fmtTime(sec) {
@@ -552,6 +608,7 @@ const LearnUI = (() => {
       if (reveal && state.examLinks) q._mathChipsHtml = mathChipsForQuestion(q, state.examLinks);
       else q._mathChipsHtml = '';
       const left = state.endsAt ? (state.endsAt - Date.now()) / 1000 : null;
+      q._fav = !!(settings.learnFavs || {})[q.id];
       q.lang = q.lang || (subjectTab === 'en' || subjectTab === 'english' ? 'en' : (subjectTab === 'zh' ? 'zh' : ''));
       app.innerHTML = renderMcShell({
         title: state.title,
@@ -561,6 +618,7 @@ const LearnUI = (() => {
         timedLeft: left
       });
       typesetMath(app);
+      wireQTools(q, state);
       if (typeof wireZhSpeak === 'function') wireZhSpeak(app);
       wireEnSpeak(app);
 
@@ -628,6 +686,7 @@ const LearnUI = (() => {
       </section>
       <div class="learn-subjects">
         <a class="overview-tab learn-card" href="#learn-math"><b>數學基礎</b><span class="muted small">分數・方程式・單位換算</span><span class="tag tag-ok">可用</span></a>
+        <a class="overview-tab learn-card" href="#favs"><b>★ 我的最愛</b><span class="muted small">${Object.keys(settings.learnFavs || {}).length} 題</span><span class="tag tag-star">收藏</span></a>
         <a class="overview-tab learn-card" href="#learn-tips"><b>備考技巧</b><span class="muted small">讀書方法・大範圍・心態</span><span class="tag tag-ok">可用</span></a>
         <a class="overview-tab learn-card" href="#learn-en"><b>英文</b><span class="muted small">114 考古・點字發音・回想卡</span><span class="tag tag-ok">可用</span></a>
         <a class="overview-tab learn-card" href="#learn-zh"><b>國文</b><span class="muted small">常識總表・刷題</span><span class="tag tag-ok">可用</span></a>
@@ -1150,6 +1209,7 @@ const LearnUI = (() => {
           <p class="math-intro">${esc(intro)}</p>
           <p class="math-given-label">${esc(givenLabel)}</p>
           <div class="math-block math-given">${displayMath(ex.given || '')}</div>
+          ${ex.hasFigure && ex.figurePath ? `<figure class="math-fig"><img src="${esc(figSrc(ex.figurePath))}" alt="例題附圖" loading="lazy"></figure>` : ''}
           <h4 class="math-steps-h">求解步驟</h4>
           <ol class="math-steps">${stepsHtml}</ol>
           <h4 class="math-answer-h">最終答案</h4>
@@ -1192,6 +1252,7 @@ const LearnUI = (() => {
       questions: (unit.practice || []).map((p, i) => ({
         id: `math-${unit.id}-${i}`, stem: p.stem, choices: p.choices, answer: p.answer,
         explain: p.explain || '', label: '數學練習',
+        figurePath: p.figurePath || '', hasFigure: !!p.hasFigure,
         source: p.source || '', sourceNote: p.sourceNote || ''
       })),
       mode: 'practice', subjectTab: 'math', source: '數學・' + unit.name
@@ -1217,12 +1278,13 @@ const LearnUI = (() => {
         </section>
         ${(cat.tips || []).map((tip) => `
           <section class="card soft-card tip-card">
-            <h3>${esc(tip.title || '')}</h3>
-            <p>${esc(tip.body || '')}</p>
+            <h3>${formatRichText(tip.title || '')}</h3>
+            <div class="tip-body">${formatExplainBody(tip.body || '')}</div>
             ${(tip.tags || []).length ? `<p class="muted small">${(tip.tags || []).map((tg) => `<span class="tag">${esc(tg)}</span>`).join(' ')}</p>` : ''}
             ${sourceTagHtml(tip)}
           </section>`).join('') || '<p class="muted">尚無內容</p>'}
         <div class="btn-row"><a class="btn btn-soft" href="#learn-tips">回備考技巧</a><a class="btn btn-soft" href="#learn">回學習</a></div>`;
+      typesetMath(app);
       return;
     }
     $('#pageTitle').textContent = '備考技巧';
@@ -1242,6 +1304,7 @@ const LearnUI = (() => {
           </a>`).join('') || '<p class="muted">尚無分類</p>'}
       </div>
       <div class="btn-row" style="margin-top:12px"><a class="btn btn-soft" href="#learn">回學習</a></div>`;
+    typesetMath(app);
   }
 
   /* ---------- HOME helpers ---------- */
@@ -1298,7 +1361,7 @@ const LearnUI = (() => {
   }
 
   return {
-    viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips,
+    viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips, viewFavs,
     todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank
   };
 })();
