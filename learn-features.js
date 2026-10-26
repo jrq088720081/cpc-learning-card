@@ -405,6 +405,7 @@ const LearnUI = (() => {
       stemHtml = esc(q.stem);
     }
     const timer = timedLeft != null ? `<div class="mock-timer" id="mockTimer">剩餘 ${fmtTime(timedLeft)}</div>` : '';
+    // 電工原理／電工機械練習模式：詳解不可只剩答案字母，須含求解步驟或觀念推導。
     const explainBody = q.explain || ('正解：' + q.answer);
     const explainHtml = formatExplainBody(explainBody);
     const explain = reveal && (q.explain || q.answer)

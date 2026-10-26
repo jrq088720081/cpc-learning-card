@@ -36,7 +36,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 8\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "外力把正電荷從 B 搬到 A，電位升高的量等於作功除以電量。\n\n求解步驟\n1. 電位差 $V_A-V_B=\\dfrac{W}{Q}=\\dfrac{60}{5}=12\\,\\mathrm{V}$。\n2. $V_B=V_A-12=20-12=8\\,\\mathrm{V}$。\n\n最終答案：A（8 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -58,7 +58,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 704\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "輸出功率等於輸入電功率乘上效率。\n\n求解步驟\n1. 輸入 $P_{in}=VI=220\\times 4=880\\,\\mathrm{W}$。\n2. 輸出 $P_{out}=\\eta P_{in}=0.8\\times 880=704\\,\\mathrm{W}$。\n\n最終答案：B（704 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -80,7 +80,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 25\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "電熱絲電阻由額定電壓與額定功率決定，接低電壓後功率按電壓平方下降。\n\n求解步驟\n1. 電阻 $R=\\dfrac{V^2}{P}=\\dfrac{200^2}{100}=400\\,\\Omega$。\n2. 接 100 V：$P=\\dfrac{100^2}{400}=25\\,\\mathrm{W}$。\n\n最終答案：A（25 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -102,7 +102,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 1200\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "電量等於電流乘上時間，時間要先化成秒。\n\n求解步驟\n1. $t=10\\times 60=600\\,\\mathrm{s}$。\n2. $Q=It=2\\times 600=1200\\,\\mathrm{C}$。\n\n最終答案：D（1200 C）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -146,7 +146,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 60\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "台灣低壓配電的頻率是 60 Hz。\n\n求解步驟\n1. 家用電源頻率選 60 Hz，不是 50 Hz，也不是電壓 110 V。\n\n最終答案：B（60 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -234,7 +234,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. N2\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "相同電容 N 個，並聯是相加、串聯是倒數相加。\n\n求解步驟\n1. 並聯 $C_p=NC$，串聯 $C_s=\\dfrac{C}{N}$。\n2. 倍數 $\\dfrac{C_p}{C_s}=N^2$。\n\n最終答案：C（$N^2$ 倍）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -300,7 +300,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 磁力線方向\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "佛萊明左手定則看的是力：拇指受力方向、食指磁場、中指電流。\n\n求解步驟\n1. 食指對的是磁力線方向。\n\n最終答案：B（磁力線方向）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -322,7 +322,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 12\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "感應電勢等於電感乘上電流變化率。\n\n求解步驟\n1. $e=L\\dfrac{\\Delta i}{\\Delta t}=0.5\\times\\dfrac{12}{0.5}=12\\,\\mathrm{V}$。\n\n最終答案：C（12 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -344,7 +344,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 0A\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "直流穩態下，充滿電的電容器相當於開路。\n\n求解步驟\n1. 充電完成後，電容電壓等於電源，電流不再流入。\n2. 所以電路電流為 0。\n\n最終答案：A（0 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -366,7 +366,7 @@
       "answer": "C",
       "hasFigure": true,
       "figurePath": "data/exam/figures/104/q16.png",
-      "explain": "正解：C　C. 4A\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：C",
+      "explain": "開關剛閉合時，電感電流還是 0，有電感的那一支路先當開路。圖上 10 Ω 與 2 H 串在同一支路。\n\n求解步驟\n1. 這一瞬間 10 Ω 支路沒有電流。\n2. 剩下直接接到 20 V 的是 5 Ω，$I=\\dfrac{20}{5}=4\\,\\mathrm{A}$。\n\n最終答案：C（4 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -388,7 +388,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 375\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "同步轉速由頻率與極數決定。\n\n求解步驟\n1. $n=\\dfrac{120f}{P}=\\dfrac{120\\times 25}{8}=375\\,\\mathrm{rpm}$。\n\n最終答案：A（375 rpm）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -410,7 +410,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 電壓與電流相位反相\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "先把電壓、電流都寫成正弦，才能比相位。題幹的正負號在掃描時不見了；能對上「反相」的讀法是 $v=100\\cos(314t+30^\\circ)$、$i=5\\sin(314t-60^\\circ)$。\n\n求解步驟\n1. 電壓改成正弦：$100\\cos(314t+30^\\circ)=100\\sin(314t+120^\\circ)$。\n2. 電流相位是 $-60^\\circ$，兩者差 $180^\\circ$，相位相反。\n\n最終答案：D（相位反相）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -432,7 +432,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 0.002 法拉的電容\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "電流領先電壓 90° 是電容；再由電抗求電容值。題幹的 $10\\,2$、$2\\,2$ 依選項是 $10\\sqrt{2}$、$2\\sqrt{2}$。\n\n求解步驟\n1. $i=2\\sqrt{2}\\cos 100t=2\\sqrt{2}\\sin(100t+90^\\circ)$，電流領先電壓 $90^\\circ$，元件為電容。\n2. 電抗 $X_C=\\dfrac{10\\sqrt{2}}{2\\sqrt{2}}=5\\,\\Omega$。\n3. $C=\\dfrac{1}{\\omega X_C}=\\dfrac{1}{100\\times 5}=0.002\\,\\mathrm{F}$。\n\n最終答案：D（0.002 F）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -476,7 +476,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 5\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "電感等於匝數乘磁通，再除以電流。\n\n求解步驟\n1. $L=\\dfrac{N\\Phi}{I}=\\dfrac{1000\\times 0.01}{2}=5\\,\\mathrm{H}$。\n\n最終答案：B（5 H）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -520,7 +520,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 逆時針\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "右手拇指指向電流（流出紙面），四指彎曲的方向就是磁場。\n\n求解步驟\n1. 電流流出紙面時，磁場沿逆時針。\n\n最終答案：D（逆時針）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -542,7 +542,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 調高甲機的場電阻、調低乙機的場電阻\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "並聯的分激發電機，感應電勢高的那一台承擔較多負載。場電阻升高會讓磁場變弱、電勢下降。\n\n求解步驟\n1. 要減少甲的負載：調高甲的場電阻。\n2. 要增加乙的負載：調低乙的場電阻。\n\n最終答案：B（調高甲、調低乙）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -586,7 +586,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 3.5%\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "速率調整率以滿載轉速當分母。\n\n求解步驟\n1. $SR=\\dfrac{n_{nl}-n_{fl}}{n_{fl}}\\times 100\\%=\\dfrac{1800-1739}{1739}\\times 100\\%\\approx 3.5\\%$。\n\n最終答案：A（3.5%）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -608,7 +608,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 鐵損與激磁導納\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "開路試驗加的是額定電壓、電流很小，量到的是鐵損和激磁支路。\n\n求解步驟\n1. 銅損和繞組阻抗是短路試驗的結果。開路試驗得到鐵損與激磁導納。\n\n最終答案：C（鐵損與激磁導納）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -630,7 +630,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 100\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "阻抗折算到另一側要乘匝數比的平方。\n\n求解步驟\n1. 匝數比 10，倍數是 $10^2=100$。\n\n最終答案：B（100 倍）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -652,7 +652,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 86.6\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "兩台單相變壓器接成 V-V，能供應的三相容量是一台容量的 $\\sqrt{3}$ 倍。\n\n求解步驟\n1. $S_{3\\phi}=\\sqrt{3}\\,S_1$，所以 $S_1=\\dfrac{150}{\\sqrt{3}}\\approx 86.6\\,\\mathrm{kVA}$。\n\n最終答案：C（86.6 kVA）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -696,7 +696,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 9\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "Y-Y 接線的線電流等於相電流，電流比是匝數比的倒數。\n\n求解步驟\n1. 匝數比 $10:1$，低壓線電流 90 A。\n2. 高壓線電流 $I_H=\\dfrac{90}{10}=9\\,\\mathrm{A}$。\n\n最終答案：B（9 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -762,7 +762,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 2\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "由轉速與頻率反求極數。\n\n求解步驟\n1. $P=\\dfrac{120f}{n}=\\dfrac{120\\times 50}{3000}=2$。\n\n最終答案：A（2 極）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -806,7 +806,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 25\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "自耦變壓器降到一半電壓時，馬達電流約成比例下降，電源側電流再乘上匝數比。\n\n求解步驟\n1. 端電壓變成 $1/2$，起動電流約變成 $100\\times\\dfrac{1}{2}$。\n2. 電源側電流再乘 $1/2$：$100\\times\\left(\\dfrac{1}{2}\\right)^2=25\\,\\mathrm{A}$。\n\n最終答案：D（25 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -850,7 +850,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 9 Hz\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "轉子電流頻率等於電源頻率乘轉差率。\n\n求解步驟\n1. 同步轉速 $n_s=\\dfrac{120\\times 60}{4}=1800\\,\\mathrm{rpm}$。\n2. 轉差率 $s=\\dfrac{1800-1530}{1800}=0.15$，轉子頻率 $0.15\\times 60=9\\,\\mathrm{Hz}$。\n\n最終答案：D（9 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -916,7 +916,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 4Ω\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "同一電源下，串聯功率對並聯功率的比是 $\\dfrac{R_1 R_2}{(R_1+R_2)^2}$。\n\n求解步驟\n1. 題目這個比是 $1:4$，所以 $\\dfrac{R_1 R_2}{(R_1+R_2)^2}=\\dfrac{1}{4}$。\n2. 整理得 $(R_1-R_2)^2=0$，兩電阻相等。$R_1=4\\,\\Omega$，所以 $R_2=4\\,\\Omega$。\n\n最終答案：B（4 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -938,7 +938,7 @@
       "answer": "D",
       "hasFigure": true,
       "figurePath": "data/exam/figures/104/q42.png",
-      "explain": "正解：D　D. 10.8Ω\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：D",
+      "explain": "伏特計跨在電阻與安培計串聯的兩端，所以讀到的是兩者的電壓和。\n\n求解步驟\n1. $V=I(R+R_A)$，$6=0.5(R+1.2)$。\n2. $R+1.2=12$，$R=10.8\\,\\Omega$。\n\n最終答案：D（10.8 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1004,7 +1004,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 48 牛頓排斥力\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "庫侖定律。題幹指數依「48 牛頓排斥」回推為 $Q_1=8\\times 10^{-5}\\,\\mathrm{C}$、$Q_2=6\\times 10^{-4}\\,\\mathrm{C}$（同號相斥）。\n\n求解步驟\n1. $F=k\\dfrac{|Q_1 Q_2|}{r^2}=9\\times 10^9\\times\\dfrac{(8\\times 10^{-5})(6\\times 10^{-4})}{3^2}=48\\,\\mathrm{N}$。\n2. 兩電荷同號，為排斥力。\n\n最終答案：D（48 N 排斥）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1048,7 +1048,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 90\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "磁力 $F=BIL\\sin\\theta$。題幹的 $10\\,2$ 依答案是 $10^{-2}\\,\\mathrm{Wb/m^2}$。\n\n求解步驟\n1. $0.6=(10^{-2})\\times 3\\times 20\\times\\sin\\theta=0.6\\sin\\theta$。\n2. $\\sin\\theta=1$，夾角 $90^\\circ$。\n\n最終答案：D（90°）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1114,7 +1114,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 20，j10\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "串聯阻抗改成並聯等效：$R_p=(R^2+X^2)/R$，電抗同號。\n\n求解步驟\n1. $Z_s=4+j8$，$R^2+X^2=16+64=80$。\n2. $R_p=\\dfrac{80}{4}=20\\,\\Omega$，$X_p=\\dfrac{80}{8}=10\\,\\Omega$，電抗為正，所以是 $+j10$。\n\n最終答案：B（20，$+j10$）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1158,7 +1158,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 250\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "並聯 RLC 的品質因數只由 R、L、C 決定，與電源電壓無關。\n\n求解步驟\n1. $Q_p=R\\sqrt{\\dfrac{C}{L}}=50000\\sqrt{\\dfrac{75\\times 10^{-9}}{3\\times 10^{-3}}}=50000\\times 0.005=250$。\n\n最終答案：D（250）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1202,7 +1202,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 161.3\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "先把馬力換成輸出瓦特，再除以效率得到輸入電流。\n\n求解步驟\n1. 輸出 $P_{out}=50\\times 746=37300\\,\\mathrm{W}$。\n2. 輸入 $P_{in}=\\dfrac{37300}{0.925}$，電流 $I=\\dfrac{P_{in}}{250}\\approx 161.3\\,\\mathrm{A}$。\n\n最終答案：C（161.3 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1224,7 +1224,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 191V\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "分激電動機先扣掉磁場電流，再用電樞電阻壓降求反電勢。\n\n求解步驟\n1. 磁場電流 $I_f=\\dfrac{200}{40}=5\\,\\mathrm{A}$，電樞電流 $I_a=50-5=45\\,\\mathrm{A}$。\n2. 反電勢 $E_b=V-I_a R_a=200-45\\times 0.2=191\\,\\mathrm{V}$。\n\n最終答案：D（191 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1246,7 +1246,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 1.32\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "未飽和時轉矩正比於磁場電流與電樞電流的乘積。\n\n求解步驟\n1. 倍數 $=1.20\\times 1.10=1.32$。\n\n最終答案：D（1.32 倍）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1268,7 +1268,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 5\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "升壓自耦變壓器的傳導容量由高低壓差那一段繞組承擔。\n\n求解步驟\n1. 共同繞組所占比例 $\\dfrac{2640-2400}{2640}=\\dfrac{240}{2640}$。\n2. 二繞組容量 $=55\\times\\dfrac{240}{2640}=5\\,\\mathrm{kVA}$。\n\n最終答案：A（5 kVA）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1290,7 +1290,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 鐵損為 360 W、銅損為 120 W\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "鐵損看電壓，銅損看電流平方。半載時電壓仍是額定，電流約一半。\n\n求解步驟\n1. 鐵損維持 360 W。\n2. 銅損變成 $480\\times\\left(\\dfrac{1}{2}\\right)^2=120\\,\\mathrm{W}$。\n\n最終答案：A（鐵損 360 W、銅損 120 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1334,7 +1334,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 62.8 弳/秒\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "先由極數和頻率算轉速，再換成機械角速度。\n\n求解步驟\n1. $n=\\dfrac{120\\times 60}{12}=600\\,\\mathrm{rpm}$。\n2. $\\omega=600\\times\\dfrac{2\\pi}{60}=20\\pi\\approx 62.8\\,\\mathrm{rad/s}$。\n\n最終答案：D（62.8 弳/秒）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1356,7 +1356,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 25\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "端電壓與輸出功率不變時，電樞電流與功率因數成反比。\n\n求解步驟\n1. $I=\\dfrac{20}{0.8}=25\\,\\mathrm{A}$。\n\n最終答案：C（25 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1378,7 +1378,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 11.5\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "同步阻抗用同一次磁場電流下的開路相電壓除以短路電流。\n\n求解步驟\n1. Y 接相電壓 $V_\\phi=\\dfrac{1000}{\\sqrt{3}}$。\n2. $Z_s=\\dfrac{V_\\phi}{I_{sc}}=\\dfrac{1000}{\\sqrt{3}\\times 50}\\approx 11.5\\,\\Omega$。\n\n最終答案：C（11.5 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1400,7 +1400,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 1656 rpm\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "先算同步轉速，再扣掉轉差。\n\n求解步驟\n1. $n_s=\\dfrac{120\\times 60}{4}=1800\\,\\mathrm{rpm}$。\n2. 滿載 $n=n_s(1-s)=1800\\times 0.92=1656\\,\\mathrm{rpm}$。\n\n最終答案：B（1656 rpm）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1422,7 +1422,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 4900W\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "轉子銅損是氣隙功率乘上轉差，內生機械功率是剩下的部分。\n\n求解步驟\n1. 氣隙功率 $P_g=\\dfrac{100}{0.02}=5000\\,\\mathrm{W}$。\n2. 內生機械功率 $P_m=P_g(1-s)=5000\\times 0.98=4900\\,\\mathrm{W}$。\n\n最終答案：A（4900 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1444,7 +1444,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 42.1\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "輸出轉矩等於輸出功率除以機械角速度。\n\n求解步驟\n1. 同步轉速 $1800\\,\\mathrm{rpm}$，滿載 $n=1800\\times(1-0.06)=1692\\,\\mathrm{rpm}$。\n2. $\\omega=1692\\times\\dfrac{2\\pi}{60}$，$T=\\dfrac{10\\times 746}{\\omega}\\approx 42.1\\,\\mathrm{N\\cdot m}$。\n\n最終答案：D（42.1 N·m）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1488,7 +1488,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 火線\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "台灣插座較窄的那一孔是火線，較寬的是中性線。\n\n求解步驟\n1. 較小銅片插孔接火線。\n\n最終答案：A（火線）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1510,7 +1510,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 20 毫米\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "奈米化成毫米：1 mm $=10^{-3}$ m，1 nm $=10^{-9}$ m。\n\n求解步驟\n1. $20\\,\\mathrm{nm}=20\\times 10^{-6}\\,\\mathrm{mm}=20$ 微毫米。\n2. 對應選項 C（題庫選項上的 μ 可能沒有完整顯示）。\n\n最終答案：C（20 μmm）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1532,7 +1532,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 帶正電\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "多一個電子，原子的負電荷變多。\n\n求解步驟\n1. 中性原子再加入 1 個電子，成為負離子，應帶負電（選項 B）。\n2. 題庫登記的字母是 A。這一題請以「多電子帶負電」來記，不要跟著字母背成帶正電。\n\n最終答案：A（題庫字母；物理上為帶負電）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1620,7 +1620,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 76 1%\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "五色環前三位是數字，第四位是倍率，第五位是誤差。\n\n求解步驟\n1. 紫 7、藍 6、黑 0，金的倍率是 $10^{-1}$，棕是 $\\pm 1\\%$。\n2. 電阻 $=760\\times 0.1=76\\,\\Omega$，誤差 $\\pm 1\\%$。\n\n最終答案：A（76 Ω、±1%）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1642,7 +1642,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 30W\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "串聯電流相同，先被燒的是功率額定最小的那顆。\n\n求解步驟\n1. 三顆都是 $10\\,\\Omega$。10 W 那顆允許的電流 $I=\\sqrt{10/10}=1\\,\\mathrm{A}$，另外兩顆允許的電流更大。\n2. 總功率上限 $=I^2(10+10+10)=30\\,\\mathrm{W}$。\n\n最終答案：B（30 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1664,7 +1664,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 20W\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "先用額定值求各自電阻，再串在 110 V 上。\n\n求解步驟\n1. $R_1=\\dfrac{110^2}{100}=121\\,\\Omega$，$R_2=\\dfrac{220^2}{100}=484\\,\\Omega$。\n2. 串聯 $605\\,\\Omega$，總功率 $P=\\dfrac{110^2}{605}=20\\,\\mathrm{W}$。\n\n最終答案：B（20 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1686,7 +1686,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 10V\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "有內阻的電池，端電壓是負載上的分壓。\n\n求解步驟\n1. $V_L=12.5\\times\\dfrac{2}{2+0.5}=10\\,\\mathrm{V}$。\n\n最終答案：B（10 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1730,7 +1730,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 12V\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "電流源和它的並聯內阻，可換成電壓源串同一個電阻。\n\n求解步驟\n1. 電壓值 $E=IR=3\\times 4=12\\,\\mathrm{V}$。\n\n最終答案：D（12 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1818,7 +1818,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 0.47 F\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "電容數字碼 474：前兩位是有效數字，第三位是 10 的次方，單位 pF。\n\n求解步驟\n1. $47\\times 10^4\\,\\mathrm{pF}=0.47\\,\\mu\\mathrm{F}$。J 是誤差碼，不改變電容量。\n2. 選項 C 的文字在題庫寫成 0.47 F，實際應是 $0.47\\,\\mu\\mathrm{F}$。\n\n最終答案：C（0.47 μF）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1840,7 +1840,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 6V\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "三個電容串聯，電荷相同，電壓與電容成反比。數值 4、6、12 用同一單位即可。\n\n求解步驟\n1. $\\dfrac{1}{C}=\\dfrac{1}{4}+\\dfrac{1}{6}+\\dfrac{1}{12}=\\dfrac{1}{2}$，所以 $C=2$。\n2. 電荷 $Q=CV=2\\times 12=24$，$C_1$ 兩端 $V_1=\\dfrac{Q}{C_1}=\\dfrac{24}{4}=6\\,\\mathrm{V}$。\n\n最終答案：C（6 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1862,7 +1862,7 @@
       "answer": "A",
       "hasFigure": true,
       "figurePath": "data/exam/figures/105/q19.png",
-      "explain": "正解：A　A. 5 亨利\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：A",
+      "explain": "兩線圈串在 a、b 之間。圖上點記在相反端，互感相消。\n\n求解步驟\n1. $L_{ab}=L_1+L_2-2M=5+4-2\\times 2=5\\,\\mathrm{H}$。\n\n最終答案：A（5 H）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1884,7 +1884,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 1.11\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "波形因數是有效值除以平均值。\n\n求解步驟\n1. 正弦波 $\\dfrac{0.707}{0.637}\\approx 1.11$。\n\n最終答案：C（1.11）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1906,7 +1906,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 12 亨利\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "同一磁路，電感與匝數平方成正比。\n\n求解步驟\n1. 匝數從 300 增到 600，是 2 倍，$L$ 變成 $2^2=4$ 倍。\n2. $3\\times 4=12\\,\\mathrm{H}$。\n\n最終答案：D（12 H）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1928,7 +1928,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 60\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "感應電壓等於匝數乘磁通變化率。\n\n求解步驟\n1. $e=N\\dfrac{\\Delta\\Phi}{\\Delta t}=100\\times\\dfrac{0.6}{1}=60\\,\\mathrm{V}$。\n\n最終答案：B（60 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1950,7 +1950,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 10 4\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "特斯拉與高斯的換算是 1 萬倍。\n\n求解步驟\n1. $1\\,\\mathrm{T}=10^4\\,\\mathrm{G}$。\n\n最終答案：A（$10^4$ 高斯）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1972,7 +1972,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 203V\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "負載電流在電樞電阻上產生壓降，無載時這段壓降消失。\n\n求解步驟\n1. 滿載電流 $I=\\dfrac{3000}{200}=15\\,\\mathrm{A}$。\n2. 無載端電壓 $V_0=200+15\\times 0.2=203\\,\\mathrm{V}$。\n\n最終答案：B（203 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -1994,7 +1994,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 882W\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "損失等於輸入減輸出，輸入是輸出除以效率。\n\n求解步驟\n1. 輸入 $=\\dfrac{5000}{0.85}$，損失 $=\\dfrac{5000}{0.85}-5000\\approx 882\\,\\mathrm{W}$。\n\n最終答案：D（882 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2016,7 +2016,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 無載特性曲線\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "無載、轉速固定時，感應電勢對磁場電流的曲線就是無載特性曲線（飽和曲線）。\n\n求解步驟\n1. 名稱對的是無載特性曲線。\n\n最終答案：A（無載特性曲線）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2038,7 +2038,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 與電樞繞組串聯\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "中間極（換向極）要跟著電樞電流走，才能抵消電樞反應。\n\n求解步驟\n1. 激磁繞組與電樞繞組串聯。\n\n最終答案：A（與電樞繞組串聯）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2060,7 +2060,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 1.4\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "起動瞬間反電勢當 0，用電阻把電樞電流限在 75 A。\n\n求解步驟\n1. 總電阻 $=\\dfrac{120}{75}=1.6\\,\\Omega$。\n2. 外加電阻 $=1.6-0.2=1.4\\,\\Omega$。\n\n最終答案：D（1.4 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2082,7 +2082,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 400W\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "鐵損主要由電壓與頻率決定，與負載電流幾乎無關。\n\n求解步驟\n1. 仍加額定電壓，半載鐵損維持滿載時的 400 W。\n\n最終答案：C（400 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2104,7 +2104,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 降低渦流損\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "薄矽鋼片把渦流路徑切短，矽本身也提高電阻率。\n\n求解步驟\n1. 主要是降低渦流損，不是降低銅損。\n\n最終答案：C（降低渦流損）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2126,7 +2126,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 100\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "短路試驗做到額定電流時，低壓側電流就是額定電流。\n\n求解步驟\n1. $I_{LV}=\\dfrac{20000}{200}=100\\,\\mathrm{A}$。\n\n最終答案：D（100 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2170,7 +2170,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 2500\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "電阻折算到另一側要乘匝數比的平方。\n\n求解步驟\n1. 低壓折到高壓：$100\\times 5^2=2500\\,\\Omega$。\n\n最終答案：D（2500 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2192,7 +2192,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 173.2\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "高壓 Y 接先把線電壓換成相電壓，再乘單相匝數比；低壓 Δ 接的線電壓等於相電壓。\n\n求解步驟\n1. 高壓相電壓 $=\\dfrac{3000}{\\sqrt{3}}$。\n2. 低壓線電壓 $=\\dfrac{3000}{\\sqrt{3}}\\times\\dfrac{330}{3300}\\approx 173.2\\,\\mathrm{V}$。\n\n最終答案：C（173.2 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2214,7 +2214,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 34.6\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "V-V 接線的三相容量是單台容量的 $\\sqrt{3}$ 倍。\n\n求解步驟\n1. $S_1=\\dfrac{60}{\\sqrt{3}}\\approx 34.6\\,\\mathrm{kVA}$。\n\n最終答案：C（34.6 kVA）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2236,7 +2236,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 250\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "標么阻抗乘上基準阻抗，就得到歐姆值。\n\n求解步驟\n1. $Z_{base}=\\dfrac{V^2}{S}=\\dfrac{(50\\times 10^3)^2}{500\\times 10^3}=5000\\,\\Omega$。\n2. $Z=0.05\\times 5000=250\\,\\Omega$。\n\n最終答案：D（250 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2280,7 +2280,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 1\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "滯後負載的無效功率恰好被新加的 90 kVAR 抵掉。\n\n求解步驟\n1. 原無效功率 $Q=P\\tan\\varphi=120\\times\\dfrac{0.6}{0.8}=90\\,\\mathrm{kVAR}$。\n2. 再加 90 kVAR 超前後 $Q=0$，功率因數為 1。\n\n最終答案：D（1）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2390,7 +2390,7 @@
       "answer": "C",
       "hasFigure": true,
       "figurePath": "data/exam/figures/105/q43.png",
-      "explain": "正解：C　C. 100V\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：C",
+      "explain": "串聯電路裡，電阻電壓和電抗電壓要向量相加。題幹已給三個伏特計讀值。\n\n求解步驟\n1. 淨電抗電壓 $|V_L-V_C|=|20-80|=60\\,\\mathrm{V}$。\n2. 電源 $E=\\sqrt{V_R^2+(V_L-V_C)^2}=\\sqrt{80^2+60^2}=100\\,\\mathrm{V}$。\n\n最終答案：C（100 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2456,7 +2456,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 灰橙紅金\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "四色環：兩位有效數字、一位倍率、金是 ±5%。\n\n求解步驟\n1. $8.3\\,\\mathrm{k}\\Omega=83\\times 10^2\\,\\Omega$。\n2. 8 灰、3 橙、倍率 $10^2$ 紅、誤差金：灰橙紅金。\n\n最終答案：B（灰橙紅金）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2478,7 +2478,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 20A\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "四色環第三環是倍率。藍、黑、金是 60 乘 0.1。\n\n求解步驟\n1. 電阻 $=60\\times 0.1=6\\,\\Omega$（金誤差 $\\pm 5\\%$）。\n2. 電流 $I=\\dfrac{12}{6}=2\\,\\mathrm{A}$。\n3. 2 A 不在選項裡。題庫字母 A 是 20 A，那要電阻只有 0.6 Ω，和這組色碼不合。請以色碼算出的 2 A 為準。\n\n最終答案：A（題庫字母；色碼計算為 2 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2500,7 +2500,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 11.9\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "銅線電阻隨溫度近似直線上升，係數約 $0.00393/\\,^\\circ\\mathrm{C}$。\n\n求解步驟\n1. $R=10\\,[1+0.00393\\times(75-25)]\\approx 11.9\\,\\Omega$。\n\n最終答案：C（11.9 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2522,7 +2522,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 0.71\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "功率因數是電阻除以阻抗大小。\n\n求解步驟\n1. $|Z|=\\sqrt{6^2+6^2}=6\\sqrt{2}$。\n2. $\\mathrm{pf}=\\dfrac{6}{6\\sqrt{2}}=\\dfrac{1}{\\sqrt{2}}\\approx 0.71$。\n\n最終答案：C（0.71）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2566,7 +2566,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 90\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "題幹把 $3/720$ 秒拆開印。60 Hz 下這段時間正好是四分之一週期。\n\n求解步驟\n1. $t=\\dfrac{3}{720}=\\dfrac{1}{240}\\,\\mathrm{s}$。\n2. 一週期是 $\\dfrac{1}{60}\\,\\mathrm{s}$，所以電工角 $=90^\\circ$。\n\n最終答案：D（90°）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2610,7 +2610,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 120 卡\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "電熱功率是 $I^2R$，再把焦耳換成卡。\n\n求解步驟\n1. $P=10^2\\times 5=500\\,\\mathrm{J/s}$。\n2. 約 $1\\,\\mathrm{cal}=4.2\\,\\mathrm{J}$，所以 $\\dfrac{500}{4.2}\\approx 120$ 卡／秒。\n\n最終答案：C（120 卡）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2632,7 +2632,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 40\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "輸出轉矩等於輸出功率除以角速度。10 馬力、1800 rpm。\n\n求解步驟\n1. $\\omega=1800\\times\\dfrac{2\\pi}{60}$。\n2. $T=\\dfrac{10\\times 746}{\\omega}\\approx 40\\,\\mathrm{N\\cdot m}$。\n\n最終答案：D（40 N·m）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2654,7 +2654,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 820V\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "電壓調整率是無載比滿載高出的百分比。\n\n求解步驟\n1. $V_{nl}=V_{fl}(1+0.025)=800\\times 1.025=820\\,\\mathrm{V}$。\n\n最終答案：B（820 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2676,7 +2676,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 160\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "4 極、36 槽時，一個極距是 9 槽，也就是 180 電工度。\n\n求解步驟\n1. 節距 $8/9$ 代表跨 8 槽。\n2. 電工度 $=\\dfrac{8}{9}\\times 180=160^\\circ$。\n\n最終答案：D（160°）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2698,7 +2698,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 25.4\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "同步阻抗是同一激磁下的開路相電壓除以短路電流。\n\n求解步驟\n1. Y 接相電壓 $=\\dfrac{440}{\\sqrt{3}}$。\n2. $Z_s=\\dfrac{440}{\\sqrt{3}\\times 10}\\approx 25.4\\,\\Omega$。\n\n最終答案：A（25.4 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2742,7 +2742,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 1.5 Fm\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "三相繞組的合成磁動勢是一個旋轉向量，振幅是單相最大值的 1.5 倍。\n\n求解步驟\n1. 合成最大值 $=1.5 F_m$。\n\n最終答案：C（1.5 Fm）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2764,7 +2764,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 2.5 Hz\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "轉子頻率等於定子頻率乘轉差。\n\n求解步驟\n1. 4 極 60 Hz 的同步轉速是 1800 rpm，$s=\\dfrac{1800-1725}{1800}=0.0417$。\n2. $f_r=sf=60\\times\\dfrac{75}{1800}=2.5\\,\\mathrm{Hz}$。\n\n最終答案：A（2.5 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2786,7 +2786,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 3000 rpm\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "極數不變時，同步轉速和頻率成正比。\n\n求解步驟\n1. $3600\\times\\dfrac{50}{60}=3000\\,\\mathrm{rpm}$。\n\n最終答案：B（3000 rpm）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2808,7 +2808,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 15.2\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "要使起動轉矩等於滿載轉矩，轉子每相總電阻要提高到原來的 $1/s$ 倍。\n\n求解步驟\n1. 外加電阻 $=R_2\\left(\\dfrac{1}{s}-1\\right)=0.8\\left(\\dfrac{1}{0.05}-1\\right)=15.2\\,\\Omega$。\n\n最終答案：B（15.2 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2830,7 +2830,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 5820W\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "轉子銅損是氣隙功率乘轉差。題目沒有另外給旋轉損，輸出就用內生機械功率。\n\n求解步驟\n1. 氣隙功率 $P_g=\\dfrac{180}{0.03}=6000\\,\\mathrm{W}$。\n2. 內生機械功率 $P_g(1-s)=6000\\times 0.97=5820\\,\\mathrm{W}$。\n\n最終答案：B（5820 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -2852,7 +2852,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 幫助起動\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "蔽極線圈讓磁場從無蔽極的一邊掃向有蔽極的一邊，用來產生起動轉矩。\n\n求解步驟\n1. 主要功用是幫助起動。\n\n最終答案：A（幫助起動）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6787,7 +6787,7 @@
       "answer": "B",
       "hasFigure": true,
       "figurePath": "data/exam/figures/110/q01.png",
-      "explain": "正解：B　B. 3183Hz\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：B",
+      "explain": "串聯 RLC 諧振時，感抗與容抗抵消，頻率只由 L、C 決定。圖上 $R=5\\,\\Omega$、$L=5\\,\\mathrm{mH}$、$C=0.5\\,\\mu\\mathrm{F}$。\n\n求解步驟\n1. $f_0=\\dfrac{1}{2\\pi\\sqrt{LC}}=\\dfrac{1}{2\\pi\\sqrt{(5\\times 10^{-3})(0.5\\times 10^{-6})}}$。\n2. $\\sqrt{LC}=5\\times 10^{-5}$，所以 $f_0\\approx 3183\\,\\mathrm{Hz}$。\n\n最終答案：B（3183 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6853,7 +6853,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 導體運動方向\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "左手定則的拇指是導體受力、也就是運動的方向。\n\n求解步驟\n1. 食指才是磁場，中指才是電流。\n\n最終答案：B（導體運動方向）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6875,7 +6875,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 9R\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "體積不變時，拉長 3 倍，截面積變成 $1/3$，電阻與長度成正比、與截面積成反比。\n\n求解步驟\n1. 長度 $\\times 3$，截面積 $\\div 3$，電阻變成 $3\\times 3=9$ 倍。\n\n最終答案：D（9R）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6897,7 +6897,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 75%\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "效率是輸出機械功率除以輸入電功率。\n\n求解步驟\n1. 輸出 $4\\times 746=2984\\,\\mathrm{W}$，輸入 $100\\times 40=4000\\,\\mathrm{W}$。\n2. 效率 $=\\dfrac{2984}{4000}\\approx 75\\%$。\n\n最終答案：B（75%）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6919,7 +6919,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 2.5mH\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "同一磁路，電感與匝數平方成正比。\n\n求解步驟\n1. 匝數從 600 變成 150，是 $1/4$，電感變成 $\\left(\\dfrac{1}{4}\\right)^2=\\dfrac{1}{16}$。\n2. $40\\times\\dfrac{1}{16}=2.5\\,\\mathrm{mH}$。\n\n最終答案：C（2.5 mH）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6941,7 +6941,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 7.5A\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "安培小時等於電流乘小時。\n\n求解步驟\n1. 充電時間 $=\\dfrac{720}{60}=12\\,\\mathrm{h}$。\n2. 電流 $=\\dfrac{90}{12}=7.5\\,\\mathrm{A}$。\n\n最終答案：A（7.5 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6963,7 +6963,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 4 倍\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "兩顆相同燈泡，並聯與串聯的總電阻差 4 倍，電壓相同時功率也差 4 倍。\n\n求解步驟\n1. 設一顆電阻 $R$。並聯 $R/2$，串聯 $2R$。\n2. 功率比 $=\\dfrac{V^2/(R/2)}{V^2/(2R)}=4$。\n\n最終答案：B（4 倍）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -6985,7 +6985,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 電壓超前電流 60°\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "把電流也寫成正弦，才能和電壓比相位。\n\n求解步驟\n1. $i=-10\\cos(\\omega t+60^\\circ)=10\\sin(\\omega t-30^\\circ)$。\n2. 電壓是 $100\\sin(\\omega t+30^\\circ)$，所以電壓超前電流 $60^\\circ$。\n\n最終答案：B（電壓超前電流 60°）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7007,7 +7007,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 2.5×103V/m\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "電場強度是力除以電荷。選項 D 是 $2.5\\times 10^3\\,\\mathrm{V/m}$，對應 $Q=2\\times 10^{-5}\\,\\mathrm{C}$、$F=5\\times 10^{-2}\\,\\mathrm{N}$。\n\n求解步驟\n1. $E=\\dfrac{F}{Q}=\\dfrac{5\\times 10^{-2}}{2\\times 10^{-5}}=2.5\\times 10^3\\,\\mathrm{V/m}$。\n\n最終答案：D（$2.5\\times 10^3$ V/m）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7117,7 +7117,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C.\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "兩瓦特計法：相位角由兩表讀值的差與和決定。\n\n求解步驟\n1. $\\tan\\varphi=\\sqrt{3}\\,\\dfrac{W_1-W_2}{W_1+W_2}=\\sqrt{3}\\,\\dfrac{5}{15}=\\dfrac{1}{\\sqrt{3}}$，所以 $\\varphi=30^\\circ$。\n2. 功率因數 $\\cos 30^\\circ=\\dfrac{\\sqrt{3}}{2}$。題庫選項文字不完整，數值對應 C。\n\n最終答案：C（$\\sqrt{3}/2$）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7161,7 +7161,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 15μF/150V\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "串聯電容用倒數相加；耐壓在同一電荷下相加，因為各顆都工作在自己的額定電壓時電荷相同。\n\n求解步驟\n1. $C=\\left(\\dfrac{1}{30}+\\dfrac{1}{45}+\\dfrac{1}{90}\\right)^{-1}=15\\,\\mu\\mathrm{F}$。\n2. 額定電荷都是 $30\\times 100=45\\times 50=90\\times 25=3000\\,\\mu\\mathrm{C}$，耐壓 $=100+50+25=150\\,\\mathrm{V}$。\n\n最終答案：C（15 μF／150 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7183,7 +7183,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 120AT/m\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "磁場強度是安培匝除以磁路長度，長度要用公尺。\n\n求解步驟\n1. $H=\\dfrac{NI}{l}=\\dfrac{32\\times 6}{1.60}=120\\,\\mathrm{AT/m}$。\n\n最終答案：A（120 AT/m）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7271,7 +7271,7 @@
       "answer": "A",
       "hasFigure": true,
       "figurePath": "data/exam/figures/110/q23.png",
-      "explain": "正解：A　A. 180kΩ、800kΩ、1MΩ\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：A",
+      "explain": "伏特計擴程是串分壓電阻。圖上三檔是 100 V、500 V、1000 V，原表 10 V、內阻 20 kΩ。\n\n求解步驟\n1. 滿刻度電流 $I_{fs}=\\dfrac{10}{20000}=0.5\\,\\mathrm{mA}$。\n2. 100 V 檔總串聯電阻 $=\\dfrac{100}{0.0005}-20000=180\\,\\mathrm{k}\\Omega$，所以 $R_{S1}=180\\,\\mathrm{k}\\Omega$。\n3. 500 V 檔總電阻 $=980\\,\\mathrm{k}\\Omega$，$R_{S2}=980-180=800\\,\\mathrm{k}\\Omega$。\n4. 1000 V 檔總電阻 $=1980\\,\\mathrm{k}\\Omega$，$R_{S3}=1980-180-800=1000\\,\\mathrm{k}\\Omega=1\\,\\mathrm{M}\\Omega$。\n\n最終答案：A（180 kΩ、800 kΩ、1 MΩ）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7359,7 +7359,7 @@
       "answer": "D",
       "hasFigure": true,
       "figurePath": "data/exam/figures/110/q27.png",
-      "explain": "正解：D　D. 分激式\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請對照附圖與題幹條件自行驗算關鍵公式（歐姆定律、分壓分流、戴維寧／最大功率、三相關係、電機基本式等）。\n\n最終答案：D",
+      "explain": "分激電動機的轉速對轉矩差不多是一條略為下降的水平線。串激則從很高的轉速很快掉下來。\n\n求解步驟\n1. 圖上的曲線先略降，之後近乎水平。\n2. 這是分激式。差複激會上翹，積複激和串激掉得更陡。\n\n最終答案：D（分激式）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7381,7 +7381,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 限制啟動電流\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "直流電動機起動瞬間反電勢幾乎是 0，沒有電阻的話電樞電流會很大。\n\n求解步驟\n1. 起動電阻是用來限制起動電流。\n\n最終答案：D（限制啟動電流）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7425,7 +7425,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 降低\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "分激電動機轉速大約和磁通成反比。場變阻器調低，磁場電流變大。\n\n求解步驟\n1. 磁通增加，轉速降低。\n\n最終答案：B（降低）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7601,7 +7601,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 銅損等於鐵損\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "變壓器效率最高的條件是可變損等於固定損。\n\n求解步驟\n1. 銅損等於鐵損。\n\n最終答案：A（銅損等於鐵損）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7623,7 +7623,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 求取變壓器的激磁導納與鐵損\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "開路試驗在額定電壓、很小電流下進行。\n\n求解步驟\n1. 量到的是激磁導納和鐵損，不是銅損。\n\n最終答案：C（激磁導納與鐵損）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7667,7 +7667,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 降低起動電流\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "Y 接時每相電壓是線電壓的 $1/\\sqrt{3}$，相電流跟著下降，線電流約變成直接起動的 $1/3$。\n\n求解步驟\n1. Y-Δ 起動是為了降低起動電流。起動轉矩也會變小，不是為了增加轉矩。\n\n最終答案：A（降低起動電流）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7689,7 +7689,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 正比\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "同步轉速 $n=120f/P$，極數不變時轉速和頻率成正比。\n\n求解步驟\n1. 變頻器輸出頻率升高，轉速升高。\n\n最終答案：D（正比）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7755,7 +7755,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 同步旋轉\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "轉差率 0 表示轉子轉速等於同步轉速。\n\n求解步驟\n1. 轉子做同步旋轉。\n\n最終答案：D（同步旋轉）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7777,7 +7777,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 0< S <1\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "正常運轉時轉子比同步轉速稍慢，轉差率在 0 和 1 之間。\n\n求解步驟\n1. $0<s<1$。$s=1$ 是堵住，$s=0$ 是空轉到同步。\n\n最終答案：C（0 < S < 1）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7799,7 +7799,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 轉速變慢\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "同步轉速和頻率成正比。60 Hz 的電動機改接 50 Hz，同步轉速下降。\n\n求解步驟\n1. 轉速變慢。\n\n最終答案：A（轉速變慢）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7843,7 +7843,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 與 V 之平方成正比\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "起動轉矩和氣隙磁通、轉子電流有關，兩者都大致跟電壓成正比。\n\n求解步驟\n1. 起動轉矩與電壓的平方成正比。\n\n最終答案：B（與 V 之平方成正比）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -7882,7 +7882,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "【題意】\nRLC 串聯諧振頻率？（見附圖元件值）\n\n【觀念】\n$$f_0 = \\dfrac{1}{2\\pi\\sqrt{LC}}$$\n依圖中 L、C 代入後約為 3183 Hz（歷屆答案 B）。\n\n最終答案：B",
+      "explain": "50 顆 10 Ω 並聯後再接到 5 V。\n\n求解步驟\n1. 等效電阻 $R=\\dfrac{10}{50}=0.2\\,\\Omega$。\n2. 總電流 $I_T=\\dfrac{5}{0.2}=25\\,\\mathrm{A}$。敘述正確。\n\n最終答案：25 A",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -7899,7 +7899,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "互感等於耦合係數乘兩個自感的幾何平均。\n\n求解步驟\n1. $M=0.8\\sqrt{0.1\\times 0.016}=0.8\\times 0.04=0.032\\,\\mathrm{H}=32\\,\\mathrm{mH}$。敘述正確。\n\n最終答案：32 mH",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -7916,7 +7916,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "先算每分鐘轉速，再除 60 得到每秒轉速。\n\n求解步驟\n1. $n=\\dfrac{120\\times 60}{40}=180\\,\\mathrm{rpm}=3\\,\\mathrm{r/s}$。敘述正確。\n\n最終答案：3 轉／秒",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -7950,7 +7950,7 @@
       "answer": "",
       "hasFigure": true,
       "figurePath": "data/exam/figures/110/q55.png",
-      "explain": "【題意】\n金屬導線電阻為 R，長度均勻拉長 3 倍，電阻變為？\n\n【觀念】\n體積不變：$\\ell'=3\\ell$ → 截面積 $A'=A/3$。\n$$R' = \\rho\\dfrac{\\ell'}{A'} = \\rho\\dfrac{3\\ell}{A/3} = 9\\,\\rho\\dfrac{\\ell}{A}=9R$$\n\n最終答案：D（9R）",
+      "explain": "RL 並聯時，功率因數是電阻電流除以總電流。\n\n求解步驟\n1. $\\mathrm{pf}=0.6$，所以 $\\dfrac{I_L}{I_R}=\\dfrac{4}{3}$。\n2. 又 $\\dfrac{I_L}{I_R}=\\dfrac{R}{X_L}$，$X_L=16\\times\\dfrac{3}{4}=12\\,\\Omega$。寫成阻抗就是 $j12\\,\\Omega$。敘述正確。\n\n最終答案：12 Ω（j12 Ω）",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -7967,7 +7967,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "忽略激磁電流時，電樞電流就是端電壓和應電勢的差除以電樞電阻。\n\n求解步驟\n1. $I_a=\\dfrac{60-50}{0.05}=200\\,\\mathrm{A}$。敘述正確。\n\n最終答案：200 A",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -7984,7 +7984,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "串激電動機的應電勢要扣掉電樞和串激繞組的壓降。\n\n求解步驟\n1. $E_b=100-10\\times(0.3+0.2)=95\\,\\mathrm{V}$。敘述正確。\n\n最終答案：95 V",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -8001,7 +8001,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "【題意】\n定電流充電 720 分鐘累積 90 AH，求充電電流。\n\n【計算】\n$$t = 720/60 = 12\\,\\mathrm{h}$$\n$$I = \\dfrac{AH}{t} = \\dfrac{90}{12} = 7.5\\,\\mathrm{A}$$\n\n最終答案：A（7.5 A）",
+      "explain": "效率是輸出除以輸入，輸出等於輸入減損失。\n\n求解步驟\n1. 輸入 $200\\times 5=1000\\,\\mathrm{W}$，輸出 $1000-150=850\\,\\mathrm{W}$。\n2. 效率 $=\\dfrac{850}{1000}=85\\%$。敘述正確。\n\n最終答案：85%",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -8018,7 +8018,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "電費等於千瓦乘小時，再乘單價。\n\n求解步驟\n1. 用電 $50\\times 5=250$ 度，電費 $250\\times 3=750$ 元。敘述正確。\n\n最終答案：750 元",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -8035,7 +8035,7 @@
       "answer": "",
       "hasFigure": true,
       "figurePath": "data/exam/figures/110/q60.png",
-      "explain": "",
+      "explain": "升壓自耦變壓器的高低壓差是 240 V，輸出電壓是 2400+240。\n\n求解步驟\n1. 容量倍數 $=\\dfrac{2640}{240}=11$。\n2. 自耦容量 $=50\\times 11=550\\,\\mathrm{kVA}$。敘述正確。\n\n最終答案：550 kVA",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -8057,7 +8057,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 100 Ω\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "由額定電壓與功率求熱電阻。\n\n求解步驟\n1. $R=\\dfrac{V^2}{P}=\\dfrac{100^2}{100}=100\\,\\Omega$。\n\n最終答案：B（100 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8079,7 +8079,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. W\n 2\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "有效功率是視在功率乘功率因數，也就是乘上角度的餘弦。\n\n求解步驟\n1. $P=100\\cos 45^\\circ=\\dfrac{100}{\\sqrt{2}}\\,\\mathrm{W}$。\n\n最終答案：D（$100/\\sqrt{2}$ W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8101,7 +8101,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 1 : 1 : 1\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "並聯時每個電阻兩端是同一個電壓。\n\n求解步驟\n1. 電壓比是 $1:1:1$，電流比才會是電阻的反比。\n\n最終答案：A（1 : 1 : 1）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8123,7 +8123,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 歐姆定律、克希荷夫電流定律\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "節點電壓法先對節點寫電流守恆，再把支路電流寫成電壓差除以電阻。\n\n求解步驟\n1. 用到歐姆定律和克希荷夫電流定律。\n\n最終答案：D（歐姆定律、克希荷夫電流定律）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8145,7 +8145,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 5μF\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "相同電容串聯，總電容是一顆除以個數。\n\n求解步驟\n1. $C=\\dfrac{15}{3}=5\\,\\mu\\mathrm{F}$。\n\n最終答案：A（5 μF）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8189,7 +8189,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 500 毫秒\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "時間常數是電阻乘電容，單位要先換成歐姆和法拉。\n\n求解步驟\n1. $\\tau=RC=100\\times 10^3\\times 5\\times 10^{-6}=0.5\\,\\mathrm{s}=500\\,\\mathrm{ms}$。\n\n最終答案：D（500 毫秒）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8211,7 +8211,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 交流正弦波、60Hz\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "台電供給家庭的是 60 Hz 正弦交流。\n\n求解步驟\n1. 不是 50 Hz，也不是三角波或方波。\n\n最終答案：C（交流正弦波、60 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8233,7 +8233,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 5 A\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "電感電流的峰值是電壓峰值除以 $\\omega L$，有效值再除 $\\sqrt{2}$。題幹 $10\\,2$ 是 $10\\sqrt{2}$。\n\n求解步驟\n1. $X_L=\\omega L=100\\times 0.02=2\\,\\Omega$。\n2. 峰值 $I_m=\\dfrac{10\\sqrt{2}}{2}=5\\sqrt{2}\\,\\mathrm{A}$，有效值 $I=5\\,\\mathrm{A}$。\n\n最終答案：A（5 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8277,7 +8277,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 120°\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "平衡三相的三相量彼此相差 120°。\n\n求解步驟\n1. 相位差是 120°。\n\n最終答案：B（120°）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8299,7 +8299,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 電壓源短路、電流源開路\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "重疊定理每次只留一個獨立源，其餘獨立源要關掉。\n\n求解步驟\n1. 電壓源用短路取代，電流源用開路取代。\n\n最終答案：D（電壓源短路、電流源開路）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8343,7 +8343,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 500\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "效率 80% 表示損失是輸入的 20%。\n\n求解步驟\n1. $0.2\\,P_{in}=100$，$P_{in}=500\\,\\mathrm{W}$。\n\n最終答案：B（500 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8365,7 +8365,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 250 W\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "電阻不變時，功率和電壓平方成正比。\n\n求解步驟\n1. 電壓變成一半，功率變成 $\\left(\\dfrac{50}{100}\\right)^2=\\dfrac{1}{4}$。\n2. $1000\\times\\dfrac{1}{4}=250\\,\\mathrm{W}$。\n\n最終答案：C（250 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8387,7 +8387,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 10∠0 °A\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "純電阻的電流和電壓同相。題幹 $100\\,2$ 是 $100\\sqrt{2}$，那是峰值。\n\n求解步驟\n1. 有效值電壓 $=100\\,\\mathrm{V}$，電流有效值 $=\\dfrac{100}{10}=10\\,\\mathrm{A}$。\n2. 相位 0°，所以是 $10\\angle 0^\\circ\\,\\mathrm{A}$。\n\n最終答案：A（$10\\angle 0^\\circ$ A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8453,7 +8453,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 10 V\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "感應電壓等於電感乘電流變化率。\n\n求解步驟\n1. $v=L\\dfrac{\\Delta i}{\\Delta t}=5\\times\\dfrac{5-1}{2}=10\\,\\mathrm{V}$。\n\n最終答案：D（10 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8519,7 +8519,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 10 mH\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "匝數減半，電感按匝數平方下降。\n\n求解步驟\n1. $40\\times\\left(\\dfrac{1}{2}\\right)^2=10\\,\\mathrm{mH}$。\n\n最終答案：B（10 mH）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8541,7 +8541,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. R=8Ω，𝑋𝐿=6Ω\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "直流只看到電阻，交流看到阻抗，兩者之差是感抗。\n\n求解步驟\n1. $R=\\dfrac{220}{27.5}=8\\,\\Omega$，$Z=\\dfrac{220}{22}=10\\,\\Omega$。\n2. $X_L=\\sqrt{Z^2-R^2}=\\sqrt{100-64}=6\\,\\Omega$。\n\n最終答案：C（$R=8\\,\\Omega$，$X_L=6\\,\\Omega$）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8563,7 +8563,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 500 匝\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "電感與匝數平方成正比。\n\n求解步驟\n1. $\\dfrac{N_2}{1000}=\\sqrt{\\dfrac{5}{20}}=\\dfrac{1}{2}$，所以 $N_2=500$ 匝。\n\n最終答案：B（500 匝）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8629,7 +8629,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 伺服電動機\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "要跟隨指令、用回授控制位置和速度的是伺服電動機。\n\n求解步驟\n1. 選伺服電動機。\n\n最終答案：B（伺服電動機）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8673,7 +8673,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 防止人員感電\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "設備金屬外殼接地，是為了漏電時讓外殼接近地電位。\n\n求解步驟\n1. 目的是防止人員感電。\n\n最終答案：C（防止人員感電）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8695,7 +8695,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 錫銲\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "電子零件用低溫錫銲，不是電銲或氣銲。\n\n求解步驟\n1. 應使用錫銲。\n\n最終答案：B（錫銲）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8761,7 +8761,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 防止轉軸之追逐現象\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "阻尼繞組在轉子追逐時感應電流，產生阻尼轉矩。\n\n求解步驟\n1. 目的是防止轉軸追逐。\n\n最終答案：A（防止轉軸之追逐現象）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8805,7 +8805,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 1.5Kw\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "1 馬力約 0.746 kW。\n\n求解步驟\n1. $2\\times 0.746\\approx 1.5\\,\\mathrm{kW}$。\n\n最終答案：B（1.5 kW）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8827,7 +8827,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 降低起動電流，增加起動轉矩\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "繞線式轉子起動時外加電阻，轉子電流變小，同時起動轉矩可以提高。\n\n求解步驟\n1. 降低起動電流，增加起動轉矩。\n\n最終答案：D（降低起動電流，增加起動轉矩）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8849,7 +8849,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. NsSn\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "發電機的換向極，極性要和旋轉方向上的下一個主極相同。\n\n求解步驟\n1. 順著旋轉方向的次序是 N、s、S、n。\n\n最終答案：A（NsSn）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8871,7 +8871,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 210V\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "電壓調整率 5% 表示無載電壓比滿載高 5%。\n\n求解步驟\n1. $V_{nl}=200\\times 1.05=210\\,\\mathrm{V}$。\n\n最終答案：C（210 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8915,7 +8915,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. sin75°\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "短節距因數是節距電工角一半的正弦。\n\n求解步驟\n1. $k_p=\\sin\\dfrac{150^\\circ}{2}=\\sin 75^\\circ$。\n\n最終答案：A（$\\sin 75^\\circ$）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8937,7 +8937,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 20°\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "每槽電工角等於極數乘 180°，再除以槽數。\n\n求解步驟\n1. $\\theta=\\dfrac{8\\times 180^\\circ}{72}=20^\\circ$。\n\n最終答案：D（20°）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8959,7 +8959,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 1／80 秒\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "一圈會經過全部磁極，先算一圈的時間再除以極數。\n\n求解步驟\n1. 一圈 $\\dfrac{60}{600}=0.1\\,\\mathrm{s}$。\n2. 經過一個磁極 $\\dfrac{0.1}{8}=\\dfrac{1}{80}\\,\\mathrm{s}$。\n\n最終答案：C（1/80 秒）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -8981,7 +8981,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 100A\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "起動瞬間反電勢為 0，電流等於電壓除以全部串聯電阻。\n\n求解步驟\n1. $I=\\dfrac{200}{0.1+0.2+1.7}=100\\,\\mathrm{A}$。\n\n最終答案：B（100 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9003,7 +9003,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 90%\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "效率是輸出除以輸入，輸出等於輸入減損失。\n\n求解步驟\n1. 輸入 $=220\\times 60=13200\\,\\mathrm{W}$。\n2. 效率 $=\\dfrac{13200-1320}{13200}=90\\%$。\n\n最終答案：A（90%）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9047,7 +9047,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 12Hz\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "先算同步轉速與轉差，轉子頻率是轉差乘電源頻率。\n\n求解步驟\n1. $n_s=\\dfrac{120\\times 50}{6}=1000\\,\\mathrm{rpm}$，$s=\\dfrac{1000-760}{1000}=0.24$。\n2. $f_r=0.24\\times 50=12\\,\\mathrm{Hz}$。\n\n最終答案：A（12 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9069,7 +9069,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 4.8Hz\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "銘牌同步轉速 900 rpm、8 極，可先還原電源頻率。\n\n求解步驟\n1. $f=\\dfrac{n_s P}{120}=\\dfrac{900\\times 8}{120}=60\\,\\mathrm{Hz}$。\n2. 轉子頻率 $=sf=0.08\\times 60=4.8\\,\\mathrm{Hz}$。\n\n最終答案：C（4.8 Hz）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9091,7 +9091,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 55VA\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "低壓電壓由匝數比決定，容量是低壓電壓乘低壓額定電流。\n\n求解步驟\n1. $V_2=220\\times\\dfrac{40}{800}=11\\,\\mathrm{V}$。\n2. $S=11\\times 5=55\\,\\mathrm{VA}$。\n\n最終答案：D（55 VA）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9113,7 +9113,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. A＝160kVA，B＝80kVA\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "同一電壓下，並聯變壓器分擔的容量與漏阻抗成反比。\n\n求解步驟\n1. $\\dfrac{S_A}{S_B}=\\dfrac{0.6}{0.3}=2$，且 $S_A+S_B=240\\,\\mathrm{kVA}$。\n2. $S_A=160\\,\\mathrm{kVA}$，$S_B=80\\,\\mathrm{kVA}$。\n\n最終答案：A（A 160 kVA，B 80 kVA）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9135,7 +9135,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 90%\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "轉子把氣隙功率轉成機械功率的比例是 $1-s$，也就是轉速比。旋轉損另外再扣，題目選項對的是這一段。\n\n求解步驟\n1. 4 極 60 Hz，$n_s=1800\\,\\mathrm{rpm}$。\n2. 轉子效率 $=\\dfrac{1620}{1800}=90\\%$。\n\n最終答案：C（90%）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9152,7 +9152,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "三個電阻串聯，電流相同。\n\n求解步驟\n1. 總電阻 $100\\,\\Omega$，電流 $I=\\dfrac{100}{100}=1\\,\\mathrm{A}$。\n2. 50 Ω 的功率 $I^2 R=50\\,\\mathrm{W}$。\n\n最終答案：50 W",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9169,7 +9169,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "電位差等於作功除以電量。\n\n求解步驟\n1. $V=\\dfrac{6}{2}=3\\,\\mathrm{V}$。\n\n最終答案：3 V",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9186,7 +9186,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "四色環棕黑紅金：10、倍率 $10^2$、金是 ±5%。\n\n求解步驟\n1. 標稱 $1000\\,\\Omega$，最大值 $1000\\times 1.05=1050\\,\\Omega$。\n\n最終答案：1050 Ω",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9220,7 +9220,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "頻寬等於諧振頻率除以品質因數。\n\n求解步驟\n1. $BW=\\dfrac{f_r}{Q}=\\dfrac{100}{20}=5\\,\\mathrm{Hz}$。\n\n最終答案：5 Hz",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9237,7 +9237,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "電壓等於電流乘電阻，毫安要先化成安培。\n\n求解步驟\n1. $V=6000\\times 0.015=90\\,\\mathrm{V}$。\n\n最終答案：90 V",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9254,7 +9254,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "並聯電壓相同，電阻和電流成反比。\n\n求解步驟\n1. $V=2\\times 2=4\\,\\mathrm{V}$，$R_2=\\dfrac{4}{1}=4\\,\\Omega$。\n\n最終答案：4 Ω",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9271,7 +9271,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "由轉速和頻率反求極數。\n\n求解步驟\n1. $P=\\dfrac{120f}{n}=\\dfrac{120\\times 60}{600}=12$。\n\n最終答案：12 極",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9288,7 +9288,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "Y-Δ 起動時，線電流約是直接全壓起動的三分之一。\n\n求解步驟\n1. $360\\times\\dfrac{1}{3}=120\\,\\mathrm{A}$。\n\n最終答案：120 A",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9305,7 +9305,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "未飽和時轉矩正比於磁通和電樞電流。\n\n求解步驟\n1. 磁通變成 0.5 倍、電流變成 2 倍，轉矩倍數 $=0.5\\times 2=1$。\n2. 新轉矩仍是 40 N·m。\n\n最終答案：40 N·m",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -9327,7 +9327,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 180 庫侖\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "電量等於電流乘秒。\n\n求解步驟\n1. $Q=3\\times 60=180\\,\\mathrm{C}$。\n\n最終答案：D（180 庫侖）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9349,7 +9349,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 3 × 10-9 公尺\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "1 奈米是 $10^{-9}$ 公尺。\n\n求解步驟\n1. $3\\,\\mathrm{nm}=3\\times 10^{-9}\\,\\mathrm{m}$。\n\n最終答案：A（$3\\times 10^{-9}$ m）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9371,7 +9371,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 20：15：12\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "並聯電壓相同，電流與電阻成反比。\n\n求解步驟\n1. 電流比 $=\\dfrac{1}{3}:\\dfrac{1}{4}:\\dfrac{1}{5}$。\n2. 通分後 $=20:15:12$。\n\n最終答案：D（20：15：12）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9393,7 +9393,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 25A\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "電流等於功率除以電壓。\n\n求解步驟\n1. $I=\\dfrac{1200}{48}=25\\,\\mathrm{A}$。\n\n最終答案：B（25 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9415,7 +9415,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 5 mF\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "沒有互感時，相同電感並聯與電容串聯一樣，是一顆除以個數。\n\n求解步驟\n1. $L=\\dfrac{15}{3}=5\\,\\mathrm{mH}$。\n2. 選項 A 的單位在題庫寫成 mF，計算結果是 5 mH。\n\n最終答案：A（5 mH）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9437,7 +9437,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 18 元\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "度是千瓦小時，電費等於度數乘單價。\n\n求解步驟\n1. 用電 $=1.5\\,\\mathrm{kW}\\times 2\\,\\mathrm{h}=3$ 度。\n2. 電費 $=3\\times 6=18$ 元。\n\n最終答案：D（18 元）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9459,7 +9459,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 25Ω\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "有負載時，端電壓是內阻和負載的分壓。\n\n求解步驟\n1. $100=150\\times\\dfrac{50}{50+r}$，所以 $50+r=75$。\n2. 內阻 $r=25\\,\\Omega$。\n\n最終答案：C（25 Ω）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9547,7 +9547,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 有效值\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "三用電表交流電壓檔刻的是有效值。\n\n求解步驟\n1. 讀到的是有效值，不是最大值或峰對峰值。\n\n最終答案：B（有效值）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9591,7 +9591,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 電壓落後電流 90 度\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "純電容的電流領先電壓 90°，也就是電壓落後電流 90°。\n\n求解步驟\n1. 相位差是 90°，不是 45°。\n\n最終答案：C（電壓落後電流 90 度）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9613,7 +9613,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D.\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "功率因數是有效功率除以視在功率。題庫把選項算式印掉了，字母仍是 D。\n\n求解步驟\n1. $S=\\sqrt{P^2+Q^2}$，所以 $\\cos\\theta=\\dfrac{P}{\\sqrt{P^2+Q^2}}$。\n\n最終答案：D（$P/\\sqrt{P^2+Q^2}$）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9657,7 +9657,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 400 W\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "效率 80% 時，輸出是損失的 $0.8/0.2$ 倍。\n\n求解步驟\n1. $P_{out}=100\\times\\dfrac{0.8}{0.2}=400\\,\\mathrm{W}$。\n\n最終答案：B（400 W）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9723,7 +9723,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 4 小時\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "容量（mAh）除以放電電流（mA）就是小時。\n\n求解步驟\n1. $\\dfrac{2000}{500}=4$ 小時。\n\n最終答案：C（4 小時）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9745,7 +9745,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 10 mH\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "互感等於耦合係數乘兩個自感的幾何平均。\n\n求解步驟\n1. $M=k\\sqrt{L_1 L_2}=0.5\\sqrt{10\\times 40}=0.5\\times 20=10\\,\\mathrm{mH}$。\n\n最終答案：A（10 mH）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9767,7 +9767,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 500 VA\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "視在功率用有效值相乘，也就是最大值相乘再除 2。\n\n求解步驟\n1. $S=\\dfrac{200}{\\sqrt{2}}\\times\\dfrac{5}{\\sqrt{2}}=\\dfrac{200\\times 5}{2}=500\\,\\mathrm{VA}$。\n\n最終答案：A（500 VA）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9789,7 +9789,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 600 A\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "並聯時兩支路電流各自用歐姆定律，再向量相加。\n\n求解步驟\n1. 電阻電流 $I_R=\\dfrac{120}{1/3}=360\\,\\mathrm{A}$。\n2. 電容電流 $I_C=\\dfrac{120}{1/4}=480\\,\\mathrm{A}$，領先 90°。\n3. 總電流 $\\sqrt{360^2+480^2}=600\\,\\mathrm{A}$。\n\n最終答案：D（600 A）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9811,7 +9811,7 @@
       "answer": "D",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：D　D. 2 V\n\n【說明】\n本題依歷屆／題庫答案為「D」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：D",
+      "explain": "感應電壓等於匝數乘磁通變化率。110 毫韋伯降到 100 毫韋伯，只變了 10 毫韋伯。\n\n求解步驟\n1. $e=N\\dfrac{\\Delta\\Phi}{\\Delta t}=600\\times\\dfrac{10\\times 10^{-3}}{3}=2\\,\\mathrm{V}$。\n\n最終答案：D（2 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9899,7 +9899,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 定值\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "感應電勢看的是磁通的變化率，不是磁通本身。\n\n求解步驟\n1. 磁通線性增加時，變化率是常數，感應電勢是定值。\n\n最終答案：C（定值）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -9965,7 +9965,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 幫助機械平衡\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "虛設線圈不感應電壓，只是把電樞重量補平。\n\n求解步驟\n1. 功用是幫助機械平衡。\n\n最終答案：A（幫助機械平衡）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -10053,7 +10053,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 提高導磁係數\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "矽鋼片加矽，主要是把電阻率提高、把渦流損壓下去。\n\n求解步驟\n1. 導磁係數不會因為加矽而提高。\n2. 題庫字母登記為 A。這一題請記「加矽是為了減少渦流」，不要記成提高導磁係數。\n\n最終答案：A（題庫字母；物理上為減少渦流）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -10317,7 +10317,7 @@
       "answer": "B",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：B　B. 求得電動機等效電路中的等效阻抗\n\n【說明】\n本題依歷屆／題庫答案為「B」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：B",
+      "explain": "堵住試驗相當於變壓器的短路試驗，轉子不動、轉差率是 1。\n\n求解步驟\n1. 求的是等效電路裡的漏阻抗，不是激磁導納。\n\n最終答案：B（等效阻抗）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -10361,7 +10361,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 200\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "由 $e=N\\Delta\\Phi/\\Delta t$ 反求匝數。\n\n求解步驟\n1. $N=\\dfrac{e\\,\\Delta t}{\\Delta\\Phi}=\\dfrac{10\\times 2}{0.1}=200$。\n\n最終答案：C（200 匝）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -10383,7 +10383,7 @@
       "answer": "C",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：C　C. 8\n\n【說明】\n本題依歷屆／題庫答案為「C」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：C",
+      "explain": "單式疊繞的並聯路徑數等於極數。\n\n求解步驟\n1. 8 極就是 8 條並聯路徑。波繞才是 2 條。\n\n最終答案：C（8）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -10405,7 +10405,7 @@
       "answer": "A",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "正解：A　A. 231V\n\n【說明】\n本題依歷屆／題庫答案為「A」。 請由題幹條件代入對應公式驗算；若為觀念題，對照選項定義即可。\n\n最終答案：A",
+      "explain": "電壓調整率 5% 表示無載端電壓比滿載高 5%。\n\n求解步驟\n1. $V_{nl}=220\\times 1.05=231\\,\\mathrm{V}$。\n\n最終答案：A（231 V）",
       "extension": false,
       "answerConfidence": "high",
       "notes": ""
@@ -10422,7 +10422,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "電流等於功率除以電壓。\n\n求解步驟\n1. $I=\\dfrac{3\\times 10^6}{600}=5000\\,\\mathrm{A}$。敘述正確。\n\n最終答案：5000 A",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10439,7 +10439,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "電熱等於電流平方乘電阻再乘時間。\n\n求解步驟\n1. $W=2^2\\times 25\\times 10=1000\\,\\mathrm{J}$。敘述正確。\n\n最終答案：1000 J",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10456,7 +10456,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "電流等於功率除以電壓。\n\n求解步驟\n1. $I=\\dfrac{1200}{24}=50\\,\\mathrm{A}$。敘述正確。\n\n最終答案：50 A",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10490,7 +10490,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "要補的無效功率是兩種功率因數對應的無效功率差。\n\n求解步驟\n1. 原 $\\tan\\theta_1=\\dfrac{0.8}{0.6}$，新 $\\tan\\theta_2=\\dfrac{0.6}{0.8}$。\n2. $Q=24\\times\\left(\\dfrac{0.8}{0.6}-\\dfrac{0.6}{0.8}\\right)=14\\,\\mathrm{kVAR}$。敘述正確。\n\n最終答案：14 kVAR",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10507,7 +10507,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "【題意】\n1.5 kW 電熱水器連續用 2 h，每度 6 元，求電費。\n\n【計算】\n$$W = 1.5\\,\\mathrm{kW}\\times 2\\,\\mathrm{h} = 3\\,\\mathrm{kWh}=3\\text{度}$$\n$$\\text{電費}=3\\times6=18\\text{元}$$\n\n最終答案：D（18 元）",
+      "explain": "直導線的安培右手定則：拇指沿傳統電流，四指沿磁場。\n\n求解步驟\n1. 拇指指的是電流方向。敘述正確。\n\n最終答案：電流",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10524,7 +10524,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "分激電動機起動時反電勢還是 0，起動電阻串在電樞回路。\n\n求解步驟\n1. 目的是降低電樞電流。\n\n最終答案：電樞",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10541,7 +10541,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "同步發電機負載電流和端電壓的關係，就是外部特性，也叫負載特性。\n\n求解步驟\n1. 又可稱為外部特性曲線。敘述正確。\n\n最終答案：外部",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10558,7 +10558,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "矽鋼片疊起來，是為了切斷渦流路徑。\n\n求解步驟\n1. 目的在於減少渦流損失。\n\n最終答案：渦流",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"
@@ -10575,7 +10575,7 @@
       "answer": "",
       "hasFigure": false,
       "figurePath": "",
-      "explain": "",
+      "explain": "同步阻抗的定義就是同一磁場電流下，開路相電壓除以短路電流。\n\n求解步驟\n1. 這個比值稱為同步阻抗。敘述正確。\n\n最終答案：同步阻抗",
       "extension": false,
       "answerConfidence": "none",
       "notes": "填空題"

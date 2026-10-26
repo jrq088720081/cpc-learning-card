@@ -116,6 +116,6 @@
 - 國文：`data/chinese/` 常識表約 492 筆；`data/zh/quiz.json`（114 MC＋常識自出）
 - 英文：`data/en/quiz.json`（114）
 - 數學：`data/math/lessons.json`
-- Service Worker `mistake-notebook-v18` 快取上述 JSON／JS／附圖，離線可讀。
+- Service Worker `mistake-notebook-v19` 快取上述 JSON／JS／附圖，離線可讀。
 - 學習邏輯：`learn-features.js`；主殼仍為 `app.js`。
 
