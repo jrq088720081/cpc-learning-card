@@ -20,7 +20,8 @@
     folderName: '',
     folderUrl: '',
     scheduleEnabled: false,
-    scheduleKind: 'weekly', // daily | weekly | monthly30
+    scheduleKind: 'weekly', // daily | weekly | custom（everyN / 舊 monthly30 會正規化成 custom）
+    scheduleEveryDays: 7, // custom：每隔 N 天（1–365）
     scheduleTime: '21:00',
     scheduleWeekday: 0, // 0=日 … 6=六（每週用）
     lastCloudBackupAt: null, // ISO
@@ -275,6 +276,61 @@
     return new File([text], 'drive-backup.json', { type: 'application/json' });
   }
 
+  function clampEveryDays(n, fallback = 7) {
+    if (n == null || n === '') return fallback;
+    const num = Number(typeof n === 'string' ? String(n).trim() : n);
+    if (!Number.isFinite(num)) return fallback;
+    return Math.min(365, Math.max(1, Math.round(num)));
+  }
+
+  /** 表單用：只接受 1–365 的整數，不四捨五入。 */
+  function parseEveryDays(raw) {
+    const s = String(raw ?? '').trim();
+    if (!/^\d+$/.test(s)) return null;
+    const n = Number(s);
+    if (n < 1 || n > 365) return null;
+    return n;
+  }
+
+  function isIntervalKind(kind) {
+    return kind === 'custom' || kind === 'everyN' || kind === 'monthly30';
+  }
+
+  function everyDaysOf(cfg) {
+    if (!cfg) return 7;
+    if (cfg.scheduleKind === 'monthly30') return 30;
+    return clampEveryDays(cfg.scheduleEveryDays, 7);
+  }
+
+  /** 舊 monthly30 → custom/30；everyN → custom。會改到傳入的物件。 */
+  function normalizeDriveSchedule(cfg) {
+    if (!cfg || typeof cfg !== 'object') return cfg;
+    if (cfg.scheduleKind === 'monthly30') {
+      cfg.scheduleKind = 'custom';
+      cfg.scheduleEveryDays = 30;
+    } else if (cfg.scheduleKind === 'everyN') {
+      cfg.scheduleKind = 'custom';
+      cfg.scheduleEveryDays = clampEveryDays(cfg.scheduleEveryDays, 7);
+    } else if (cfg.scheduleEveryDays == null || cfg.scheduleEveryDays === '') {
+      cfg.scheduleEveryDays = 7;
+    } else {
+      cfg.scheduleEveryDays = clampEveryDays(cfg.scheduleEveryDays, 7);
+    }
+    return cfg;
+  }
+
+  function formatZhClock(hhmm) {
+    const [H, M] = String(hhmm || '21:00').split(':').map((x) => parseInt(x, 10));
+    let h = Number.isFinite(H) ? H : 21;
+    const m = Number.isFinite(M) ? M : 0;
+    h = ((h % 24) + 24) % 24;
+    const mi = Math.min(59, Math.max(0, m));
+    const period = h < 12 ? '上午' : '下午';
+    let h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return `${period} ${h12}:${String(mi).padStart(2, '0')}`;
+  }
+
   /** 排程是否到期（純函式，方便測試） */
   function isScheduleDue(cfg, now = new Date()) {
     if (!cfg || !cfg.scheduleEnabled) return false;
@@ -284,8 +340,8 @@
 
     const atTime = (d) => { const x = new Date(d); x.setHours(hh, mm, 0, 0); return x; };
 
-    if (!last) {
-      // 從未雲端備份：到了今天的設定時間就算到期
+    if (!last || Number.isNaN(last.getTime())) {
+      // 從未雲端備份：到了今天的設定時間就算到期（custom 與舊 monthly30 相同）
       return now.getTime() >= atTime(now).getTime();
     }
 
@@ -293,9 +349,10 @@
     if (cfg.scheduleKind === 'daily') {
       earliest = atTime(last);
       earliest.setDate(earliest.getDate() + 1);
-    } else if (cfg.scheduleKind === 'monthly30') {
+    } else if (isIntervalKind(cfg.scheduleKind)) {
+      // custom / everyN / 舊 monthly30：上次備份日的設定時間再加 N 天
       earliest = atTime(last);
-      earliest.setDate(earliest.getDate() + 30);
+      earliest.setDate(earliest.getDate() + everyDaysOf(cfg));
     } else {
       // weekly：從上次起算至少 7 天，且落在指定星期幾的設定時間之後
       const wd = Number.isFinite(+cfg.scheduleWeekday) ? +cfg.scheduleWeekday : 0;
@@ -317,13 +374,18 @@
   function nextDueLabel(cfg, now = new Date()) {
     if (!cfg || !cfg.scheduleEnabled) return '未開啟排程';
     if (isScheduleDue(cfg, now)) return '已到期，打開 App 時會自動上傳';
-    const kind = cfg.scheduleKind === 'daily' ? '每天' : cfg.scheduleKind === 'monthly30' ? '每 30 天' : '每週';
-    return `${kind} ${cfg.scheduleTime || '21:00'}（僅在 App 打開時檢查）`;
+    const time = cfg.scheduleTime || '21:00';
+    if (cfg.scheduleKind === 'daily') return `每天 ${time}（僅在 App 打開時檢查）`;
+    if (isIntervalKind(cfg.scheduleKind)) {
+      return `每 ${everyDaysOf(cfg)} 天・${formatZhClock(time)}（僅在 App 打開時檢查）`;
+    }
+    return `每週 ${time}（僅在 App 打開時檢查）`;
   }
 
   const api = {
     SCOPE, FOLDER_NAME, DEFAULT_DRIVE, getClientId, hasClientId, isConnected, online,
     cloudFileName, isScheduleDue, nextDueLabel, folderOpenUrl, clearToken,
+    clampEveryDays, parseEveryDays, normalizeDriveSchedule,
     requestToken, ensureBackupFolder, pickFolder, resumableUpload, listBackupFiles, downloadFile,
     getAccessToken: () => accessToken,
     /** 給 app.js：連接帳號並確保資料夾 */

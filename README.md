@@ -23,7 +23,7 @@
 - **收藏 ★**、**逐題小筆記**（沿用／強化原「下次要注意」欄，進備份）
 - **弱點看板**：科目分頁＋錯因＋學習區練習正確率
 - **響應式**：所有寬度皆底部橫向導覽；`≥768px` 內容置中＋多欄／圖文並排；深色模式桌面也正常
-- **Google 雲端硬碟備份**（`drive.file`）：手動上傳、每日／每週／每 30 天排程（僅 App 打開／回前景／重新連線時檢查）、選資料夾、從雲端還原（合併／覆蓋）
+- **Google 雲端硬碟備份**（`drive.file`）：手動上傳、每日／每週／自訂每隔 N 天排程（僅 App 打開／回前景／重新連線時檢查）、選資料夾、從雲端還原（合併／覆蓋）
 
 ---
 
@@ -116,6 +116,6 @@
 - 國文：`data/chinese/` 常識表約 492 筆；`data/zh/quiz.json`（114 MC＋常識自出）
 - 英文：`data/en/quiz.json`（114）
 - 數學：`data/math/lessons.json`
-- Service Worker `mistake-notebook-v10` 快取上述 JSON／JS／附圖，離線可讀。
+- Service Worker `mistake-notebook-v18` 快取上述 JSON／JS／附圖，離線可讀。
 - 學習邏輯：`learn-features.js`；主殼仍為 `app.js`。
 

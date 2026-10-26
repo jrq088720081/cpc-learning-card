@@ -341,6 +341,12 @@ button.stat.stat-link:active { transform: scale(.97); }
 .cloud-file { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--bg); border: 1px solid var(--line); }
 .schedule-row { align-items: end; flex-wrap: wrap; gap: 10px; }
 .schedule-row .field { margin: 0; }
+.schedule-row input[type="time"],
+.schedule-row input[type="number"] {
+  width: 100%; min-height: 52px; padding: 10px 14px;
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: var(--bg); color: inherit;
+}
+#schedEveryWrap { flex: 0 1 148px; min-width: 132px; }
 .field.grow { flex: 1; min-width: 120px; }
 .inline { display: flex; gap: 10px; align-items: center; }
 .review-layout { display: grid; gap: 14px; }

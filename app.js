@@ -327,6 +327,8 @@ const DB = {
 let settings = null;
 let currentTab = ''; // '' = 全部
 async function loadSettings() {
+  const storedDrive = await DB.meta('driveBackup', null);
+  const driveBackup = DriveBackup.normalizeDriveSchedule(Object.assign(DriveBackup.DEFAULT_DRIVE(), storedDrive || {}));
   settings = {
     tabs: await DB.meta('tabs', null) || structuredClone(DEFAULT_TABS),
     categories: await DB.meta('categories', null) || structuredClone(DEFAULT_CATEGORIES),
@@ -334,13 +336,16 @@ async function loadSettings() {
     chapters: await DB.meta('chapters', {}),
     sources: await DB.meta('sources', []),
     lastBackup: await DB.meta('lastBackup', null),
-    driveBackup: Object.assign(DriveBackup.DEFAULT_DRIVE(), await DB.meta('driveBackup', null) || {}),
+    driveBackup,
     learnLinks: mergeLearnLinks(await DB.meta('learnLinks', null)),
     dailyGoal: Math.max(1, Math.min(50, Number(await DB.meta('dailyGoal', 10)) || 10)),
     examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null))
   };
   currentTab = await DB.meta('currentTab', '');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) currentTab = '';
+  if (storedDrive && (storedDrive.scheduleKind !== driveBackup.scheduleKind || storedDrive.scheduleEveryDays !== driveBackup.scheduleEveryDays)) {
+    await DB.setMeta('driveBackup', driveBackup);
+  }
 }
 async function saveSettings(...keys) { for (const k of keys) await DB.setMeta(k, settings[k]); }
 const tabOf = (id) => settings.tabs.find((t) => t.id === id) || { id, name: '（已刪除的分頁）', category: settings.categories[0]?.id, intervals: null };
@@ -718,7 +723,7 @@ async function viewZhTable(app, data, cat, sec) {
   const noteIdx = cols.findIndex((c) => String(c).includes('備註'));
   const rows = sec.rows || [];
   const doAnnotate = cat.id === 'chars' || cat.id === 'classic' || cat.id === 'culture';
-  // columns that are "headword / sentence" get ruby + speak
+  // 詞頭／句子欄加注音；整列只留一顆 🔊（卡片「整詞」、表格「發音」欄）
   const headCols = cols.map((c, i) => ({ c, i })).filter(({ c }) =>
     /字[\/／]詞|正確寫法|成語|詞語|句子|名句|修辭|項目|稱謂|用語|作家|篇名|花木|人物|稱號|部類|書|流派|詩句/.test(c)
   ).map((x) => x.i);
@@ -729,13 +734,10 @@ async function viewZhTable(app, data, cat, sec) {
     if (i === noteIdx) return '';
     const isHead = headCols.includes(i);
     const body = (isHead && doAnnotate) ? annotateZhText(val, { annotate: true }) : esc(val);
-    const speak = isHead ? zhSpeakBtn(val) : '';
-    // 字音表：讀音欄已是注音，加發音（念頭詞）
     if (i === readingIdx) {
-      const head = headCols.length ? cells[headCols[0]] : '';
-      return `<div class="zh-field"><span class="zh-k">${esc(col)}</span><span class="zh-v zh-reading">${esc(val)} ${zhSpeakBtn(head || val, '🔊 念')}</span></div>`;
+      return `<div class="zh-field"><span class="zh-k">${esc(col)}</span><span class="zh-v zh-reading">${esc(val)}</span></div>`;
     }
-    return `<div class="zh-field"><span class="zh-k">${esc(col)}</span><span class="zh-v">${body}${speak ? ` ${speak}` : ''}</span></div>`;
+    return `<div class="zh-field"><span class="zh-k">${esc(col)}</span><span class="zh-v">${body}</span></div>`;
   };
 
   const cards = rows.map((r, idx) => {
@@ -762,7 +764,7 @@ async function viewZhTable(app, data, cat, sec) {
         return `<td class="zh-td-note">${zhNoteTag(tag, note)} <span>${esc(val)}</span></td>`;
       }
       if (headCols.includes(i) && doAnnotate) {
-        return `<td>${annotateZhText(val)} ${zhSpeakBtn(val)}</td>`;
+        return `<td>${annotateZhText(val)}</td>`;
       }
       if (i === readingIdx) {
         return `<td class="zh-reading">${esc(val)}</td>`;
@@ -1601,6 +1603,7 @@ async function buildBackupBlob() {
     folderName: settings.driveBackup.folderName || '',
     scheduleEnabled: !!settings.driveBackup.scheduleEnabled,
     scheduleKind: settings.driveBackup.scheduleKind || 'weekly',
+    scheduleEveryDays: settings.driveBackup.scheduleKind === 'monthly30' ? 30 : DriveBackup.clampEveryDays(settings.driveBackup.scheduleEveryDays, 7),
     scheduleTime: settings.driveBackup.scheduleTime || '21:00',
     scheduleWeekday: settings.driveBackup.scheduleWeekday ?? 0,
     lastCloudBackupAt: settings.driveBackup.lastCloudBackupAt || null,
@@ -1698,16 +1701,17 @@ async function importBackup(file, mode) {
     if (s.dailyGoal) settings.dailyGoal = Math.max(1, Math.min(50, Number(s.dailyGoal) || 10));
     if (s.examSchedule) settings.examSchedule = normalizeExamSchedule(s.examSchedule);
     if (s.driveBackup && typeof s.driveBackup === 'object') {
-      settings.driveBackup = Object.assign(DriveBackup.DEFAULT_DRIVE(), settings.driveBackup, {
+      settings.driveBackup = DriveBackup.normalizeDriveSchedule(Object.assign(DriveBackup.DEFAULT_DRIVE(), settings.driveBackup, {
         folderId: s.driveBackup.folderId || settings.driveBackup.folderId,
         folderName: s.driveBackup.folderName || settings.driveBackup.folderName,
         scheduleEnabled: !!s.driveBackup.scheduleEnabled,
         scheduleKind: s.driveBackup.scheduleKind || settings.driveBackup.scheduleKind,
+        scheduleEveryDays: s.driveBackup.scheduleEveryDays ?? settings.driveBackup.scheduleEveryDays,
         scheduleTime: s.driveBackup.scheduleTime || settings.driveBackup.scheduleTime,
         scheduleWeekday: s.driveBackup.scheduleWeekday ?? settings.driveBackup.scheduleWeekday,
         lastCloudBackupAt: s.driveBackup.lastCloudBackupAt || null,
         lastCloudBackupDate: s.driveBackup.lastCloudBackupDate || null
-      });
+      }));
     }
   } else {
     const existing = new Map((await DB.all()).map((m) => [m.id, m]));
@@ -1750,6 +1754,8 @@ async function viewSettings(app) {
   const hasCid = DriveBackup.hasClientId(settings);
   const cloudOn = !!(db.connected && db.folderId);
   const weekNames = ['日', '一', '二', '三', '四', '五', '六'];
+  const schedKindUi = (db.scheduleKind === 'monthly30' || db.scheduleKind === 'everyN') ? 'custom' : (db.scheduleKind || 'weekly');
+  const everyDaysUi = db.scheduleKind === 'monthly30' ? 30 : DriveBackup.clampEveryDays(db.scheduleEveryDays, 7);
   const folderLink = db.folderId ? (db.folderUrl || DriveBackup.folderOpenUrl(db.folderId)) : '';
   app.innerHTML = `
     <section class="card" id="gateCard">
@@ -1813,13 +1819,16 @@ async function viewSettings(app) {
               <div class="inline schedule-row">
                 <label class="field grow"><span class="field-title">頻率</span>
                   <select id="schedKind">
-                    <option value="daily" ${db.scheduleKind === 'daily' ? 'selected' : ''}>每天</option>
-                    <option value="weekly" ${db.scheduleKind === 'weekly' ? 'selected' : ''}>每週</option>
-                    <option value="monthly30" ${db.scheduleKind === 'monthly30' ? 'selected' : ''}>每 30 天</option>
+                    <option value="daily" ${schedKindUi === 'daily' ? 'selected' : ''}>每天</option>
+                    <option value="weekly" ${schedKindUi === 'weekly' ? 'selected' : ''}>每週</option>
+                    <option value="custom" ${schedKindUi === 'custom' ? 'selected' : ''}>自訂天數</option>
                   </select>
                 </label>
-                <label class="field" id="schedWdWrap" ${db.scheduleKind === 'weekly' ? '' : 'hidden'}><span class="field-title">星期</span>
+                <label class="field" id="schedWdWrap" ${schedKindUi === 'weekly' ? '' : 'hidden'}><span class="field-title">星期</span>
                   <select id="schedWeekday">${weekNames.map((n, i) => `<option value="${i}" ${(+db.scheduleWeekday === i) ? 'selected' : ''}>週${n}</option>`).join('')}</select>
+                </label>
+                <label class="field" id="schedEveryWrap" ${schedKindUi === 'custom' ? '' : 'hidden'}><span class="field-title">每隔 N 天 <small>1–365</small></span>
+                  <input type="number" id="schedEveryDays" min="1" max="365" step="1" inputmode="numeric" value="${everyDaysUi}" aria-label="每隔 N 天">
                 </label>
                 <label class="field"><span class="field-title">本地時間</span>
                   <input type="time" id="schedTime" value="${esc(db.scheduleTime || '21:00')}">
@@ -1964,15 +1973,35 @@ async function viewSettings(app) {
     } catch (err) { toast('選擇資料夾失敗：' + err.message); }
   };
   const sk = $('#schedKind');
-  if (sk) sk.onchange = () => { $('#schedWdWrap').hidden = sk.value !== 'weekly'; };
+  const syncSchedFields = () => {
+    if (!sk) return;
+    const weekly = sk.value === 'weekly';
+    const custom = sk.value === 'custom' || sk.value === 'everyN' || sk.value === 'monthly30';
+    const wd = $('#schedWdWrap');
+    const ev = $('#schedEveryWrap');
+    if (wd) wd.hidden = !weekly;
+    if (ev) ev.hidden = !custom;
+  };
+  if (sk) sk.onchange = syncSchedFields;
   const bs = $('#btnSaveSched');
   if (bs) bs.onclick = async () => {
+    const kindSel = $('#schedKind').value;
+    const kind = (kindSel === 'everyN' || kindSel === 'monthly30') ? 'custom' : kindSel;
+    const parsed = DriveBackup.parseEveryDays($('#schedEveryDays').value);
+    if (kind === 'custom' && parsed == null) {
+      toast('每隔天數請填 1 到 365 的整數');
+      return;
+    }
     settings.driveBackup.scheduleEnabled = $('#schedEnabled').checked;
-    settings.driveBackup.scheduleKind = $('#schedKind').value;
+    settings.driveBackup.scheduleKind = kind;
     settings.driveBackup.scheduleTime = $('#schedTime').value || '21:00';
     settings.driveBackup.scheduleWeekday = +$('#schedWeekday').value;
+    settings.driveBackup.scheduleEveryDays = parsed == null
+      ? DriveBackup.clampEveryDays(settings.driveBackup.scheduleEveryDays, 7)
+      : parsed;
     await saveDrive();
-    toast('已儲存排程'); $('#schedHint').textContent = DriveBackup.nextDueLabel(settings.driveBackup);
+    toast('已儲存排程');
+    $('#schedHint').textContent = DriveBackup.nextDueLabel(settings.driveBackup);
   };
   const bl = $('#btnListCloud');
   if (bl) bl.onclick = async () => {
