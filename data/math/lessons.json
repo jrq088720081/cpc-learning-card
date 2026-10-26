@@ -1934,7 +1934,7 @@
           "kind": "二元一次聯立方程式（加減消去法）",
           "intro": "這是一組二元一次聯立方程式，我們用加減消去法一步一步來求解：",
           "givenLabel": "給定聯立方程式：",
-          "given": "\\begin{cases} x+y=5 \\ x-y=1 \\end{cases}",
+          "given": "\\begin{cases} x+y=5 \\\\ x-y=1 \\end{cases}",
           "steps": [
             {
               "title": "兩式相加消去 $y$",
@@ -1970,7 +1970,7 @@
           "kind": "二元一次聯立方程式（代入法）",
           "intro": "這是一組二元一次聯立方程式，我們用代入法一步一步來求解：",
           "givenLabel": "給定聯立方程式：",
-          "given": "\\begin{cases} 2x+y=7 \\ x+y=4 \\end{cases}",
+          "given": "\\begin{cases} 2x+y=7 \\\\ x+y=4 \\end{cases}",
           "steps": [
             {
               "title": "從一式解出 $y$",
@@ -2007,7 +2007,7 @@
           "kind": "加減消去法",
           "intro": "這是一題加減消去法，我們一步一步來計算：",
           "givenLabel": "給定聯立方程式：",
-          "given": "\\begin{cases} A+B=2 \\ A-B=0 \\end{cases}",
+          "given": "\\begin{cases} A+B=2 \\\\ A-B=0 \\end{cases}",
           "steps": [
             {
               "title": "兩式相加",
@@ -2035,7 +2035,7 @@
           "kind": "代入法",
           "intro": "這是一題代入法，我們一步一步來計算：",
           "givenLabel": "給定聯立方程式：",
-          "given": "\\begin{cases} X+Y=4 \\ 2X+Y=2 \\end{cases}",
+          "given": "\\begin{cases} X+Y=4 \\\\ 2X+Y=2 \\end{cases}",
           "steps": [
             {
               "title": "兩式相減",
@@ -2063,7 +2063,7 @@
           "kind": "兩電壓聯立（電學）",
           "intro": "這是一題兩電壓聯立（電學），我們一步一步來計算：",
           "givenLabel": "給定：",
-          "given": "\\begin{cases} \\dfrac{V_1}{1}+\\dfrac{V_2}{2}=6 \\ 2V_1+V_2=12 \\end{cases}",
+          "given": "\\begin{cases} \\dfrac{V_1}{1}+\\dfrac{V_2}{2}=6 \\\\ 2V_1+V_2=12 \\end{cases}",
           "steps": [
             {
               "title": "化簡第一式",
@@ -2091,7 +2091,7 @@
           "kind": "兩電流聯立",
           "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
           "givenLabel": "給定：",
-          "given": "\\begin{cases} I_1+I_2=9 \\ I_1-I_2=3 \\end{cases}",
+          "given": "\\begin{cases} I_1+I_2=9 \\\\ I_1-I_2=3 \\end{cases}",
           "steps": [
             {
               "title": "相加",
@@ -2120,7 +2120,7 @@
           "kind": "加減消去",
           "intro": "這是「變題」：同技巧、換數字／情境。我們一步一步來：",
           "givenLabel": "給定：",
-          "given": "\\begin{cases} 2x+y=11 \\ x+y=7 \\end{cases}",
+          "given": "\\begin{cases} 2x+y=11 \\\\ x+y=7 \\end{cases}",
           "steps": [
             {
               "title": "相減",
