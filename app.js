@@ -129,6 +129,52 @@ function examRegAlerts(ex, t = today()) {
   }
   return out;
 }
+function examJobsLink(ex) {
+  const fallback = DEFAULT_EXAM_LINKS()[0];
+  const jobs = ((ex && ex.links) || []).find((l) => l.id === 'cpc-jobs') || fallback;
+  return {
+    url: String((jobs && jobs.url) || '').trim() || fallback.url,
+    name: String((jobs && jobs.name) || '').trim() || fallback.name
+  };
+}
+/** 有填才列入：簡章、報名、複試、證書截止，最多 4 個。 */
+function examNodeLine(ex) {
+  const ok = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+  const bits = [];
+  if (ok(ex.prospectusDate)) bits.push(`簡章 ${prettyDate(ex.prospectusDate)}`);
+  if (ok(ex.registerStart) || ok(ex.registerEnd)) {
+    if (ok(ex.registerStart) && ok(ex.registerEnd)) bits.push(`報名 ${prettyDate(ex.registerStart)}～${prettyDate(ex.registerEnd)}`);
+    else if (ok(ex.registerStart)) bits.push(`報名 ${prettyDate(ex.registerStart)} 起`);
+    else bits.push(`報名至 ${prettyDate(ex.registerEnd)}`);
+  }
+  if (ok(ex.secondStart) || ok(ex.secondEnd)) {
+    if (ok(ex.secondStart) && ok(ex.secondEnd)) bits.push(`複試 ${prettyDate(ex.secondStart)}～${prettyDate(ex.secondEnd)}`);
+    else if (ok(ex.secondStart)) bits.push(`複試 ${prettyDate(ex.secondStart)}`);
+    else bits.push(`複試至 ${prettyDate(ex.secondEnd)}`);
+  }
+  if (ok(ex.certDeadline)) bits.push(`證書截止 ${prettyDate(ex.certDeadline)}`);
+  return bits.slice(0, 4);
+}
+/** 今日學習頂部考試時程橫條。未設定筆試日維持原本提示。 */
+function examHomeHtml(ex, t = today()) {
+  if (!ex || !ex.writtenDate) {
+    return `<div class="alert alert-warn" role="status"><div><b>尚未設定考試日期</b><br><span class="small">倒數與每日節奏會用設定裡的筆試日。目前沒有有效日期。</span></div><a class="btn btn-soft btn-sm" href="#settings">設定考試日期</a></div>`;
+  }
+  const title = ex.title || '中油僱員甄試';
+  const noteParts = [];
+  if (ex.status !== 'official') noteParts.push('可能為歷屆推估');
+  noteParts.push(examDisclaimerShort(ex));
+  const nodes = examNodeLine(ex);
+  const jobs = examJobsLink(ex);
+  return `<section class="exam-strip" aria-label="考試倒數">
+    <p class="exam-strip-title">考試倒數 · ${esc(title)}</p>
+    <a class="exam-strip-edit" href="#settings">編輯時程</a>
+    <p class="exam-strip-main"><span class="exam-strip-date">${esc(prettyDate(ex.writtenDate))}</span><span class="exam-strip-cd">${esc(countdownText(ex.writtenDate, t))}</span></p>
+    <p class="exam-strip-note">${esc(noteParts.join('　·　'))}</p>
+    ${nodes.length ? `<p class="exam-strip-nodes">${esc(nodes.join('　·　'))}</p>` : ''}
+    <a class="exam-strip-jobs" href="${esc(jobs.url)}" target="_blank" rel="noopener">${esc(jobs.name)}</a>
+  </section>`;
+}
 
 
 
@@ -917,12 +963,9 @@ async function viewHome(app) {
   }).join('');
   const pctAll = bankAll ? Math.round(seenAll / bankAll * 100) : 0;
   const ex = settings.examSchedule || DEFAULT_EXAM_SCHEDULE();
-  const cd = countdownText(ex.writtenDate, t);
   const regAlerts = examRegAlerts(ex, t);
   const regAlertHtml = regAlerts.map((a) => `<div class="alert alert-warn exam-reg-alert" role="status"><div><b>報名提醒</b><br><span class="small">${esc(a.text)}（以中油公布為準）</span></div><a class="btn btn-soft btn-sm" href="#settings">看時程</a></div>`).join('');
-  const examHtml = ex.writtenDate
-    ? `<div class="exam-strip"><span>筆試 ${prettyDate(ex.writtenDate)}　${esc(cd)}${ex.status !== 'official' ? '　·　可能為歷屆推估' : ''}　·　${esc(examDisclaimerShort(ex))}</span><a href="#settings">編輯時程</a></div>`
-    : `<div class="alert alert-warn" role="status"><div><b>尚未設定考試日期</b><br><span class="small">倒數與每日節奏會用設定裡的筆試日。目前沒有有效日期。</span></div><a class="btn btn-soft btn-sm" href="#settings">設定考試日期</a></div>`;
+  const examHtml = examHomeHtml(ex, t);
   const known = new Set(['english', 'en', 'zh', 'ee', 'em', 'math']);
   const extra = (settings.tabs || []).filter((x) => !known.has(x.id));
   const extraHtml = extra.length ? `<section class="card"><h3>其他分頁</h3>${extra.map((x) => {
@@ -932,6 +975,8 @@ async function viewHome(app) {
   }).join('')}</section>` : '';
 
   app.innerHTML = `
+    ${examHtml}
+    ${regAlertHtml}
     ${pageHead('完成進度', '今日學習', '依每日目標練習國文、英文、電工原理與電工機械。題庫裡做過的題會記成首次完成。')}
     <nav class="today-jumps" aria-label="相關頁面">
       <a href="#bank">題庫</a><a href="#path">學習路徑</a><a href="#notebook">錯題</a><a href="#formulas">公式庫</a><a href="#learn-mock">模擬考</a>
@@ -948,8 +993,6 @@ async function viewHome(app) {
       </div>
       <div class="bar bar-lg"><i class="ok" style="--w:${pctAll}%"></i></div>
     </section>
-    ${examHtml}
-    ${regAlertHtml}
     <div class="subj-grid">${cards}</div>
     ${extraHtml}
     <p class="muted small center">上次備份：${age === null ? '從沒備份過' : age === 0 ? '今天' : `${age} 天前`}</p>
