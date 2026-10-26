@@ -628,10 +628,11 @@ async function render() {
   });
   $('#pageTitle').textContent = TITLES[view] || TITLES.home;
   const inBankQuiz = view === 'bank' && parts[1] === 'q';
+  const inFormulaDetail = view === 'formulas' && !!parts[1];
   const inMockRun = view === 'learn-mock' && parts[1] === 'run';
-  const hero = !inBankQuiz && !inMockRun && ['home', 'bank', 'path', 'notebook', 'formulas', 'learn-mock'].includes(view);
+  const hero = !inBankQuiz && !inMockRun && !inFormulaDetail && ['home', 'bank', 'path', 'notebook', 'formulas', 'learn-mock'].includes(view);
   document.body.classList.toggle('has-page-hero', hero);
-  $('#backBtn').hidden = !(inBankQuiz || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
+  $('#backBtn').hidden = !(inBankQuiz || inFormulaDetail || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
   const app = $('#app');
   app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
   await renderTabstrip(['review', 'list'].includes(view));
@@ -640,7 +641,7 @@ async function render() {
       case 'bank': await LearnUI.viewBank(app, parts.slice(1)); break;
       case 'path': await viewPath(app); break;
       case 'notebook': await viewNotebook(app); break;
-      case 'formulas': await LearnUI.viewFormulas(app); break;
+      case 'formulas': await LearnUI.viewFormulas(app, parts.slice(1)); break;
       case 'learn': await LearnUI.viewLearn(app); break;
       case 'learn-en': await LearnUI.viewEn(app, parseHash().parts.slice(1)); break;
       case 'learn-zh': await viewLearnZh(app, parseHash().parts.slice(1)); break;
@@ -1093,7 +1094,7 @@ async function viewNotebook(app) {
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
   const duePreview = due.slice(0, 3).map((m) => `<li>${esc(m.chapter || m.qText || '未填章節')}</li>`).join('');
   app.innerHTML = `
-    ${pageHead('錯題與公式', '錯題與公式', '待複習的錯題在錯題本；常用公式收在數學基礎，這裡只做入口。', '<a class="btn btn-primary" href="#formulas">前往公式庫</a>')}
+    ${pageHead('錯題與公式', '錯題與公式', '待複習的錯題在錯題本；歷屆會用到的公式收在公式庫，這裡只做入口。', '<a class="btn btn-primary" href="#formulas">前往公式庫</a>')}
     <div class="path-grid">
       <section class="card">
         <p class="kicker">待複習錯題</p>
@@ -1102,8 +1103,8 @@ async function viewNotebook(app) {
       </section>
       <section class="card">
         <p class="kicker">常用公式</p>
-        <h3>${snap.units.length} 個數學單元</h3>
-        <p class="muted">公式與例題在數學基礎。電工相關的電阻、時間常數、相位差也列在公式庫。</p>
+        <h3>歷屆公式</h3>
+        <p class="muted">公式庫收的是考題會用到的式子。點一條公式可看說明，並連到相關歷屆；數學基礎單元仍各自留著相關歷屆。</p>
         <a class="btn btn-soft" href="#formulas">從公式庫查看</a>
       </section>
     </div>

@@ -28,6 +28,8 @@ const ASSETS = [
   './data/exam/bank-data.js',
   './data/exam/concepts.json',
   './data/exam/concepts-data.js',
+  './data/exam/formulas.json',
+  './data/exam/formulas-data.js',
   './data/zh/quiz.json',
   './data/zh/quiz-data.js',
   './data/en/quiz.json',
