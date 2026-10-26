@@ -1,0 +1,32 @@
+{
+  "name": "中油學習卡｜阿電老師",
+  "short_name": "中油學習卡",
+  "description": "錯題複習＋學習區（英文／國文／電工），手機與電腦都能用",
+  "lang": "zh-Hant-TW",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f4ee",
+  "theme_color": "#1f4e46",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
