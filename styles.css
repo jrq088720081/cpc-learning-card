@@ -384,7 +384,7 @@ button.stat.stat-link:active { transform: scale(.97); }
   .review-layout { grid-template-columns: 1.1fr 0.9fr; align-items: start; }
   .review-img { max-height: 70vh; object-fit: contain; margin: 0 auto; }
   .modal { width: min(520px, 92vw); }
-}
+} /* end @media (min-width: 768px)：側欄、隱藏底欄、左 padding */
 
 @media (min-width: 1024px) {
   :root { --content-max: 1180px; }
@@ -633,8 +633,9 @@ button.stat.stat-link:active { transform: scale(.97); }
   overflow-x: auto; font-size: 1.05rem;
   text-align: left;
 }
-/* KaTeX display defaults to text-align:center. Worked examples and詳解 stay left with the prose. */
+/* katex.min.css 的 .katex-display 預設置中；例題、最終答案與詳解改靠左 */
 .math-block .katex-display,
+.math-final .katex-display,
 .math-step-calcs .katex-display,
 .math-ex .katex-display,
 .q-explain .katex-display,
@@ -645,6 +646,7 @@ button.stat.stat-link:active { transform: scale(.97); }
   margin: 0.4em 0;
 }
 .math-block .katex-display > .katex,
+.math-final .katex-display > .katex,
 .math-step-calcs .katex-display > .katex,
 .math-ex .katex-display > .katex,
 .q-explain .katex-display > .katex,
@@ -751,14 +753,22 @@ html.gated body > *:not(#gate){visibility:hidden}
 .gate-card input{min-height:46px;font-size:1rem;padding:8px 12px;border:1px solid #d9d3c6;border-radius:12px}
 .gate-err{color:#b3412e;min-height:1em;margin:0}.gate-note{font-size:.8rem;color:#8a8475;margin:6px 0 0}
 
-/* ---------- 桌面側欄（預設隱藏，寬螢幕再打開；這段要蓋過前面的 media） ---------- */
+/* ---------- 桌面側欄（預設隱藏，寬螢幕再打開；這段獨立閉合，蓋過前面的 media） ---------- */
 @media (max-width: 767px) {
+  body.app-shell { padding-left: 0; }
   .desk-nav { display: none !important; }
+  .tabbar { display: grid !important; }
 }
 @media (min-width: 768px) {
+  body.app-shell {
+    padding-bottom: 28px;
+    padding-left: var(--side-w, 248px);
+  }
   .desk-nav { display: flex !important; }
+  .tabbar { display: none !important; }
 }
 .desk-nav {
+  display: none;
   flex-direction: column;
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 35;
   width: var(--side-w, 248px);

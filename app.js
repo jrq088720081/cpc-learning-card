@@ -952,7 +952,8 @@ async function viewHome(app) {
     ${regAlertHtml}
     <div class="subj-grid">${cards}</div>
     ${extraHtml}
-    <p class="muted small center">上次備份：${age === null ? '從沒備份過' : age === 0 ? '今天' : `${age} 天前`}</p>`;
+    <p class="muted small center">上次備份：${age === null ? '從沒備份過' : age === 0 ? '今天' : `${age} 天前`}</p>
+    <p class="muted small center">若畫面怪異，請硬重新整理，或清除此站資料。</p>`;
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
     if (DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected) await uploadBackupToDrive();
     else await exportBackup();

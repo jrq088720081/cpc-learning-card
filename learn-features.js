@@ -431,9 +431,23 @@ const LearnUI = (() => {
     const t = String(s ?? '');
     return /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]/.test(t);
   }
+  /**
+   * cases／矩陣的換行必須是兩個反斜線。JSON 常把 `\\\\` 存成單一 `\` + 空白，
+   * KaTeX 會把它當成普通空白，聯立方程式就黏成一行。這裡只補「不是指令」的孤立反斜線；
+   * 已經是 `\\` 的不再加倍。HTML escape 不處理反斜線，所以要在 esc 之前做。
+   */
+  function repairTexRowBreaks(tex) {
+    return String(tex ?? '').replace(
+      /\\begin\{(cases|aligned|align\*?|matrix|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|array|gather\*?|split)\}([\s\S]*?)\\end\{\1\}/g,
+      (full, env, body) => {
+        const fixed = body.replace(/(^|[^\\])\\(?=\s)/g, '$1\\\\');
+        return '\\begin{' + env + '}' + fixed + '\\end{' + env + '}';
+      }
+    );
+  }
   /** Escape HTML but keep $...$ / $$...$$ / \(...\) / \[...\] intact for KaTeX; optionally annotate rare Chinese outside math. */
   function formatRichText(text, { annotate = false } = {}) {
-    const s = String(text ?? '');
+    const s = repairTexRowBreaks(String(text ?? ''));
     if (!s) return '';
     const re = /(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\])/g;
     let out = '', last = 0, m;
@@ -1350,7 +1364,7 @@ const LearnUI = (() => {
 
   const MATH_STEP_NUM = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
   function displayMath(tex) {
-    const t = String(tex ?? '').trim();
+    const t = repairTexRowBreaks(String(tex ?? '').trim());
     if (!t) return '';
     if (t.startsWith('$$') || t.startsWith('\\[')) return formatRichText(t);
     return formatRichText('$$' + t + '$$');
