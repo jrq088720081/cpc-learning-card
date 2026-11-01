@@ -209,15 +209,14 @@ const LearnUI = (() => {
   }
   function renderEnGloss(q) {
     if (!q) return '';
-    const speakText = q.stem || q.sentence || '';
     const tr = q.translation
-      ? `<div class="en-block"><h4>整句中譯</h4><p>${esc(q.translation)}</p>${speakText ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(speakText)}">🔊 念英文整句</button>` : ''}</div>`
+      ? `<div class="en-block"><h4>整句中譯</h4><p>${esc(q.translation)}</p></div>`
       : '';
     const phrases = enSpeakList(q.phrases);
     const words = enSpeakList(q.words);
     const ph = phrases ? `<div class="en-block"><h4>片語</h4><ul class="en-speak-list">${phrases}</ul></div>` : '';
     const wd = words ? `<div class="en-block"><h4>單字</h4><ul class="en-speak-list">${words}</ul></div>` : '';
-    const note = q.explain ? `<div class="en-block"><h4>說明</h4>${formatExplainBody(q.explain)}</div>` : '';
+    const note = q.explain ? `<div class="en-block"><h4>說明</h4>${formatExplainBody(q.explain, { speakEn: true })}</div>` : '';
     return `${tr}${ph}${wd}${note}`;
   }
   function renderEnExplain(q) {
@@ -225,7 +224,7 @@ const LearnUI = (() => {
   }
   function wireEnSpeak(root) {
     if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
-    $$('.en-word, .en-speak-item', root).forEach((b) => {
+    $$('.en-word, .en-speak-item, .en-gloss', root).forEach((b) => {
       if (b._wired) return; b._wired = true;
       b.addEventListener('click', (e) => {
         e.preventDefault();
@@ -594,7 +593,7 @@ const LearnUI = (() => {
     const explainBody = q.explain || ('正解：' + q.answer);
     const explainHtml = (q.lang === 'en' && (q.translation || (q.phrases && q.phrases.length) || (q.words && q.words.length)))
       ? renderEnExplain(q)
-      : formatExplainBody(explainBody);
+      : formatExplainBody(explainBody, { speakEn: q.lang === 'en' });
     const explain = reveal && (q.explain || q.answer)
       ? `<div class="q-explain card soft-card"><div class="q-tools">${learnedLabel(!!q._learned)}</div><b>詳解</b><div class="explain-body">${explainHtml}</div>
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
@@ -1397,7 +1396,7 @@ const LearnUI = (() => {
             <button type="button" class="btn btn-primary" id="btnFlip">${shown ? '隱藏答案' : '顯示答案'}</button>
           </div>
           ${shown ? `<div class="q-explain card soft-card"><b>${esc(c.answerWord || c.answer)}</b>
-            ${(c.translation || (c.phrases && c.phrases.length) || (c.words && c.words.length)) ? renderEnGloss(c) : `<p class="muted small">${esc(c.explain || '')}</p>`}
+            ${(c.translation || (c.phrases && c.phrases.length) || (c.words && c.words.length)) ? renderEnGloss(c) : formatExplainBody(c.explain || '', { speakEn: true })}
             <div class="mc-list" style="margin-top:8px">${(c.choices || []).map((ch) => `<div class="muted small">${esc(ch)}</div>`).join('')}</div>
             <button type="button" class="btn btn-soft" id="btnAddWrong" style="margin-top:8px">不會・加入錯題本</button>
           </div>` : '<p class="muted">想好再翻開。</p>'}
@@ -1461,17 +1460,39 @@ const LearnUI = (() => {
     if (t.startsWith('$$') || t.startsWith('\\[')) return formatRichText(t);
     return formatRichText('$$' + t + '$$');
   }
-  function formatExplainBody(text) {
+  /**
+   * 詳解裡連續的英文單字／片語做成可點發音。選項代號與對話人物（單獨的 A–D）保持純文字。
+   * 只包住英文，中文與標點留在外面，所以行距和換行跟原文一樣。
+   */
+  function annotateExplainEnglish(text) {
+    const s = String(text ?? '');
+    if (!s) return '';
+    const re = /[A-Za-z]+(?:['’-][A-Za-z]+)*(?:(?: +|, +)[A-Za-z]+(?:['’-][A-Za-z]+)*)*/g;
+    let out = '';
+    let last = 0;
+    let m;
+    while ((m = re.exec(s))) {
+      if (m.index > last) out += esc(s.slice(last, m.index));
+      const phrase = m[0];
+      if (/^[A-D]$/.test(phrase)) out += esc(phrase);
+      else out += `<button type="button" class="en-gloss" data-speak="${esc(phrase)}">${esc(phrase)}</button>`;
+      last = m.index + phrase.length;
+    }
+    if (last < s.length) out += esc(s.slice(last));
+    return out;
+  }
+  function formatExplainBody(text, opts) {
+    const speakEn = !!(opts && opts.speakEn);
     const raw = String(text ?? '');
     if (!raw) return '';
+    const lineHtml = (line) => (hasMathDelims(line) ? formatRichText(line) : (speakEn ? annotateExplainEnglish(line) : esc(line)));
     const lines = raw.split(/\n+/).map((l) => l.trim()).filter(Boolean);
     if (lines.length <= 1) {
-      return `<p class="explain-line">${hasMathDelims(raw) ? formatRichText(raw) : esc(raw)}</p>`;
+      return `<p class="explain-line">${lineHtml(raw.trim() || raw)}</p>`;
     }
     return lines.map((line) => {
-      const html = hasMathDelims(line) ? formatRichText(line) : esc(line);
       const cls = /^最終答案/.test(line) ? 'explain-line explain-answer' : 'explain-line';
-      return `<p class="${cls}">${html}</p>`;
+      return `<p class="${cls}">${lineHtml(line)}</p>`;
     }).join('');
   }
   function renderMathExample(ex) {

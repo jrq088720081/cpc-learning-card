@@ -774,7 +774,7 @@ function wireZhSpeak(root) {
   root.querySelectorAll('[data-speak]').forEach((b) => {
     if (b._zhSpeakWired) return;
     // 英文單字／片語也帶 data-speak。若這裡也綁，點一下會先國文再英文，兩次 speak 把 Chrome 唸卡在同一個字。
-    if (b.classList.contains('en-word') || b.classList.contains('en-speak-item') || b.hasAttribute('data-en-sentence')) return;
+    if (b.classList.contains('en-word') || b.classList.contains('en-speak-item') || b.classList.contains('en-gloss') || b.hasAttribute('data-en-sentence')) return;
     b._zhSpeakWired = true;
     b.addEventListener('click', (e) => {
       e.preventDefault();
