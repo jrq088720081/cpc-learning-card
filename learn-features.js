@@ -2306,6 +2306,21 @@ const LearnUI = (() => {
   /* ---------- 學習路徑：章節計畫 ---------- */
   let _pathAssign;
   let pathPhaseMemory = null;
+  let pathMediaBound = false;
+  function pathApplyPhaseOpen() {
+    const wide = !!(window.matchMedia && window.matchMedia('(min-width: 768px)').matches);
+    $$('details.path-phase').forEach((d) => {
+      d.open = wide || !!(pathPhaseMemory && pathPhaseMemory.has(d.dataset.phase));
+    });
+  }
+  function pathBindMedia() {
+    if (pathMediaBound || !window.matchMedia) return;
+    pathMediaBound = true;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => pathApplyPhaseOpen();
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
 
   function pathNorm(s) {
     return String(s || '').normalize('NFKC').replace(/[\s\u3000]+/g, '').toLowerCase();
@@ -2513,7 +2528,7 @@ const LearnUI = (() => {
   }
   function pathCircle(ch) {
     if (ch.stats && ch.stats.done) return '✓';
-    if (ch.role === 'other' || !ch.order || ch.order >= 90) return '＋';
+    if (ch.role === 'parallel' || ch.role === 'other' || !ch.order || ch.order >= 90) return '＋';
     return String(ch.order);
   }
   function pathTitle(ch) {
@@ -2584,11 +2599,14 @@ const LearnUI = (() => {
         }
       };
     });
-    $$('details.path-phase', app).forEach((d) => {
-      d.addEventListener('toggle', () => {
-        const id = d.dataset.phase;
+    $$('details.path-phase > summary', app).forEach((s) => {
+      s.addEventListener('click', () => {
+        if (window.matchMedia && window.matchMedia('(min-width: 768px)').matches) return;
+        const d = s.parentElement;
+        const id = d && d.dataset.phase;
         if (!id || !pathPhaseMemory) return;
-        if (d.open) pathPhaseMemory.add(id);
+        const willOpen = !d.open;
+        if (willOpen) pathPhaseMemory.add(id);
         else pathPhaseMemory.delete(id);
       });
     });
@@ -2636,7 +2654,9 @@ const LearnUI = (() => {
     const phaseHtml = phases.map((phase) => {
       const open = pathPhaseMemory.has(phase.id);
       const inPhase = model.chapters.filter((c) => c.phase === phase.id);
-      const summed = pathSum(inPhase.filter((c) => c.role !== 'link'));
+      const counted = inPhase.filter((c) => c.role !== 'link');
+      const summed = pathSum(phase.id === 'ee' ? counted.filter((c) => c.subject === 'ee') : counted);
+      const sideSum = phase.id === 'ee' ? pathSum(counted.filter((c) => c.subject === 'em')) : null;
       let body = '';
       if (phase.id === 'math') {
         body = inPhase.filter((c) => c.role === 'main').sort((a, b) => a.order - b.order).map((c) => pathChapterRow(c)).join('');
@@ -2661,7 +2681,7 @@ const LearnUI = (() => {
       const pctLabel = phase.id === 'sprint' ? '' : `<span class="path-phase-pct">${esc(summed.pct.text)}%</span>`;
       const sumLine = phase.id === 'sprint'
         ? ''
-        : `<p class="muted small">已學會 ${summed.learned} / ${summed.total} 題</p>${pathBar(summed.pct, phase.name)}`;
+        : `<p class="muted small">${phase.id === 'ee' ? '主線' : ''}已學會 ${summed.learned} / ${summed.total} 題</p>${pathBar(summed.pct, phase.name)}${sideSum ? `<p class="muted small">可同時學已學會 ${sideSum.learned} / ${sideSum.total} 題</p>${pathBar(sideSum.pct, '可同時學')}` : ''}`;
       return `<details class="path-phase" data-phase="${esc(phase.id)}"${open ? ' open' : ''}>
         <summary>
           <span class="path-phase-name"><span class="kicker">${esc(phase.label)}</span><strong>${esc(phase.name)}</strong></span>
@@ -2701,6 +2721,8 @@ const LearnUI = (() => {
       ${phaseHtml}
       ${weak ? `<section class="card path-weak"><h3>弱點看板</h3><p class="muted small">錯因和練習正確率，補強時先看這裡。模擬考在第四階段。</p>${weak}</section>` : ''}`;
     pathWire(app);
+    pathBindMedia();
+    pathApplyPhaseOpen();
   }
   async function viewPathChapter(app, model, id, run) {
     const ch = model.byId[id];
