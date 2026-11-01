@@ -282,6 +282,16 @@
     return Math.min(365, Math.max(1, x));
   }
 
+  /** 一律存成 HH:mm（00:00–23:59）。不跟著系統的上午／下午。 */
+  function formatScheduleTime(value) {
+    const m = String(value == null ? '' : value).trim().match(/^(\d{1,2})\s*:\s*(\d{1,2})/);
+    let h = m ? parseInt(m[1], 10) : 21;
+    let min = m ? parseInt(m[2], 10) : 0;
+    if (!Number.isFinite(h) || h < 0 || h > 23) h = 21;
+    if (!Number.isFinite(min) || min < 0 || min > 59) min = 0;
+    return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+  }
+
   /** 自訂天數；舊 monthly30 一律改成 custom、30 天 */
   function normalizeSchedule(cfg) {
     if (!cfg || typeof cfg !== 'object') return cfg;
@@ -294,6 +304,7 @@
       cfg.scheduleKind = 'weekly';
     }
     cfg.scheduleEveryDays = clampEveryDays(cfg.scheduleEveryDays);
+    cfg.scheduleTime = formatScheduleTime(cfg.scheduleTime);
     return cfg;
   }
 
@@ -305,8 +316,8 @@
   /** 排程是否到期（純函式，方便測試） */
   function isScheduleDue(cfg, now = new Date()) {
     if (!cfg || !cfg.scheduleEnabled) return false;
-    const [H, M] = String(cfg.scheduleTime || '21:00').split(':').map((x) => parseInt(x, 10));
-    const hh = Number.isFinite(H) ? H : 21, mm = Number.isFinite(M) ? M : 0;
+    const [H, M] = formatScheduleTime(cfg.scheduleTime).split(':').map((x) => parseInt(x, 10));
+    const hh = H, mm = M;
     const last = cfg.lastCloudBackupAt ? new Date(cfg.lastCloudBackupAt) : null;
 
     const atTime = (d) => { const x = new Date(d); x.setHours(hh, mm, 0, 0); return x; };
@@ -351,12 +362,12 @@
   function nextDueLabel(cfg, now = new Date()) {
     if (!cfg || !cfg.scheduleEnabled) return '未開啟排程';
     if (isScheduleDue(cfg, now)) return '已到期，打開 App 時會自動上傳';
-    return `${scheduleKindLabel(cfg)} ${cfg.scheduleTime || '21:00'}（僅在 App 打開時檢查）`;
+    return `${scheduleKindLabel(cfg)} ${formatScheduleTime(cfg.scheduleTime)}（僅在 App 打開時檢查）`;
   }
 
   const api = {
     SCOPE, FOLDER_NAME, DEFAULT_DRIVE, getClientId, hasClientId, isConnected, online,
-    cloudFileName, isScheduleDue, nextDueLabel, clampEveryDays, normalizeSchedule, folderOpenUrl, clearToken,
+    cloudFileName, isScheduleDue, nextDueLabel, clampEveryDays, normalizeSchedule, formatScheduleTime, folderOpenUrl, clearToken,
     requestToken, ensureBackupFolder, pickFolder, resumableUpload, listBackupFiles, downloadFile,
     getAccessToken: () => accessToken,
     /** 給 app.js：連接帳號並確保資料夾 */
