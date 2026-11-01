@@ -519,13 +519,192 @@ function pickVoice() {
   const vs = canSpeak() ? speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang)) : [];
   return vs.find((v) => /en[-_]US/i.test(v.lang) && v.localService) || vs.find((v) => /en[-_]US/i.test(v.lang)) || vs[0] || null;
 }
+/**
+ * Chrome（桌面與 Android）在整句、語速不是 1 時，會把當下那個字一直重念。
+ * 觸發點有三個：utterance 沒被留住而被 GC、一句太長、cancel() 後立刻 speak()。
+ * 這裡改成短句排隊，並用全域陣列握住每個 utterance 直到念完。
+ * 不要加 pause/resume 計時器，那個作法會從當下的字重頭念，反而造成單字迴圈。
+ */
+function normalizeEnglishSpeech(text) {
+  return String(text || '')
+    .replace(/[\u2018\u2019\u201A\u201B\u2032]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/\uFF1F/g, '?')
+    .replace(/\uFF01/g, '!')
+    .replace(/\uFF0C/g, ',')
+    .replace(/\u3002/g, '.')
+    .replace(/\uFF1A/g, ':')
+    .replace(/\uFF1B/g, ';')
+    .replace(/[\u2014\u2013]/g, ', ')
+    .replace(/_{2,}/g, ' blank ')
+    .replace(/([.!?])[ \t]*[\r\n]+/g, '$1 ')
+    .replace(/[\r\n]+/g, '. ')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([.!?])/g, '$1')
+    .trim();
+}
+function enChunkLimit(rate) {
+  const r = Number(rate);
+  if (!Number.isFinite(r) || Math.abs(r - 1) < 0.021) return 120;
+  return 64;
+}
+function clampEnRate(rate) {
+  const r = Number(rate);
+  if (!Number.isFinite(r)) return 1;
+  return Math.min(1.5, Math.max(0.5, r));
+}
+function appendEnglishWords(out, text, limit) {
+  if (!text) return;
+  if (text.length <= limit) { out.push(text); return; }
+  const words = text.split(/\s+/).filter(Boolean);
+  if (!words.length) return;
+  let buf = '';
+  let punctAt = -1;
+  for (let i = 0; i < words.length; i++) {
+    const next = buf ? (buf + ' ' + words[i]) : words[i];
+    if (buf && next.length > limit) break;
+    buf = next;
+    if (i < words.length - 1 && /[,;:.!?]$/.test(words[i]) && buf.length >= limit * 0.45) punctAt = i;
+  }
+  if (!buf) {
+    out.push(words[0]);
+    appendEnglishWords(out, words.slice(1).join(' '), limit);
+    return;
+  }
+  const used = punctAt >= 0 ? punctAt + 1 : buf.split(/\s+/).length;
+  let head = words.slice(0, used).join(' ');
+  let tail = words.slice(used).join(' ');
+  // 避免切完只剩一個很短的字，聽起來像卡在那個字。
+  if (tail && tail.length < 16 && used >= 2 && punctAt < 0) {
+    const headWords = head.split(/\s+/);
+    tail = (headWords.pop() + ' ' + tail).trim();
+    head = headWords.join(' ');
+  }
+  if (head) out.push(head);
+  if (tail) appendEnglishWords(out, tail, limit);
+}
+function appendEnglishChunk(out, sentence, limit) {
+  appendEnglishWords(out, sentence, limit);
+}
+function chunkEnglishSpeech(text, maxLen) {
+  const limit = Math.max(24, Number(maxLen) || 120);
+  const t = normalizeEnglishSpeech(text);
+  if (!t) return [];
+  const out = [];
+  t.split(/(?<=[.!?])\s+/).forEach((sentence) => appendEnglishChunk(out, sentence.trim(), limit));
+  return out.filter((s) => /[A-Za-z0-9]/.test(s));
+}
+function isWebKitSpeak() {
+  const ua = navigator.userAgent || '';
+  if (/iP(hone|ad|od)/i.test(ua) || /CriOS|FxiOS|EdgiOS/i.test(ua)) return true;
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
+let enSpeakGen = 0;
+let enHeld = [];
+let enArmTimer = 0;
+let enWatch = 0;
+let zhUtterance = null;
+function clearEnWatch() {
+  if (enWatch) { clearTimeout(enWatch); enWatch = 0; }
+}
+function discardHeldUtterances() {
+  const previous = enHeld;
+  enHeld = [];
+  setTimeout(() => { previous.length = 0; }, 500);
+}
+function haltEnglishQueue() {
+  enSpeakGen++;
+  if (enArmTimer) { clearTimeout(enArmTimer); enArmTimer = 0; }
+  clearEnWatch();
+  discardHeldUtterances();
+}
+function stopEnglishSpeak() {
+  haltEnglishQueue();
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) { /* already stopped */ }
+}
+function englishWatchMs(text, rate) {
+  const words = String(text).split(/\s+/).filter(Boolean).length || 1;
+  return Math.min(16000, Math.round(1400 + words * (800 / clampEnRate(rate))));
+}
+function speakEnglishQueued(text, rate) {
+  if (!canSpeak()) return;
+  const r = clampEnRate(rate);
+  const chunks = chunkEnglishSpeech(text, enChunkLimit(r));
+  if (!chunks.length) return;
+  const webkit = isWebKitSpeak();
+  let engineBusy = false;
+  try { engineBusy = !!(speechSynthesis.speaking || speechSynthesis.pending); } catch (e) { engineBusy = false; }
+  const ownBusy = enHeld.length > 0 || !!enArmTimer || !!enWatch;
+  haltEnglishQueue();
+  const gen = enSpeakGen;
+  const kick = () => {
+    if (gen !== enSpeakGen) return;
+    const voice = pickVoice();
+    let index = 0;
+    const step = () => {
+      if (gen !== enSpeakGen) return;
+      if (index >= chunks.length) return;
+      const part = chunks[index++];
+      const u = new SpeechSynthesisUtterance(part);
+      u.lang = (voice && voice.lang) || 'en-US';
+      u.rate = r;
+      if (voice) {
+        try { u.voice = voice; } catch (e) { /* 聲音清單更新後舊物件會失效，改用 lang */ }
+      }
+      enHeld.push(u);
+      let settled = false;
+      const finish = (advance) => {
+        if (settled) return;
+        settled = true;
+        clearEnWatch();
+        const at = enHeld.indexOf(u);
+        if (at >= 0) enHeld.splice(at, 1);
+        if (advance && gen === enSpeakGen) step();
+      };
+      u.onend = () => finish(true);
+      u.onerror = (ev) => {
+        const err = String((ev && ev.error) || '');
+        if (err === 'interrupted' || err === 'canceled' || err === 'cancelled' || err === 'not-allowed') finish(false);
+        else finish(true);
+      };
+      enWatch = setTimeout(() => {
+        enWatch = 0;
+        if (settled || gen !== enSpeakGen) return;
+        settled = true;
+        // 還握著 u 再 cancel。先從陣列拿掉的話，Chrome 會在取消過程把這個字念成迴圈。
+        try { speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+        enArmTimer = setTimeout(() => {
+          enArmTimer = 0;
+          const at = enHeld.indexOf(u);
+          if (at >= 0) enHeld.splice(at, 1);
+          if (gen === enSpeakGen) step();
+        }, webkit ? 50 : 100);
+      }, englishWatchMs(part, r));
+      try {
+        if (webkit) speechSynthesis.resume();
+        speechSynthesis.speak(u);
+      } catch (e) { finish(true); }
+    };
+    step();
+  };
+  if (!webkit) {
+    // Chrome / Android：cancel() 是非同步的。同一輪馬上 speak() 會被一起取消，引擎就卡在同一個字一直重念。
+    try { speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+    enArmTimer = setTimeout(() => { enArmTimer = 0; kick(); }, 100);
+    return;
+  }
+  // iOS Safari（含 iOS 上的 Chrome）必須在點擊手勢裡同步 speak，setTimeout 會被直接丟掉。
+  if (engineBusy || ownBusy) {
+    try { speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+  }
+  try { speechSynthesis.resume(); } catch (e) { /* ignore */ }
+  kick();
+}
 function speak(text, rate = 1) {
   if (!canSpeak()) { toast('這個瀏覽器不支援發音'); return; }
   const t = String(text || '').trim(); if (!t) { toast('沒有可以念的文字'); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(t); const v = pickVoice();
-  if (v) u.voice = v; u.lang = v ? v.lang : 'en-US'; u.rate = rate;
-  speechSynthesis.speak(u);
+  speakEnglishQueued(t, rate);
 }
 function pickZhVoice() {
   const vs = canSpeak() ? speechSynthesis.getVoices().filter((v) => /^zh/i.test(v.lang) || /chinese/i.test(v.name || '')) : [];
@@ -540,16 +719,30 @@ function pickZhVoice() {
 function speakZh(text, rate = 0.9) {
   if (!canSpeak()) { toast('這個瀏覽器不支援發音'); return; }
   const t = String(text || '').trim(); if (!t) { toast('沒有可以念的文字'); return; }
-  speechSynthesis.cancel();
+  haltEnglishQueue();
+  try { speechSynthesis.cancel(); } catch (e) { /* ignore */ }
   const u = new SpeechSynthesisUtterance(t);
   const v = pickZhVoice();
-  if (v) { u.voice = v; u.lang = v.lang; } else { u.lang = 'zh-TW'; }
+  if (v) {
+    u.lang = v.lang;
+    try { u.voice = v; } catch (e) { /* 聲音清單更新後舊物件會失效，改用 lang */ }
+  } else { u.lang = 'zh-TW'; }
   u.rate = rate;
-  speechSynthesis.speak(u);
+  zhUtterance = u;
+  u.onend = u.onerror = () => { if (zhUtterance === u) zhUtterance = null; };
+  try { speechSynthesis.speak(u); } catch (e) { zhUtterance = null; }
 }
 const isLangTab = (tabId) => tabOf(tabId).category === 'lang';
 const speakBtns = (prefix = '') => `<div class="speak-row"><button type="button" class="btn btn-soft btn-sm speak" data-rate="1" id="${prefix}speak">🔊 發音</button><button type="button" class="btn btn-soft btn-sm speak" data-rate="0.7" id="${prefix}speakSlow">🐢 慢速</button></div>`;
-function wireSpeak(root, getText) { $$('.speak', root).forEach((b) => { b.onclick = (e) => { e.preventDefault(); speak(getText(), +b.dataset.rate); }; }); }
+function wireSpeak(root, getText) {
+  $$('.speak', root).forEach((b) => {
+    b.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      speak(getText(), +b.dataset.rate);
+    };
+  });
+}
 
 function rareCharMap() {
   const raw = (typeof window.__CHINESE_RARE_CHARS__ !== 'undefined' && window.__CHINESE_RARE_CHARS__) || null;
@@ -580,6 +773,8 @@ function wireZhSpeak(root) {
   if (!root) return;
   root.querySelectorAll('[data-speak]').forEach((b) => {
     if (b._zhSpeakWired) return;
+    // 英文單字／片語也帶 data-speak。若這裡也綁，點一下會先國文再英文，兩次 speak 把 Chrome 唸卡在同一個字。
+    if (b.classList.contains('en-word') || b.classList.contains('en-speak-item') || b.hasAttribute('data-en-sentence')) return;
     b._zhSpeakWired = true;
     b.addEventListener('click', (e) => {
       e.preventDefault();
