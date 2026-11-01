@@ -3,3 +3,6 @@ node_modules/
 tests/
 .DS_Store
 *.log
+scripts/.cache/
+__pycache__/
+*.pyc

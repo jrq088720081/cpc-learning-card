@@ -684,9 +684,10 @@ const LearnUI = (() => {
       });
     });
   }
-  const FAV_CATS = [['all', '全部'], ['zh', '國文'], ['en', '英文'], ['ee', '電工原理'], ['em', '電工機械'], ['math', '數學'], ['other', '其他']];
+  const FAV_CATS = [['all', '全部'], ['zh', '國文'], ['en', '英文'], ['en-vocab', '英文單字'], ['ee', '電工原理'], ['em', '電工機械'], ['math', '數學'], ['other', '其他']];
   function favCat(f) {
     const t = String(f.subjectTab || '');
+    if (t === 'en-vocab' || f.kind === 'word' || f.kind === 'phrase') return 'en-vocab';
     if (t === 'english') return 'en';
     return ['zh', 'en', 'ee', 'em', 'math'].includes(t) ? t : 'other';
   }
@@ -695,7 +696,7 @@ const LearnUI = (() => {
     $('#pageTitle').textContent = '我的最愛';
     const all = Object.values(settings.learnFavs || {}).sort((a, b) => (b.at || 0) - (a.at || 0));
     if (!all.length) {
-      app.innerHTML = `<section class="card"><h2>★ 我的最愛</h2><p class="muted">還沒有收藏。做題時點題目右上的 ☆，就會分類收在這裡（國文、英文、電工原理、電工機械、數學）。</p><a class="btn btn-primary" href="#learn">去學習區做題</a></section>`;
+      app.innerHTML = `<section class="card"><h2>★ 我的最愛</h2><p class="muted">還沒有收藏。做題時點題目右上的 ☆，或在單字庫點星星，會分類收在這裡（含英文單字）。</p><a class="btn btn-primary" href="#learn">去學習區做題</a></section>`;
       return;
     }
     const counts = {}; all.forEach((f) => { const c = favCat(f); counts[c] = (counts[c] || 0) + 1; });
@@ -707,10 +708,21 @@ const LearnUI = (() => {
       <div class="btn-row"><button type="button" class="btn btn-primary" id="favRun">練習這 ${favs.length} 題</button></div></section>
       <div class="card soft-card">${favs.map((f, i) => `<div class="fav-item"><button type="button" class="overview-tab fav-row" data-i="${i}"><span>${formatRichText((f.stem || '').slice(0, 70))}<br><span class="muted small">${esc((FAV_CATS.find(([k]) => k === favCat(f)) || [, '其他'])[1])}・${esc(f.from || '')}</span></span></button><button type="button" class="q-fav on fav-del" data-id="${esc(f.id)}" title="取消收藏" aria-label="取消收藏">★</button></div>`).join('')}</div>`;
     typesetMath(app);
-    const run = (list) => runQuiz(app, { title: '我的最愛', questions: list.map((f) => Object.assign({}, f)), mode: 'practice', subjectTab: list[0].subjectTab || 'math', source: '我的最愛' });
-    $('#favRun').onclick = () => run(favs);
+    const quizItems = favs.filter((f) => favCat(f) !== 'en-vocab');
+    const runBtn = $('#favRun');
+    if (runBtn) {
+      if (!quizItems.length) runBtn.hidden = true;
+      else {
+        runBtn.textContent = `練習這 ${quizItems.length} 題`;
+        runBtn.onclick = () => runQuiz(app, { title: '我的最愛', questions: quizItems.map((f) => Object.assign({}, f)), mode: 'practice', subjectTab: quizItems[0].subjectTab || 'math', source: '我的最愛' });
+      }
+    }
     $$('.fav-chip', app).forEach((b) => b.onclick = () => { _favFilter = b.dataset.k; viewFavs(app); });
-    $$('.fav-row', app).forEach((b) => b.onclick = () => run([favs[+b.dataset.i]]));
+    $$('.fav-row', app).forEach((b) => b.onclick = () => {
+      const f = favs[+b.dataset.i];
+      if (f && favCat(f) === 'en-vocab') { location.hash = '#learn-en/vocab/w/' + encodeURIComponent(f.id); return; }
+      runQuiz(app, { title: '我的最愛', questions: [Object.assign({}, f)], mode: 'practice', subjectTab: f.subjectTab || 'math', source: '我的最愛' });
+    });
     $$('.fav-del', app).forEach((b) => b.onclick = async () => {
       const id = b.dataset.id, snap = settings.learnFavs[id];
       delete settings.learnFavs[id]; await saveSettings('learnFavs');
@@ -1331,6 +1343,8 @@ const LearnUI = (() => {
   }
   async function viewEn(app, parts) {
     const data = await loadEnQuiz();
+    if (parts[0] === 'vocab') return viewVocab(app, parts.slice(1));
+    if (parts[0] === 'roots') return viewVocabRoots(app, parts.slice(1));
     $('#pageTitle').textContent = '英文';
     if (parts[0] === 'recall') return viewEnRecall(app, data);
     if (parts[0] === 'quiz') {
@@ -1353,6 +1367,7 @@ const LearnUI = (() => {
         return `<button type="button" class="btn ${sec === 'all' ? 'btn-primary' : 'btn-soft'}" data-sec="${sec}">${name}（${n}）</button>`;
       }).join('');
       app.innerHTML = `
+        ${enSeg('practice')}
         <section class="card learn-shell">
           <h2>英文</h2>
           <p>有題的年份可複選，下方練習用所選年份的聯集。點單字、片語或整句可發音（en-US）。語速分慢／正常／快，會記在這台裝置。</p>
@@ -2193,32 +2208,38 @@ const LearnUI = (() => {
       ? pageHead('成就', '已學會', '這裡只收你自己勾過的題。取消勾選就會移出，不會改到星號收藏或錯題本。')
       : '<h2>已學會</h2>';
     if (!rows.length) {
-      app.innerHTML = `${head}<section class="card"><p class="muted">還沒有勾選。在題庫或作答頁勾「已學會」，題目會收在這裡。</p><a class="btn btn-primary" href="#bank">去題庫</a></section>`;
+      app.innerHTML = `${head}<section class="card"><p class="muted">還沒有勾選。在題庫、作答頁或單字庫勾「已學會」，就會收在這裡。</p><a class="btn btn-primary" href="#bank">去題庫</a></section>`;
       return;
     }
     const counts = {};
     rows.forEach((r) => { counts[r.subject] = (counts[r.subject] || 0) + 1; });
-    const chipOrder = [['all', '全部'], ...LEARN_SUBJECTS, ['other', '其他']];
+    const chipOrder = [['all', '全部'], ...LEARN_SUBJECTS, ['en-vocab', '英文單字'], ['other', '其他']];
     const chips = chipOrder.filter(([k]) => k === 'all' || counts[k]).map(([k, n]) => {
       const num = k === 'all' ? rows.length : counts[k];
       return `<button type="button" class="chip fav-chip${k === filter ? ' active' : ''}" data-k="${esc(k)}">${esc(n)} ${num}</button>`;
     }).join('');
     const shown = filter === 'all' ? rows : rows.filter((r) => r.subject === filter);
-    const card = (r) => `<article class="card bank-q learned-row is-learned">
-      <a class="bank-q-main learned-open" href="#bank/q/${encodeURIComponent(r.id)}">
-        <div class="subj-kicker"><span class="tag">${esc(r.year ? String(r.year) + ' 年' : '題庫')}</span><span>${esc(r.subjectName)}${r.type ? '／' + esc(r.type) : ''}</span></div>
-        <div class="bank-stem">${formatRichText(r.stem || '')}</div>
+    const card = (r) => {
+      const href = r.subject === 'en-vocab'
+        ? `#learn-en/vocab/w/${encodeURIComponent(r.id)}`
+        : `#bank/q/${encodeURIComponent(r.id)}`;
+      const tag = r.subject === 'en-vocab' ? (r.type || '單字') : (r.year ? String(r.year) + ' 年' : '題庫');
+      return `<article class="card bank-q learned-row is-learned">
+      <a class="bank-q-main learned-open" href="${href}">
+        <div class="subj-kicker"><span class="tag">${esc(tag)}</span><span>${esc(r.subjectName)}${r.type && r.subject !== 'en-vocab' ? '／' + esc(r.type) : ''}</span></div>
+        <div class="bank-stem">${r.subject === 'en-vocab' ? esc(r.stem || '') : formatRichText(r.stem || '')}</div>
       </a>
       <label class="q-learned on"><input type="checkbox" class="page-learned" data-id="${esc(r.id)}" checked aria-label="取消已學會"><span>已學會</span></label>
     </article>`;
+    };
     let listHtml = '';
     if (!shown.length) listHtml = '<section class="card"><p class="muted">這一科還沒有已學會的題。</p></section>';
     else if (filter === 'all') {
-      const order = LEARN_SUBJECTS.map(([k]) => k).concat('other');
+      const order = LEARN_SUBJECTS.map(([k]) => k).concat(['en-vocab', 'other']);
       listHtml = order.map((k) => {
         const list = shown.filter((r) => r.subject === k);
         if (!list.length) return '';
-        const name = LEARN_SUBJECT_NAME[k] || '其他';
+        const name = k === 'en-vocab' ? '英文單字' : (LEARN_SUBJECT_NAME[k] || '其他');
         return `<h3 class="learned-group">${esc(name)}</h3>${list.map(card).join('')}`;
       }).join('');
     } else listHtml = shown.map(card).join('');
@@ -2775,6 +2796,366 @@ const LearnUI = (() => {
     if (parts[0] === 'go' && parts[1]) return viewPathChapter(app, model, parts[1], parts[2] === 'run');
     $('#pageTitle').textContent = '學習路徑';
     return viewPathHome(app, model);
+  }
+
+
+  /* ---------- 英文單字庫 ---------- */
+  let _vocabBank;
+  let vocabSpeakRate = 1;
+  let vocabQuery = '';
+  let vocabSort = 'alpha';
+  async function loadVocab() {
+    if (_vocabBank) return _vocabBank;
+    if (window.__EN_VOCAB__) _vocabBank = window.__EN_VOCAB__;
+    else {
+      try { _vocabBank = await (await fetch('./data/en-vocab.json')).json(); }
+      catch { _vocabBank = { meta: {}, words: [], phrases: [], affixes: [] }; }
+    }
+    return _vocabBank;
+  }
+  function enSeg(active) {
+    return `<div class="mode-seg en-seg" role="tablist" aria-label="英文">
+      <a href="#learn-en" role="tab" class="${active === 'practice' ? 'on' : ''}" aria-selected="${active === 'practice'}">練習</a>
+      <a href="#learn-en/vocab" role="tab" class="${active === 'vocab' ? 'on' : ''}" aria-selected="${active === 'vocab'}">單字庫</a>
+    </div>`;
+  }
+  const VOCAB_POS = { 'n.': '名', 'v.': '動', 'adj.': '形', 'adv.': '副', 'prep.': '介', 'conj.': '連', 'pron.': '代', 'interj.': '嘆', 'num.': '數' };
+  const VOCAB_POS_LONG = { 'n.': '名詞', 'v.': '動詞', 'adj.': '形容詞', 'adv.': '副詞', 'prep.': '介系詞', 'conj.': '連接詞', 'pron.': '代名詞', 'interj.': '感嘆詞', 'num.': '數詞' };
+  function vocabPos(pos) { return VOCAB_POS[pos] || pos || ''; }
+  function vocabPosLong(pos) { return VOCAB_POS_LONG[pos] || pos || '詞性'; }
+  function vocabLearnedOn(id) {
+    return !!(settings && settings.learned && settings.learned[id]);
+  }
+  function vocabFavOn(id) {
+    return !!(settings && settings.learnFavs && settings.learnFavs[id]);
+  }
+  function vocabProgress(bank) {
+    const items = [...(bank.words || []), ...(bank.phrases || [])];
+    const learned = items.filter((it) => vocabLearnedOn(it.id)).length;
+    const pct = learnedPct(learned, items.length);
+    return { learned, total: items.length, pct };
+  }
+  function vocabSnap(item, kind) {
+    return {
+      id: item.id,
+      stem: item.w || '',
+      subject: 'en-vocab',
+      subjectName: '英文單字',
+      year: '',
+      type: kind === 'phrase' ? '片語' : '單字',
+      at: Date.now(),
+      vocab: true,
+      kind: kind === 'phrase' ? 'phrase' : 'word',
+      zh: item.zh || ''
+    };
+  }
+  function vocabFavSnap(item, kind) {
+    return {
+      id: item.id,
+      stem: item.w || '',
+      zh: item.zh || '',
+      subjectTab: 'en-vocab',
+      lang: 'en',
+      from: item.zh || (kind === 'phrase' ? '片語' : '單字'),
+      kind: kind === 'phrase' ? 'phrase' : 'word',
+      at: Date.now()
+    };
+  }
+  function vocabSpeak(text, rate) {
+    const t = String(text || '').trim();
+    if (!t) return;
+    const r = rate == null ? vocabSpeakRate : rate;
+    if (typeof speakEnglishQueued === 'function') speakEnglishQueued(t, r);
+    else if (typeof speakEn === 'function') speakEn(t, r);
+  }
+  function vocabProgressHtml(bank) {
+    const p = vocabProgress(bank);
+    return `<section class="card vocab-progress">
+      <div class="subject-progress-top">
+        <div>
+          <p class="kicker">英文單字</p>
+          <h3>已學會 ${p.learned} / ${p.total}</h3>
+          <p class="muted small">單字與片語都算。勾選會記在這台裝置，並跟著雲端備份走。</p>
+        </div>
+        <div class="progress-pct" id="vocabPct">${esc(p.pct.text)}%</div>
+      </div>
+      <div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.pct.width)}" aria-label="單字庫進度 ${esc(p.pct.text)}%"><i class="ok" style="--w:${p.pct.width}%"></i></div>
+    </section>`;
+  }
+  function vocabSubnav(active) {
+    const tabs = [['words', '單字', '#learn-en/vocab'], ['phrases', '片語', '#learn-en/vocab/phrases'], ['roots', '字根字首', '#learn-en/roots']];
+    return `<div class="mode-seg vocab-sub" role="tablist" aria-label="單字庫">
+      ${tabs.map(([k, n, href]) => `<a href="${href}" role="tab" class="${active === k ? 'on' : ''}" aria-selected="${active === k}">${n}</a>`).join('')}
+    </div>`;
+  }
+  function vocabById(bank) {
+    const map = new Map();
+    (bank.words || []).forEach((w) => map.set(w.id, { ...w, _kind: 'word' }));
+    (bank.phrases || []).forEach((w) => map.set(w.id, { ...w, _kind: 'phrase' }));
+    return map;
+  }
+  async function viewVocab(app, parts) {
+    const bank = await loadVocab();
+    parts = parts || [];
+    if (parts[0] === 'w' && parts[1]) return viewVocabDetail(app, bank, parts[1]);
+    if (parts[0] === 'phrases') return viewVocabList(app, bank, 'phrases');
+    return viewVocabList(app, bank, 'words');
+  }
+  async function viewVocabList(app, bank, mode) {
+    $('#pageTitle').textContent = '單字庫';
+    const items = mode === 'phrases' ? (bank.phrases || []) : (bank.words || []);
+    const paint = () => {
+      const q = vocabQuery.trim().toLowerCase();
+      let shown = items.filter((it) => {
+        if (!q) return true;
+        return [it.w, it.zh, it.pos].join(' ').toLowerCase().includes(q);
+      });
+      const byFreq = vocabSort === 'freq';
+      if (byFreq) shown = shown.slice().sort((a, b) => (b.count - a.count) || a.w.localeCompare(b.w));
+      else shown = shown.slice().sort((a, b) => a.w.localeCompare(b.w));
+      const letters = [];
+      const groups = new Map();
+      if (!byFreq) {
+        shown.forEach((it) => {
+          const L = (it.w[0] || '#').toUpperCase();
+          const key = /[A-Z]/.test(L) ? L : '#';
+          if (!groups.has(key)) { groups.set(key, []); letters.push(key); }
+          groups.get(key).push(it);
+        });
+      }
+      const index = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((L) => {
+        const on = groups.has(L);
+        return `<button type="button" class="vocab-jump${on ? '' : ' off'}" data-letter="${L}" ${on ? '' : 'disabled'}>${L}</button>`;
+      }).join('');
+      const row = (it) => {
+        const pos = mode === 'words' ? `<span class="vocab-pos">${esc(vocabPos(it.pos))}</span>` : '';
+        return `<a class="vocab-row" href="#learn-en/vocab/w/${encodeURIComponent(it.id)}">
+          <span class="vocab-w">${esc(it.w)}</span>
+          ${pos}
+          <span class="vocab-zh">${esc(it.zh || '')}</span>
+          <span class="vocab-n" title="出現次數">${it.count || 0}</span>
+        </a>`;
+      };
+      let body = '';
+      if (!shown.length) body = '<p class="muted">沒有符合的項目。</p>';
+      else if (byFreq) body = `<div class="vocab-list">${shown.map(row).join('')}</div>`;
+      else body = letters.map((L) => `<section class="vocab-letter" id="voc-${L === '#' ? 'hash' : L}"><h3>${esc(L)}</h3><div class="vocab-list">${groups.get(L).map(row).join('')}</div></section>`).join('');
+      const head = typeof pageHead === 'function'
+        ? pageHead('英文', '單字庫', `考古題單字 ${bank.meta?.wordCount || 0}、片語 ${bank.meta?.phraseCount || 0}。點一列看發音、構詞和出處。`)
+        : '<h2>單字庫</h2>';
+      app.innerHTML = `${enSeg('vocab')}${head}
+        ${vocabProgressHtml(bank)}
+        ${vocabSubnav(mode === 'phrases' ? 'phrases' : 'words')}
+        <section class="card">
+          <div class="vocab-tools">
+            <label class="field grow"><span class="field-title">搜尋</span>
+              <input type="search" id="vocabQ" value="${esc(vocabQuery)}" placeholder="${mode === 'phrases' ? '片語或中文' : '單字、詞性或中文'}" autocomplete="off">
+            </label>
+            <div class="vocab-sort" role="group" aria-label="排序">
+              <button type="button" class="btn btn-soft btn-sm${vocabSort === 'alpha' ? ' on' : ''}" data-sort="alpha">A–Z</button>
+              <button type="button" class="btn btn-soft btn-sm${vocabSort === 'freq' ? ' on' : ''}" data-sort="freq">出現次數</button>
+            </div>
+          </div>
+          <p class="muted small">${shown.length} 筆${mode === 'words' ? '・詞性、中文、右側是出現次數' : ''}</p>
+        </section>
+        ${mode === 'words' && !byFreq ? `<nav class="vocab-index" aria-label="字母索引">${index}</nav>` : ''}
+        ${body}`;
+      const input = $('#vocabQ');
+      if (input) {
+        input.oninput = () => { vocabQuery = input.value; paint(); };
+        if (vocabQuery) {
+          input.focus();
+          const n = input.value.length;
+          try { input.setSelectionRange(n, n); } catch (_) {}
+        }
+      }
+      $$('[data-sort]', app).forEach((b) => {
+        b.onclick = () => { vocabSort = b.dataset.sort || 'alpha'; paint(); };
+      });
+      $$('.vocab-jump', app).forEach((b) => {
+        b.onclick = () => {
+          const el = document.getElementById('voc-' + b.dataset.letter);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+      });
+    };
+    paint();
+  }
+  function vocabCognates(bank, item) {
+    const morph = item.morph;
+    if (!morph || !morph.root) return [];
+    const root = morph.root;
+    return (bank.words || []).filter((w) => w.id !== item.id && w.morph && w.morph.root === root);
+  }
+  function vocabPrefixMates(bank, item) {
+    const pre = ((item.morph && item.morph.parts) || []).find((p) => p.k === 'prefix');
+    if (!pre) return [];
+    return (bank.words || []).filter((w) => {
+      if (w.id === item.id || !w.morph) return false;
+      return (w.morph.parts || []).some((p) => p.k === 'prefix' && p.id === pre.id);
+    });
+  }
+  async function viewVocabDetail(app, bank, rawId) {
+    const map = vocabById(bank);
+    const item = map.get(rawId);
+    if (!item) {
+      $('#pageTitle').textContent = '單字庫';
+      app.innerHTML = `${enSeg('vocab')}<section class="card"><h2>找不到這個項目</h2><a class="btn btn-primary" href="#learn-en/vocab">回單字庫</a></section>`;
+      return;
+    }
+    const kind = item._kind === 'phrase' ? 'phrase' : 'word';
+    $('#pageTitle').textContent = item.w;
+    const learned = vocabLearnedOn(item.id);
+    const fav = vocabFavOn(item.id);
+    const syl = kind === 'word' ? (item.syl || [item.w]) : [];
+    const stress = kind === 'word' ? (item.stress || 0) : 0;
+    const sec = kind === 'word' ? item.sec : null;
+    const sylHtml = kind === 'word' ? `<div class="vocab-syl" aria-label="音節">${syl.map((s, i) => {
+      const mark = i === stress ? '<span class="vocab-mark" aria-hidden="true">ˈ</span>' : (i === sec ? '<span class="vocab-mark sec" aria-hidden="true">ˌ</span>' : '');
+      const dot = i ? '<span class="vocab-dot" aria-hidden="true">·</span>' : '';
+      return `${dot}${mark}<button type="button" class="vocab-speak syl${i === stress ? ' is-stress' : ''}" data-speak="${esc(s)}" aria-label="念 ${esc(s)}">${esc(s)}</button>`;
+    }).join('')}</div>` : '';
+    const morph = item.morph;
+    const morphHtml = kind === 'phrase'
+      ? '<p class="vocab-plain">片語，不拆解。</p>'
+      : (morph && morph.formula
+        ? `<p class="vocab-formula">${esc(morph.formula)}</p>`
+        : '<p class="vocab-plain">不拆解</p>');
+    const cognates = kind === 'word' ? vocabCognates(bank, item) : [];
+    const prefixes = kind === 'word' ? vocabPrefixMates(bank, item) : [];
+    const cogHtml = (list, title) => {
+      if (!list.length) return '';
+      const shown = list.slice(0, 24);
+      const more = list.length > shown.length ? `<a class="btn btn-soft btn-sm" href="#learn-en/roots/${encodeURIComponent((item.morph && item.morph.root) || '')}">看全部 ${list.length} 個</a>` : '';
+      return `<section class="card"><h3>${title}</h3><div class="vocab-chips">${shown.map((w) => `<a class="chip" href="#learn-en/vocab/w/${encodeURIComponent(w.id)}">${esc(w.w)}</a>`).join('')}</div>${more}</section>`;
+    };
+    const src = (item.src || []).slice().sort((a, b) => (b.y - a.y) || (a.n - b.n));
+    const srcHtml = src.length
+      ? `<div class="vocab-src">${src.map((s) => `<a href="#bank/q/${encodeURIComponent(s.id)}">${esc(String(s.y))} 年第 ${esc(String(s.n))} 題</a>`).join('')}</div>`
+      : '<p class="muted">沒有對上的題號。</p>';
+    app.innerHTML = `${enSeg('vocab')}
+      <section class="card vocab-card">
+        <div class="vocab-card-tools">
+          <label class="q-learned${learned ? ' on' : ''}" id="vocabLearned"><input type="checkbox" ${learned ? 'checked' : ''} aria-label="已學會"><span>已學會</span></label>
+          <button type="button" class="q-fav${fav ? ' on' : ''}" id="vocabFav" aria-pressed="${fav ? 'true' : 'false'}" aria-label="收藏">${fav ? '★' : '☆'}<span class="small">${fav ? '已收藏' : '收藏'}</span></button>
+        </div>
+        <button type="button" class="vocab-speak vocab-head" data-speak="${esc(item.w)}" aria-label="念 ${esc(item.w)}">${esc(item.w)}</button>
+        <p class="vocab-meta"><span class="tag">${esc(kind === 'phrase' ? '片語' : vocabPosLong(item.pos))}</span> ${esc(item.zh || '')} <span class="muted">出現 ${item.count || 0} 次</span></p>
+        ${sylHtml}
+        ${kind === 'word' && item.kk ? `<p class="vocab-kk"><span>KK</span> <b>${esc(item.kk)}</b></p>` : ''}
+        <div class="vocab-rates" role="group" aria-label="語速">
+          ${[['0.7', '0.7'], ['1', '1.0'], ['1.2', '1.2']].map(([v, n]) => `<button type="button" class="btn btn-soft btn-sm vocab-rate${String(vocabSpeakRate) === v ? ' on' : ''}" data-vrate="${v}">${n}</button>`).join('')}
+        </div>
+        <p class="muted small">點單字念整詞，點音節只念那一節。語速 0.7／1.0／1.2。</p>
+      </section>
+      <section class="card">
+        <h3>構詞</h3>
+        ${morphHtml}
+      </section>
+      ${cogHtml(cognates, '同源字')}
+      ${prefixes.length && (!item.morph || !item.morph.root) ? cogHtml(prefixes, '同字首') : ''}
+      <section class="card">
+        <h3>出處</h3>
+        <p class="muted small">點題號會打開那一題。</p>
+        ${srcHtml}
+        <div class="btn-row" style="margin-top:12px">
+          <a class="btn btn-soft" href="${kind === 'phrase' ? '#learn-en/vocab/phrases' : '#learn-en/vocab'}">回列表</a>
+          <a class="btn btn-soft" href="#learn-en/roots">字根字首表</a>
+        </div>
+      </section>`;
+    const bindSpeak = (sel, getText) => {
+      $$(sel, app).forEach((b) => {
+        b.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          vocabSpeak(getText(b), vocabSpeakRate);
+        });
+      });
+    };
+    bindSpeak('.vocab-head', (b) => b.getAttribute('data-speak'));
+    bindSpeak('.syl', (b) => b.getAttribute('data-speak'));
+    $$('.vocab-rate', app).forEach((b) => {
+      b.onclick = () => {
+        vocabSpeakRate = Number(b.dataset.vrate) || 1;
+        $$('.vocab-rate', app).forEach((x) => x.classList.toggle('on', x === b));
+        vocabSpeak(item.w, vocabSpeakRate);
+      };
+    });
+    const learnedInput = $('#vocabLearned input', app) || $('input', $('#vocabLearned'));
+    if (learnedInput) {
+      learnedInput.addEventListener('change', async () => {
+        const on = learnedInput.checked;
+        const label = $('#vocabLearned');
+        const prev = await commitLearned(item.id, vocabSnap(item, kind), on);
+        if (label) label.classList.toggle('on', on);
+        if (on) toast('已記成已學會');
+        else if (prev && typeof toastAction === 'function') {
+          toastAction('已從已學會移出', '復原', async () => {
+            await commitLearned(item.id, prev, true);
+            learnedInput.checked = true;
+            if (label) label.classList.add('on');
+            toast('已恢復已學會');
+          });
+        } else toast('已從已學會移出');
+      });
+    }
+    const favBtn = $('#vocabFav');
+    if (favBtn) {
+      favBtn.onclick = async () => {
+        settings.learnFavs = settings.learnFavs || {};
+        if (settings.learnFavs[item.id]) delete settings.learnFavs[item.id];
+        else settings.learnFavs[item.id] = vocabFavSnap(item, kind);
+        if (typeof saveSettings === 'function') await saveSettings('learnFavs');
+        const on = !!settings.learnFavs[item.id];
+        favBtn.classList.toggle('on', on);
+        favBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        favBtn.innerHTML = `${on ? '★' : '☆'}<span class="small">${on ? '已收藏' : '收藏'}</span>`;
+        toast(on ? '已加入我的最愛' : '已取消收藏');
+      };
+    }
+  }
+  async function viewVocabRoots(app, parts) {
+    const bank = await loadVocab();
+    const affixId = parts && parts[0];
+    $('#pageTitle').textContent = '字根字首表';
+    const affixes = bank.affixes || [];
+    if (affixId) {
+      const aff = affixes.find((a) => a.id === affixId);
+      if (!aff) {
+        app.innerHTML = `${enSeg('vocab')}<section class="card"><h2>找不到這個字根或字首</h2><a class="btn btn-primary" href="#learn-en/roots">回字根字首表</a></section>`;
+        return;
+      }
+      const by = vocabById(bank);
+      const words = (aff.words || []).map((id) => by.get(id)).filter(Boolean);
+      const kindName = { prefix: '字首', root: '字根', suffix: '字尾' }[aff.kind] || '';
+      app.innerHTML = `${enSeg('vocab')}${vocabSubnav('roots')}
+        <section class="card">
+          <p class="kicker">${esc(kindName)}</p>
+          <h2>${esc(aff.form || aff.id)}</h2>
+          <p>${esc(aff.zh || '')}</p>
+          <p class="muted small">單字庫裡有 ${words.length} 個字用到它。</p>
+          <a class="btn btn-soft" href="#learn-en/roots">回字根字首表</a>
+        </section>
+        <div class="vocab-list">${words.map((w) => `<a class="vocab-row" href="#learn-en/vocab/w/${encodeURIComponent(w.id)}">
+          <span class="vocab-w">${esc(w.w)}</span>
+          <span class="vocab-pos">${esc(vocabPos(w.pos))}</span>
+          <span class="vocab-zh">${esc(w.zh || '')}</span>
+          <span class="vocab-n">${w.count || 0}</span>
+        </a>`).join('') || '<p class="muted">沒有對上的單字。</p>'}</div>`;
+      return;
+    }
+    const order = [['prefix', '字首'], ['root', '字根'], ['suffix', '字尾']];
+    const blocks = order.map(([k, name]) => {
+      const list = affixes.filter((a) => a.kind === k);
+      if (!list.length) return '';
+      return `<section class="card"><h3>${name}</h3><div class="vocab-affix">${list.map((a) => `<a class="vocab-affix-item" href="#learn-en/roots/${encodeURIComponent(a.id)}">
+        <b>${esc(a.form || a.id)}</b><span>${esc(a.zh || '')}</span><em>${(a.words || []).length}</em>
+      </a>`).join('')}</div></section>`;
+    }).join('');
+    const head = typeof pageHead === 'function'
+      ? pageHead('英文', '字根字首表', '只列出單字庫裡真的有拆開的字首、字根、字尾。點一列看包含它的單字。')
+      : '<h2>字根字首表</h2>';
+    app.innerHTML = `${enSeg('vocab')}${head}${vocabSubnav('roots')}${blocks || '<section class="card"><p class="muted">目前沒有可拆的字根或字首。</p></section>'}`;
   }
 
   return {

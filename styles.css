@@ -1150,3 +1150,91 @@ a.learned-open:hover { color: var(--primary); }
 @media (prefers-color-scheme: dark) {
   .path-ch.is-done .path-num { color: #0f1a17; }
 }
+
+/* ---------- 英文單字庫 ---------- */
+.en-seg { margin-bottom: 12px; }
+.vocab-sub { margin-bottom: 12px; }
+.vocab-progress { margin-bottom: 12px; }
+.vocab-progress h3 { margin: 2px 0 6px; }
+.vocab-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.vocab-tools .grow { flex: 1; min-width: 180px; }
+.vocab-tools input { width: 100%; }
+.vocab-sort { display: flex; gap: 6px; }
+.vocab-sort .btn.on { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+.vocab-index {
+  position: sticky;
+  top: calc(58px + env(safe-area-inset-top));
+  z-index: 15;
+  display: flex; gap: 2px; overflow-x: auto;
+  margin: 0 0 10px; padding: 6px 2px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(10px);
+}
+.vocab-jump {
+  flex: none; min-width: 28px; height: 32px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--primary); font-weight: 800; cursor: pointer;
+}
+.vocab-jump.off { color: var(--muted); opacity: .35; cursor: default; }
+.vocab-letter { scroll-margin-top: 112px; }
+.vocab-letter h3 { margin: 14px 4px 6px; color: var(--primary); font-size: 1rem; }
+.vocab-list { display: flex; flex-direction: column; gap: 8px; }
+.vocab-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) auto minmax(0, 1.4fr) auto;
+  gap: 8px 10px; align-items: center;
+  padding: 12px 14px; border-radius: 16px;
+  background: var(--card); border: 1px solid var(--line);
+  text-decoration: none; color: inherit;
+  box-shadow: var(--shadow);
+}
+.vocab-row:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--line)); }
+.vocab-w { font-weight: 800; letter-spacing: .01em; }
+.vocab-pos {
+  font-size: .78rem; font-weight: 800; color: var(--primary);
+  background: var(--primary-soft); border-radius: 999px; padding: 2px 8px;
+}
+.vocab-zh { color: var(--text); }
+.vocab-n {
+  font-variant-numeric: tabular-nums; font-weight: 800; color: var(--muted);
+  min-width: 1.6em; text-align: right;
+}
+.vocab-card-tools { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.vocab-head {
+  display: block; width: 100%; margin: 8px 0 4px; padding: 4px 0;
+  border: 0; background: transparent; text-align: left;
+  font-size: 2rem; font-weight: 800; color: var(--primary); cursor: pointer;
+}
+.vocab-meta { margin: 0 0 10px; }
+.vocab-syl { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; margin: 8px 0; }
+.vocab-syl .syl {
+  border: 0; background: var(--primary-soft); color: var(--primary);
+  font: inherit; font-weight: 800; font-size: 1.25rem;
+  border-radius: 10px; padding: 4px 8px; cursor: pointer;
+}
+.vocab-syl .syl.is-stress { background: var(--primary); color: var(--on-primary); }
+.vocab-dot, .vocab-mark { color: var(--muted); font-weight: 800; padding: 0 1px; }
+.vocab-mark { color: var(--primary); }
+.vocab-kk { font-size: 1.15rem; margin: 6px 0; }
+.vocab-kk span { color: var(--muted); font-size: .85rem; margin-right: 6px; }
+.vocab-rates { display: flex; gap: 8px; margin: 8px 0; }
+.vocab-rates .on { background: var(--primary); color: var(--on-primary); border-color: transparent; }
+.vocab-formula { font-size: 1.05rem; line-height: 1.55; }
+.vocab-plain { color: var(--muted); }
+.vocab-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.vocab-src { display: flex; flex-wrap: wrap; gap: 8px; }
+.vocab-src a {
+  text-decoration: none; color: var(--primary); font-weight: 700;
+  background: var(--primary-soft); border-radius: 999px; padding: 6px 12px;
+}
+.vocab-affix { display: flex; flex-direction: column; gap: 8px; }
+.vocab-affix-item {
+  display: grid; grid-template-columns: 7.5em minmax(0, 1fr) auto; gap: 8px; align-items: center;
+  text-decoration: none; color: inherit;
+  padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft);
+}
+.vocab-affix-item b { color: var(--primary); }
+.vocab-affix-item em { font-style: normal; font-weight: 800; color: var(--muted); }
+@media (max-width: 520px) {
+  .vocab-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .vocab-zh { grid-column: 1 / -1; }
+}
