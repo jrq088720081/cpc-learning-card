@@ -372,7 +372,7 @@ const DB = {
 /* ---------- 設定：分頁、分類、間隔 ---------- */
 function normalizeLearned(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-  const allowed = new Set(['zh', 'en', 'ee', 'em', 'math', 'other']);
+  const allowed = new Set(['zh', 'en', 'ee', 'em', 'math', 'en-vocab', 'other']);
   const out = {};
   Object.entries(raw).forEach(([id, v]) => {
     if (!id || !v || typeof v !== 'object' || Array.isArray(v)) return;
@@ -381,10 +381,12 @@ function normalizeLearned(raw) {
       id: String(v.id || id),
       stem: String(v.stem || ''),
       subject,
-      subjectName: String(v.subjectName || ''),
+      subjectName: String(v.subjectName || (subject === 'en-vocab' ? '英文單字' : '')),
       year: v.year ? String(v.year) : '',
       type: String(v.type || ''),
-      at: Number(v.at) || 0
+      at: Number(v.at) || 0,
+      vocab: subject === 'en-vocab',
+      kind: v.kind === 'phrase' ? 'phrase' : (subject === 'en-vocab' ? 'word' : '')
     };
   });
   return out;
@@ -792,7 +794,7 @@ function wireZhSpeak(root) {
   root.querySelectorAll('[data-speak]').forEach((b) => {
     if (b._zhSpeakWired) return;
     // 英文單字／片語也帶 data-speak。若這裡也綁，點一下會先國文再英文，兩次 speak 把 Chrome 唸卡在同一個字。
-    if (b.classList.contains('en-word') || b.classList.contains('en-speak-item') || b.classList.contains('en-gloss') || b.hasAttribute('data-en-sentence')) return;
+    if (b.classList.contains('en-word') || b.classList.contains('en-speak-item') || b.classList.contains('en-gloss') || b.classList.contains('vocab-speak') || b.hasAttribute('data-en-sentence')) return;
     b._zhSpeakWired = true;
     b.addEventListener('click', (e) => {
       e.preventDefault();
@@ -835,6 +837,8 @@ function bottomTabFor(view) {
   return view;
 }
 function sideTabFor(view) {
+  const sub = (location.hash.replace(/^#/, '').split('/')[1] || '');
+  if (view === 'learn-en' && (sub === 'vocab' || sub === 'roots')) return 'en-vocab';
   if (view === 'learn-math') return 'learn-math';
   if (view === 'learn-mock') return 'learn-mock';
   if (view === 'learn-tips') return 'learn-tips';
@@ -1969,7 +1973,7 @@ async function buildBackupBlob() {
     lastCloudBackupDate: settings.driveBackup.lastCloudBackupDate || null
   } : null;
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone) } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone) } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2075,6 +2079,7 @@ async function importBackup(file, mode) {
       delete settings.driveBackup._scheduleMigrated;
     }
     if (s.learned && typeof s.learned === 'object' && !Array.isArray(s.learned)) settings.learned = normalizeLearned(s.learned);
+    if (s.learnFavs && typeof s.learnFavs === 'object' && !Array.isArray(s.learnFavs)) settings.learnFavs = s.learnFavs;
     settings.pathDone = normalizePathDone(s.pathDone);
   } else {
     const existing = new Map((await DB.all()).map((m) => [m.id, m]));
@@ -2096,10 +2101,18 @@ async function importBackup(file, mode) {
     }
     if (s.dailyGoal) settings.dailyGoal = Math.max(1, Math.min(50, Number(s.dailyGoal) || settings.dailyGoal || 10));
     if (s.learned && typeof s.learned === 'object' && !Array.isArray(s.learned)) settings.learned = mergeLearned(settings.learned, s.learned);
+    if (s.learnFavs && typeof s.learnFavs === 'object' && !Array.isArray(s.learnFavs)) {
+      settings.learnFavs = settings.learnFavs || {};
+      Object.entries(s.learnFavs).forEach(([id, v]) => {
+        if (!v || typeof v !== 'object') return;
+        const old = settings.learnFavs[id];
+        if (!old || (v.at || 0) >= (old.at || 0)) settings.learnFavs[id] = v;
+      });
+    }
     if (s.pathDone && typeof s.pathDone === 'object' && !Array.isArray(s.pathDone)) settings.pathDone = mergePathDone(settings.pathDone, s.pathDone);
     // 合併時保留這支手機自己的全域間隔設定
   }
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'dailyGoal', 'examSchedule', 'learned', 'pathDone');
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   toast(`還原完成，匯入 ${incoming.length} 題`);
   location.hash = '#home'; render();
@@ -2166,7 +2179,7 @@ async function viewSettings(app) {
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會與雲端設定）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛與雲端設定）。</p>
 
       <div class="settings-grid">
         <div class="stack">
