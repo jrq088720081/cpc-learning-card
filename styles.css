@@ -342,6 +342,25 @@ button.stat.stat-link:active { transform: scale(.97); }
 .schedule-row { align-items: end; flex-wrap: wrap; gap: 10px; }
 .schedule-row .field { margin: 0; }
 .field.grow { flex: 1; min-width: 120px; }
+.schedule-row .time-field { flex: 0 0 auto; width: 11.5rem; }
+.time24 {
+  display: flex; align-items: center; gap: 0;
+  width: 100%; min-height: 52px; padding: 4px 12px 4px 4px;
+  border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: var(--card);
+  color: var(--text);
+}
+.time24:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent); }
+.time24 select.time24-h,
+.time24 select.time24-m {
+  width: 2.35ch; flex: none; min-height: 42px; margin: 0; padding: 4px 0;
+  border: 0; border-radius: 8px; background: transparent; box-shadow: none;
+  text-align: center; text-align-last: center; font-weight: 700;
+  font-variant-numeric: tabular-nums; letter-spacing: 0; cursor: pointer;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+}
+.time24 select:focus { outline: none; border: 0; box-shadow: none; background: color-mix(in srgb, var(--primary-soft) 85%, transparent); }
+.time24-sep { font-weight: 800; line-height: 1; width: .45em; text-align: center; user-select: none; }
+.time24-icon { width: 20px; height: 20px; flex: none; margin-left: auto; color: var(--primary); }
 .inline { display: flex; gap: 10px; align-items: center; }
 .review-layout { display: grid; gap: 14px; }
 

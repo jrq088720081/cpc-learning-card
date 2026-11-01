@@ -1928,6 +1928,39 @@ async function importBackup(file, mode) {
 }
 
 /* ---------- 設定 ---------- */
+/** 24 小時制時間欄：時、分各自選擇，畫面只出現 00–23 與 00–59，不會有上午／下午。 */
+function time24Control(id, value) {
+  const text = DriveBackup.formatScheduleTime(value);
+  const [hs, ms] = text.split(':');
+  const opt = (n, cur) => {
+    const v = String(n).padStart(2, '0');
+    return `<option value="${v}"${v === cur ? ' selected' : ''}>${v}</option>`;
+  };
+  const hours = Array.from({ length: 24 }, (_, i) => opt(i, hs)).join('');
+  const mins = Array.from({ length: 60 }, (_, i) => opt(i, ms)).join('');
+  return `<div class="time24" data-time24="${id}" role="group" aria-labelledby="${id}Label">
+    <select class="time24-h" aria-label="小時（00 到 23，24 小時制）">${hours}</select>
+    <span class="time24-sep" aria-hidden="true">:</span>
+    <select class="time24-m" aria-label="分鐘（00 到 59）">${mins}</select>
+    <svg class="time24-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>
+    <input type="hidden" id="${id}" value="${text}">
+  </div>`;
+}
+function readTime24(id) {
+  const box = document.querySelector(`[data-time24="${id}"]`);
+  const hidden = document.getElementById(id);
+  if (!box) return DriveBackup.formatScheduleTime(hidden && hidden.value);
+  const text = DriveBackup.formatScheduleTime(`${box.querySelector('.time24-h').value}:${box.querySelector('.time24-m').value}`);
+  if (hidden) hidden.value = text;
+  return text;
+}
+function bindTime24(id) {
+  const box = document.querySelector(`[data-time24="${id}"]`);
+  if (!box) return;
+  const sync = () => readTime24(id);
+  box.querySelector('.time24-h').addEventListener('change', sync);
+  box.querySelector('.time24-m').addEventListener('change', sync);
+}
 async function viewSettings(app) {
   const all = await DB.all();
   const age = backupAgeDays();
@@ -2015,9 +2048,10 @@ async function viewSettings(app) {
                 <label class="field" id="schedWdWrap" ${db.scheduleKind === 'weekly' ? '' : 'hidden'}><span class="field-title">星期</span>
                   <select id="schedWeekday">${weekNames.map((n, i) => `<option value="${i}" ${(+db.scheduleWeekday === i) ? 'selected' : ''}>週${n}</option>`).join('')}</select>
                 </label>
-                <label class="field"><span class="field-title">本地時間</span>
-                  <input type="time" id="schedTime" value="${esc(db.scheduleTime || '21:00')}">
-                </label>
+                <div class="field time-field">
+                  <span class="field-title" id="schedTimeLabel">本地時間</span>
+                  ${time24Control('schedTime', db.scheduleTime || '21:00')}
+                </div>
               </div>
               <button type="button" class="btn btn-soft" id="btnSaveSched">儲存排程</button>
               <p class="hint" id="schedHint">${esc(DriveBackup.nextDueLabel(db))}</p>
@@ -2162,12 +2196,13 @@ async function viewSettings(app) {
     const wd = $('#schedWdWrap'); if (wd) wd.hidden = sk.value !== 'weekly';
     const days = $('#schedDaysWrap'); if (days) days.hidden = sk.value !== 'custom';
   };
+  bindTime24('schedTime');
   const bs = $('#btnSaveSched');
   if (bs) bs.onclick = async () => {
     settings.driveBackup.scheduleEnabled = $('#schedEnabled').checked;
     settings.driveBackup.scheduleKind = $('#schedKind').value;
     settings.driveBackup.scheduleEveryDays = DriveBackup.clampEveryDays($('#schedEveryDays') && $('#schedEveryDays').value);
-    settings.driveBackup.scheduleTime = $('#schedTime').value || '21:00';
+    settings.driveBackup.scheduleTime = readTime24('schedTime');
     settings.driveBackup.scheduleWeekday = +$('#schedWeekday').value;
     DriveBackup.normalizeSchedule(settings.driveBackup);
     delete settings.driveBackup._scheduleMigrated;
