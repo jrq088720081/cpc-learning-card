@@ -89,6 +89,16 @@ const LearnUI = (() => {
     _formulas = { formulas, byId, byQuestion, meta: raw.meta || {} };
     return _formulas;
   }
+  let _pathPlan;
+  async function loadPathChapters() {
+    if (_pathPlan) return _pathPlan;
+    if (window.__PATH_CHAPTERS__) _pathPlan = window.__PATH_CHAPTERS__;
+    else {
+      try { _pathPlan = await (await fetch('./data/path-chapters.json')).json(); }
+      catch { _pathPlan = { phases: [], chapters: [], rules: {}, mainOrder: [], rotations: {} }; }
+    }
+    return _pathPlan;
+  }
   const FORMULA_SUBJECT = { ee: '電工原理', em: '電工機械', math: '數學' };
   function formulaSubjectName(subject) {
     return FORMULA_SUBJECT[subject] || subject || '';
@@ -722,12 +732,12 @@ const LearnUI = (() => {
 
   async function runQuiz(app, {
     title, questions, mode = 'practice', subjectTab = 'ee', source = '刷題',
-    durationSec = null, onDone, annotateZh = false
+    durationSec = null, onDone, annotateZh = false, doneHref = '#learn', doneLabel = '回學習'
   }) {
     stopRunner();
     const qs = (questions || []).filter(Boolean);
     if (!qs.length) {
-      app.innerHTML = `<section class="card"><h2>沒有題目</h2><p class="muted">換個篩選條件試試。</p><a class="btn btn-primary" href="#learn">回學習</a></section>`;
+      app.innerHTML = `<section class="card"><h2>沒有題目</h2><p class="muted">換個篩選條件試試。</p><a class="btn btn-primary" href="${esc(doneHref)}">${esc(doneLabel)}</a></section>`;
       return;
     }
     const state = {
@@ -781,7 +791,7 @@ const LearnUI = (() => {
           <div class="btn-row" style="flex-wrap:wrap">
             <button type="button" class="btn btn-primary" id="btnReviewAll">逐題回顧</button>
             ${wrongs.length ? `<button type="button" class="btn btn-soft" id="btnAddAllWrong">全部加入錯題本（${wrongs.length}）</button>` : ''}
-            <a class="btn btn-soft" href="#learn">回學習</a>
+            <a class="btn btn-soft" href="${esc(doneHref)}">${esc(doneLabel)}</a>
           </div>
         </section>
         <div class="card soft-card" id="resultList">
@@ -2293,9 +2303,478 @@ const LearnUI = (() => {
     });
   }
 
+  /* ---------- 學習路徑：章節計畫 ---------- */
+  let _pathAssign;
+  let pathPhaseMemory = null;
+  let pathMediaBound = false;
+  function pathApplyPhaseOpen() {
+    const wide = !!(window.matchMedia && window.matchMedia('(min-width: 768px)').matches);
+    $$('details.path-phase').forEach((d) => {
+      d.open = wide || !!(pathPhaseMemory && pathPhaseMemory.has(d.dataset.phase));
+    });
+  }
+  function pathBindMedia() {
+    if (pathMediaBound || !window.matchMedia) return;
+    pathMediaBound = true;
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => pathApplyPhaseOpen();
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  }
+
+  function pathNorm(s) {
+    return String(s || '').normalize('NFKC').replace(/[\s\u3000]+/g, '').toLowerCase();
+  }
+  function pathRuleMatch(q, rule) {
+    if (rule.kinds && rule.kinds.length && rule.kinds.includes(q.kind)) return true;
+    if (rule.sections && rule.sections.length && q.section && rule.sections.includes(q.section)) return true;
+    if (rule.groups && rule.groups.length && q.group && rule.groups.includes(q.group)) return true;
+    if (rule.tags && rule.tags.length && (q.tags || []).some((t) => rule.tags.includes(t))) return true;
+    if (rule.keywords && rule.keywords.length) {
+      const text = pathNorm(q.text);
+      if (rule.keywords.some((k) => k && text.includes(pathNorm(k)))) return true;
+    }
+    return false;
+  }
+  function pathDoneMap() {
+    if (typeof settings === 'undefined' || !settings) return {};
+    if (!settings.pathDone || typeof settings.pathDone !== 'object' || Array.isArray(settings.pathDone)) settings.pathDone = {};
+    return settings.pathDone;
+  }
+  async function togglePathDone(id) {
+    const map = pathDoneMap();
+    const on = !(map[id] && map[id].on);
+    map[id] = { on, at: Date.now() };
+    if (typeof saveSettings === 'function') await saveSettings('pathDone');
+    if (typeof toast === 'function') toast(on ? '已標記完成' : '已取消完成');
+    return on;
+  }
+  function pathStats(id, questions) {
+    const learnedMap = (typeof settings !== 'undefined' && settings && settings.learned) || {};
+    const total = questions.length;
+    let learned = 0;
+    questions.forEach((q) => { if (q.id && learnedMap[q.id]) learned += 1; });
+    const manual = !!(pathDoneMap()[id] && pathDoneMap()[id].on);
+    const autoDone = total > 0 && learned >= total;
+    const done = manual || autoDone;
+    const pct = learnedPct(learned, total);
+    return { total, learned, manual, autoDone, done, pct, countable: total > 0 };
+  }
+  function pathSum(list) {
+    let learned = 0;
+    let total = 0;
+    (list || []).forEach((c) => {
+      if (!c.stats || !c.stats.countable) return;
+      total += c.stats.total;
+      learned += c.stats.learned;
+    });
+    return { learned, total, pct: learnedPct(learned, total) };
+  }
+  function pathDayIndex(len) {
+    if (!len) return 0;
+    const iso = (typeof today === 'function') ? String(today()) : '';
+    const parts = iso.split('-').map(Number);
+    let n = 0;
+    if (parts.length === 3 && parts.every((x) => !Number.isNaN(x))) {
+      n = Math.floor((Date.UTC(parts[0], parts[1] - 1, parts[2]) - Date.UTC(parts[0], 0, 1)) / 86400000);
+    }
+    return ((n % len) + len) % len;
+  }
+  function pathQuizQuestion(q) {
+    const raw = q.raw || {};
+    const out = {
+      id: q.id,
+      stem: raw.stem || raw.sentence || q.text || '',
+      choices: raw.choices || [],
+      answer: raw.answer || '',
+      explain: raw.explain || '',
+      hasFigure: !!raw.hasFigure,
+      figurePath: raw.figurePath || '',
+      label: q.label || '',
+      answerConfidence: raw.answerConfidence,
+      source: raw.source || '',
+      sourceNote: raw.sourceNote || ''
+    };
+    if (q.subject === 'en') {
+      out.lang = 'en';
+      out.translation = raw.translation || '';
+      out.phrases = raw.phrases || [];
+      out.words = raw.words || [];
+    } else if (q.subject === 'zh') {
+      out.lang = 'zh';
+    }
+    return out;
+  }
+  async function pathAssign() {
+    if (_pathAssign) return _pathAssign;
+    const plan = await loadPathChapters();
+    const bank = await loadBank();
+    const zh = await loadZhQuiz();
+    const en = await loadEnQuiz();
+    const math = await loadMath();
+    const buckets = {};
+    (plan.chapters || []).forEach((ch) => { buckets[ch.id] = []; });
+    const ee = [];
+    const em = [];
+    (bank.questions || []).forEach((q) => {
+      const row = {
+        id: q.id,
+        subject: q.track === 'em' ? 'em' : 'ee',
+        text: q.stem || '',
+        tags: q.tags || [],
+        kind: q.kind || '',
+        section: '',
+        group: '',
+        year: Number(q.year) || 0,
+        qnum: Number(q.qnum) || 0,
+        label: `${q.year || ''} #${q.qnum || ''}`,
+        raw: q
+      };
+      (row.subject === 'em' ? em : ee).push(row);
+    });
+    const zhRows = [];
+    const pushZh = (q) => zhRows.push({
+      id: q.id, subject: 'zh', text: q.stem || '', tags: q.tags || [], kind: q.kind || '',
+      section: q.section || '', group: '', year: Number(q.year) || 0, qnum: Number(q.qnum) || 0,
+      label: q.label || (q.year ? String(q.year) : '國文'), raw: q
+    });
+    allExamQuestions(zh).forEach(pushZh);
+    (zh.fromKnowledge || []).forEach(pushZh);
+    const enRows = [];
+    allExamQuestions(en).forEach((q) => enRows.push({
+      id: q.id, subject: 'en', text: q.stem || '', tags: q.tags || [], kind: '',
+      section: q.section || '', group: 'exam', year: Number(q.year) || 0, qnum: Number(q.qnum) || 0,
+      label: '英文', raw: q
+    }));
+    (en.recall || []).forEach((q) => enRows.push({
+      id: q.id, subject: 'en', text: q.sentence || q.stem || '', tags: [], kind: '',
+      section: '', group: 'recall', year: 0, qnum: 0, label: '單字片語', raw: q
+    }));
+    const put = (subject, rows, otherId) => {
+      const rules = (plan.rules && plan.rules[subject]) || [];
+      rows.forEach((q) => {
+        let id = otherId;
+        for (let i = 0; i < rules.length; i++) {
+          if (pathRuleMatch(q, rules[i])) { id = rules[i].chapterId; break; }
+        }
+        if (!buckets[id]) buckets[id] = [];
+        buckets[id].push(q);
+      });
+    };
+    put('ee', ee, 'ee-other');
+    put('em', em, 'em-other');
+    put('zh', zhRows, 'zh-other');
+    put('en', enRows, 'en-other');
+    Object.keys(buckets).forEach((id) => {
+      buckets[id].sort((a, b) => (a.year || 0) - (b.year || 0) || (a.qnum || 0) - (b.qnum || 0) || String(a.id).localeCompare(String(b.id)));
+    });
+    const unitById = {};
+    (math.units || []).forEach((u) => { unitById[u.id] = u; });
+    const unitsFor = {};
+    (plan.chapters || []).forEach((ch) => {
+      if (ch.subject !== 'math') return;
+      const ids = ch.unitIds || [];
+      unitsFor[ch.id] = ids.map((uid) => {
+        const u = unitById[uid];
+        return u ? { id: u.id, name: u.name } : null;
+      }).filter(Boolean);
+      const idSet = new Set(ids);
+      const rows = [];
+      (math.units || []).forEach((u) => {
+        if (!idSet.has(u.id)) return;
+        (u.practice || []).forEach((p, i) => {
+          rows.push({
+            id: `math-${u.id}-${i}`,
+            subject: 'math',
+            text: p.stem || '',
+            unitId: u.id,
+            unitName: u.name,
+            label: u.name,
+            year: 0,
+            qnum: i,
+            raw: p
+          });
+        });
+      });
+      buckets[ch.id] = rows;
+    });
+    _pathAssign = { plan, buckets, unitsFor };
+    return _pathAssign;
+  }
+  async function pathModel() {
+    const { plan, buckets, unitsFor } = await pathAssign();
+    const chapters = (plan.chapters || []).map((ch) => {
+      const questions = buckets[ch.id] || [];
+      return Object.assign({}, ch, {
+        questions,
+        units: unitsFor[ch.id] || [],
+        stats: ch.role === 'link' ? { total: 0, learned: 0, manual: false, done: false, pct: { text: '0', width: 0 }, countable: false } : pathStats(ch.id, questions)
+      });
+    });
+    const byId = {};
+    chapters.forEach((c) => { byId[c.id] = c; });
+    const main = (plan.mainOrder || []).map((id) => byId[id]).filter(Boolean);
+    const next = main.find((c) => c.stats.countable && !c.stats.done) || null;
+    const zhRot = (plan.rotations && plan.rotations.zh) || [];
+    const enRot = (plan.rotations && plan.rotations.en) || [];
+    return {
+      plan, chapters, byId, main, next,
+      todayZh: zhRot[pathDayIndex(zhRot.length)] || '',
+      todayEn: enRot[pathDayIndex(enRot.length)] || ''
+    };
+  }
+  function pathPhaseOf(model, id) {
+    return ((model.plan && model.plan.phases) || []).find((p) => p.id === id) || null;
+  }
+  function pathCircle(ch) {
+    if (ch.stats && ch.stats.done) return '✓';
+    if (ch.role === 'parallel' || ch.role === 'other' || !ch.order || ch.order >= 90) return '＋';
+    return String(ch.order);
+  }
+  function pathTitle(ch) {
+    if (ch.role !== 'other') return ch.name;
+    const map = { ee: '電工原理', em: '電工機械', zh: '國文', en: '英文' };
+    return map[ch.subject] ? `${map[ch.subject]}・其他` : ch.name;
+  }
+  function pathChapterRow(ch, opts) {
+    opts = opts || {};
+    if (ch.role === 'link') return pathLinkRow(ch);
+    const s = ch.stats;
+    const href = `#path/go/${encodeURIComponent(ch.id)}`;
+    const today = opts.today ? '<span class="tag tag-ok">今天</span>' : '';
+    const manual = s.manual ? '<span class="tag">已標記完成</span>' : '';
+    const countLine = s.total ? `已學會 ${s.learned} / ${s.total} 題` : '題目補充中';
+    const unitLine = (ch.units && ch.units.length)
+      ? `<span class="path-ch-sub">教材：${ch.units.map((u) => esc(u.name)).join('、')}</span>`
+      : '';
+    const extra = (ch.role === 'other' && ch.blurb) ? `<span class="path-ch-sub">${esc(ch.blurb)}</span>` : '';
+    const pctNow = Math.round(s.pct.width || 0);
+    return `<article class="path-ch${s.done ? ' is-done' : ''}${opts.today ? ' is-today' : ''}">
+      <a class="path-ch-hit" href="${href}">
+        <span class="path-num" aria-hidden="true">${pathCircle(ch)}</span>
+        <span class="path-ch-body">
+          <span class="path-ch-title">${esc(pathTitle(ch))} ${today}${manual}</span>
+          <span class="path-ch-sub">${countLine}</span>
+          ${unitLine}
+          ${extra}
+          <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pctNow}" aria-label="${esc(pathTitle(ch))} ${esc(s.pct.text)}%"><i class="${s.autoDone ? 'ok' : ''}" style="--w:${s.pct.width}%"></i></span>
+        </span>
+        <span class="path-ch-pct">${esc(s.pct.text)}%</span>
+      </a>
+      <button type="button" class="btn btn-soft path-done-btn" data-path-done="${esc(ch.id)}">${s.manual ? '取消完成' : '標記完成'}</button>
+    </article>`;
+  }
+  function pathLinkRow(ch) {
+    const links = (ch.links && ch.links.length) ? ch.links : [{ href: ch.href || '#path', label: '前往' }];
+    return `<article class="path-ch path-link">
+      <div class="path-ch-body">
+        <span class="path-ch-title"><span class="path-num" aria-hidden="true">${esc(String(ch.order || ''))}</span>${esc(ch.name)}</span>
+        <span class="path-ch-sub">${esc(ch.blurb || '')}</span>
+        <div class="path-link-actions">${links.map((l) => `<a class="btn btn-primary" href="${esc(l.href)}">${esc(l.label || '前往')}</a>`).join('')}</div>
+      </div>
+    </article>`;
+  }
+  function pathPairHtml(ch, chapters) {
+    const withs = chapters.filter((c) => c.role === 'parallel' && (c.pairWith || []).includes(ch.id));
+    const afters = chapters.filter((c) => c.role === 'parallel' && c.pairAfter === ch.id);
+    if (!withs.length && !afters.length) return '';
+    return `<div class="path-pair">
+      ${withs.length ? `<p class="path-pair-kicker">可同時學</p>${withs.map((c) => pathChapterRow(c)).join('')}` : ''}
+      ${afters.length ? `<p class="path-pair-kicker">本章之後</p>${afters.map((c) => pathChapterRow(c)).join('')}` : ''}
+    </div>`;
+  }
+  function pathWire(app) {
+    $$('[data-path-done]', app).forEach((btn) => {
+      btn.onclick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const y = window.scrollY;
+        try {
+          await togglePathDone(btn.getAttribute('data-path-done'));
+          if (typeof render === 'function') await render();
+          window.scrollTo(0, y);
+        } catch (err) {
+          console.error(err);
+          if (typeof toast === 'function') toast('沒有存成：' + (err && err.message ? err.message : '請再試一次'));
+        }
+      };
+    });
+    $$('details.path-phase > summary', app).forEach((s) => {
+      s.addEventListener('click', () => {
+        if (window.matchMedia && window.matchMedia('(min-width: 768px)').matches) return;
+        const d = s.parentElement;
+        const id = d && d.dataset.phase;
+        if (!id || !pathPhaseMemory) return;
+        const willOpen = !d.open;
+        if (willOpen) pathPhaseMemory.add(id);
+        else pathPhaseMemory.delete(id);
+      });
+    });
+    const start = $('#pathStart', app);
+    if (start) start.onclick = () => { location.hash = start.getAttribute('data-href'); };
+  }
+  function pathBar(pct, label) {
+    const now = Math.round((pct && pct.width) || 0);
+    return `<div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${now}" aria-label="${esc(label || '')}"><i class="ok" style="--w:${(pct && pct.width) || 0}%"></i></div>`;
+  }
+  async function viewPathHome(app, model) {
+    const phases = (model.plan.phases || []);
+    if (!pathPhaseMemory) pathPhaseMemory = new Set(['lang']);
+    if (model.next) pathPhaseMemory.add(model.next.phase);
+    else pathPhaseMemory.add('sprint');
+    let dueN = 0;
+    try {
+      const t = today();
+      dueN = (await DB.all()).filter((m) => isDue(m, t)).length;
+    } catch (_) { dueN = 0; }
+    const next = model.next;
+    const nextPhase = next ? pathPhaseOf(model, next.phase) : pathPhaseOf(model, 'sprint');
+    const stageList = next
+      ? model.chapters.filter((c) => c.phase === next.phase && c.role === 'main')
+      : [];
+    const stageSum = pathSum(stageList);
+    const stageTitle = nextPhase ? `${nextPhase.label}　${nextPhase.name}` : '學習路徑';
+    const stageBody = next
+      ? `主線已學會 ${stageSum.learned} / ${stageSum.total} 題。下一個還沒完成的章節在下面。`
+      : '主線章節都完成了。接著用錯題、歷屆計時和模擬考收斂。';
+    const pairs = next ? {
+      withs: model.chapters.filter((c) => c.role === 'parallel' && (c.pairWith || []).includes(next.id)),
+      afters: model.chapters.filter((c) => c.role === 'parallel' && c.pairAfter === next.id)
+    } : { withs: [], afters: [] };
+    const sprintFirst = model.byId['sprint-review'];
+    const nextTitle = next ? next.name : (sprintFirst ? sprintFirst.name : '總複習衝刺');
+    const nextHref = next ? `#path/go/${encodeURIComponent(next.id)}` : (sprintFirst && sprintFirst.href) || '#review';
+    const nextMeta = next
+      ? (next.stats.total ? `已學會 ${next.stats.learned} / ${next.stats.total} 題` : '題目補充中')
+      : '主線已經走完，從錯題本重練開始。';
+    const nextPct = next ? next.stats.pct : { text: '完成', width: 100 };
+    const head = typeof pageHead === 'function'
+      ? pageHead('學習計畫', '學習路徑', '按章節順序往下練。百分比是這一章已勾「已學會」的題數，除以對上的題。滿百分，或按「標記完成」，這一章就打勾。', '<a class="btn btn-primary" href="#home">查看今日學習</a>')
+      : '<h2>學習路徑</h2>';
+    const phaseHtml = phases.map((phase) => {
+      const open = pathPhaseMemory.has(phase.id);
+      const inPhase = model.chapters.filter((c) => c.phase === phase.id);
+      const counted = inPhase.filter((c) => c.role !== 'link');
+      const summed = pathSum(phase.id === 'ee' ? counted.filter((c) => c.subject === 'ee') : counted);
+      const sideSum = phase.id === 'ee' ? pathSum(counted.filter((c) => c.subject === 'em')) : null;
+      let body = '';
+      if (phase.id === 'math') {
+        body = inPhase.filter((c) => c.role === 'main').sort((a, b) => a.order - b.order).map((c) => pathChapterRow(c)).join('');
+      } else if (phase.id === 'ee') {
+        const lines = inPhase.filter((c) => c.role === 'main').sort((a, b) => a.order - b.order).map((c) => {
+          const side = pathPairHtml(c, model.chapters);
+          return `<div class="path-line${side ? ' has-side' : ''}"><div class="path-line-main">${pathChapterRow(c)}</div>${side ? `<div class="path-line-side">${side}</div>` : ''}</div>`;
+        }).join('');
+        const others = inPhase.filter((c) => c.role === 'other').map((c) => pathChapterRow(c)).join('');
+        body = `${lines}${others ? `<h3 class="path-other-title">尚未對上的題</h3>${others}` : ''}`;
+      } else if (phase.id === 'lang') {
+        const zhName = (model.byId[model.todayZh] || {}).name || '';
+        const enName = (model.byId[model.todayEn] || {}).name || '';
+        const group = (subject, todayId, title) => {
+          const rows = inPhase.filter((c) => c.subject === subject).sort((a, b) => a.order - b.order);
+          return `<h3 class="path-group-title">${title}</h3>${rows.map((c) => pathChapterRow(c, { today: c.id === todayId })).join('')}`;
+        };
+        body = `<div class="path-today"><p class="kicker">今天的副線</p><p>國文：${esc(zhName)}　英文：${esc(enName)}</p><p class="muted small">每天換一個題型，兩邊的已學會各自累計。</p></div>${group('zh', model.todayZh, '國文')}${group('en', model.todayEn, '英文')}`;
+      } else {
+        body = inPhase.filter((c) => c.role === 'link').sort((a, b) => a.order - b.order).map((c) => pathLinkRow(c)).join('');
+      }
+      const pctLabel = phase.id === 'sprint' ? '' : `<span class="path-phase-pct">${esc(summed.pct.text)}%</span>`;
+      const sumLine = phase.id === 'sprint'
+        ? ''
+        : `<p class="muted small">${phase.id === 'ee' ? '主線' : ''}已學會 ${summed.learned} / ${summed.total} 題</p>${pathBar(summed.pct, phase.name)}${sideSum ? `<p class="muted small">可同時學已學會 ${sideSum.learned} / ${sideSum.total} 題</p>${pathBar(sideSum.pct, '可同時學')}` : ''}`;
+      return `<details class="path-phase" data-phase="${esc(phase.id)}"${open ? ' open' : ''}>
+        <summary>
+          <span class="path-phase-name"><span class="kicker">${esc(phase.label)}</span><strong>${esc(phase.name)}</strong></span>
+          ${pctLabel}
+          <span class="path-phase-chev" aria-hidden="true">▾</span>
+        </summary>
+        <div class="path-phase-body">
+          <p class="muted small">${esc(phase.blurb || '')}</p>
+          ${sumLine}
+          ${body}
+        </div>
+      </details>`;
+    }).join('');
+    let weak = '';
+    try { weak = await weaknessHtml(); } catch (_) { weak = ''; }
+    app.innerHTML = `
+      ${head}
+      <div class="path-grid">
+        <section class="card path-stage">
+          <p class="kicker">目前階段</p>
+          <h3>${esc(stageTitle)}</h3>
+          <p class="muted">${esc(stageBody)}</p>
+          ${next ? pathBar(stageSum.pct, stageTitle) : ''}
+          ${dueN ? `<p class="path-due"><a href="#review">錯題本今天有 ${dueN} 題要複習</a></p>` : ''}
+        </section>
+        <section class="card path-next">
+          <p class="kicker">下一個節點</p>
+          <h3>${esc(nextTitle)}</h3>
+          <p class="muted">${esc(nextMeta)}</p>
+          ${next ? pathBar(nextPct, nextTitle) : ''}
+          <a class="btn btn-primary" href="${esc(nextHref)}">前往</a>
+          ${next && next.nextNote ? `<p class="path-next-note">${esc(next.nextNote)}</p>` : ''}
+          ${pairs.withs.length ? `<div class="path-pair"><p class="path-pair-kicker">可同時學</p>${pairs.withs.map((c) => pathChapterRow(c)).join('')}</div>` : ''}
+          ${pairs.afters.length ? `<div class="path-pair"><p class="path-pair-kicker">本章之後</p>${pairs.afters.map((c) => pathChapterRow(c)).join('')}</div>` : ''}
+        </section>
+      </div>
+      ${phaseHtml}
+      ${weak ? `<section class="card path-weak"><h3>弱點看板</h3><p class="muted small">錯因和練習正確率，補強時先看這裡。模擬考在第四階段。</p>${weak}</section>` : ''}`;
+    pathWire(app);
+    pathBindMedia();
+    pathApplyPhaseOpen();
+  }
+  async function viewPathChapter(app, model, id, run) {
+    const ch = model.byId[id];
+    if (!ch || ch.role === 'link') {
+      $('#pageTitle').textContent = '學習路徑';
+      app.innerHTML = `<section class="card"><h2>找不到這一章</h2><p class="muted">回到學習路徑再選一次。</p><a class="btn btn-primary" href="#path">回學習路徑</a></section>`;
+      return;
+    }
+    const title = pathTitle(ch);
+    $('#pageTitle').textContent = title;
+    const phase = pathPhaseOf(model, ch.phase);
+    const s = ch.stats;
+    if (run && s.total) {
+      return runQuiz(app, {
+        title,
+        questions: ch.questions.map(pathQuizQuestion),
+        mode: 'practice',
+        subjectTab: ch.subject,
+        source: '學習路徑・' + ch.name,
+        doneHref: '#path',
+        doneLabel: '回學習路徑'
+      });
+    }
+    const unitLinks = (ch.units || []).map((u) => `<a class="btn btn-soft" href="#learn-math/${esc(u.id)}">看教材：${esc(u.name)}</a>`).join('');
+    const empty = !s.total;
+    app.innerHTML = `
+      <section class="card">
+        <p class="kicker">${phase ? esc(phase.label + '　' + phase.name) : ''}</p>
+        <h2>${esc(title)}</h2>
+        ${empty ? '<p class="path-empty">題目補充中</p><p class="muted">這一章還沒有對上的題目，先練別章，或先標記完成。</p>' : `<p>已學會 ${s.learned} / ${s.total} 題（${esc(s.pct.text)}%）</p>${pathBar(s.pct, ch.name)}`}
+        ${s.manual ? '<p><span class="tag">已標記完成</span></p>' : ''}
+        ${s.done && !s.manual ? '<p><span class="tag tag-ok">這一章已學會</span></p>' : ''}
+        <div class="path-chapter-actions">
+          ${empty ? '' : `<button type="button" class="btn btn-primary" id="pathStart" data-href="#path/go/${encodeURIComponent(ch.id)}/run">開始練習（${s.total} 題）</button>`}
+          <button type="button" class="btn btn-soft" data-path-done="${esc(ch.id)}">${s.manual ? '取消完成' : '標記完成'}</button>
+          ${unitLinks}
+          <a class="btn btn-soft" href="#path">回學習路徑</a>
+        </div>
+      </section>`;
+    pathWire(app);
+  }
+  async function viewPath(app, parts) {
+    const model = await pathModel();
+    parts = parts || [];
+    if (parts[0] === 'go' && parts[1]) return viewPathChapter(app, model, parts[1], parts[2] === 'run');
+    $('#pageTitle').textContent = '學習路徑';
+    return viewPathHome(app, model);
+  }
+
   return {
     viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips, viewFavs,
-    viewBank, viewFormulas, viewLearned, viewSubjects,
+    viewBank, viewFormulas, viewLearned, viewSubjects, viewPath,
     todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank,
     bankSummary, countSeen, practicedToday, pathSnapshot
   };
