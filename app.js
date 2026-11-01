@@ -370,6 +370,33 @@ const DB = {
 };
 
 /* ---------- 設定：分頁、分類、間隔 ---------- */
+function normalizeLearned(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const allowed = new Set(['zh', 'en', 'ee', 'em', 'math', 'other']);
+  const out = {};
+  Object.entries(raw).forEach(([id, v]) => {
+    if (!id || !v || typeof v !== 'object' || Array.isArray(v)) return;
+    const subject = allowed.has(v.subject) ? v.subject : 'other';
+    out[id] = {
+      id: String(v.id || id),
+      stem: String(v.stem || ''),
+      subject,
+      subjectName: String(v.subjectName || ''),
+      year: v.year ? String(v.year) : '',
+      type: String(v.type || ''),
+      at: Number(v.at) || 0
+    };
+  });
+  return out;
+}
+function mergeLearned(base, incoming) {
+  const out = Object.assign({}, normalizeLearned(base));
+  Object.entries(normalizeLearned(incoming)).forEach(([id, v]) => {
+    const old = out[id];
+    if (!old || (v.at || 0) >= (old.at || 0)) out[id] = v;
+  });
+  return out;
+}
 let settings = null;
 let currentTab = ''; // '' = 全部
 async function loadSettings() {
@@ -383,6 +410,7 @@ async function loadSettings() {
     driveBackup: Object.assign(DriveBackup.DEFAULT_DRIVE(), await DB.meta('driveBackup', null) || {}),
     learnLinks: mergeLearnLinks(await DB.meta('learnLinks', null)),
     learnFavs: await DB.meta('learnFavs', {}) || {},
+    learned: normalizeLearned(await DB.meta('learned', {})),
     dailyGoal: Math.max(1, Math.min(50, Number(await DB.meta('dailyGoal', 10)) || 10)),
     examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null)),
     enTtsRate: await DB.meta('enTtsRate', 'normal') || 'normal'
@@ -578,7 +606,7 @@ async function renderTabstrip(show) {
 }
 
 /* ---------- 路由 ---------- */
-const TITLES = { learn: '學習', home: '今日學習', bank: '題庫', path: '學習路徑', notebook: '錯題與公式', formulas: '公式庫', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
+const TITLES = { learn: '學習', home: '今日學習', bank: '題庫', path: '學習路徑', subjects: '學習科目', learned: '已學會', notebook: '錯題與公式', formulas: '公式庫', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
 function pageHead(kicker, title, sub, actionHtml) {
   return `<header class="desk-head"><div class="desk-head-text">${kicker ? `<p class="kicker">${kicker}</p>` : ''}<h2 class="desk-title">${title}</h2>${sub ? `<p class="desk-sub muted">${sub}</p>` : ''}</div>${actionHtml ? `<div class="desk-head-action">${actionHtml}</div>` : ''}</header>`;
 }
@@ -588,7 +616,8 @@ function bottomTabFor(view) {
   if (view === 'edit' || view === 'detail' || view === 'practice' || view === 'notebook') return 'list';
   if (view === 'learn-tips') return 'learn-tips';
   if (view === 'favs' || view === 'learn-favs') return 'favs';
-  if (view === 'path') return 'home';
+  if (view === 'learned') return 'learned';
+  if (view === 'subjects' || view === 'path') return 'home';
   if (view === 'bank' || view === 'formulas' || view === 'learn-mock' || view.startsWith('learn')) return 'learn';
   return view;
 }
@@ -597,6 +626,8 @@ function sideTabFor(view) {
   if (view === 'learn-mock') return 'learn-mock';
   if (view === 'learn-tips') return 'learn-tips';
   if (view === 'favs' || view === 'learn-favs') return 'favs';
+  if (view === 'learned') return 'learned';
+  if (view === 'subjects') return 'subjects';
   if (view === 'add-done') return 'add';
   if (view === 'session') return 'review';
   if (view === 'edit' || view === 'detail' || view === 'practice') return 'list';
@@ -630,7 +661,7 @@ async function render() {
   const inBankQuiz = view === 'bank' && parts[1] === 'q';
   const inFormulaDetail = view === 'formulas' && !!parts[1];
   const inMockRun = view === 'learn-mock' && parts[1] === 'run';
-  const hero = !inBankQuiz && !inMockRun && !inFormulaDetail && ['home', 'bank', 'path', 'notebook', 'formulas', 'learn-mock'].includes(view);
+  const hero = !inBankQuiz && !inMockRun && !inFormulaDetail && ['home', 'bank', 'path', 'subjects', 'learned', 'notebook', 'formulas', 'learn-mock'].includes(view);
   document.body.classList.toggle('has-page-hero', hero);
   $('#backBtn').hidden = !(inBankQuiz || inFormulaDetail || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
   const app = $('#app');
@@ -639,6 +670,8 @@ async function render() {
   try {
     switch (view) {
       case 'bank': await LearnUI.viewBank(app, parts.slice(1)); break;
+      case 'subjects': await LearnUI.viewSubjects(app); break;
+      case 'learned': await LearnUI.viewLearned(app, parts.slice(1)); break;
       case 'path': await viewPath(app); break;
       case 'notebook': await viewNotebook(app); break;
       case 'formulas': await LearnUI.viewFormulas(app, parts.slice(1)); break;
@@ -980,7 +1013,7 @@ async function viewHome(app) {
     ${regAlertHtml}
     ${pageHead('完成進度', '今日學習', '依每日目標練習國文、英文、電工原理與電工機械。題庫裡做過的題會記成首次完成。')}
     <nav class="today-jumps" aria-label="相關頁面">
-      <a href="#bank">題庫</a><a href="#path">學習路徑</a><a href="#notebook">錯題</a><a href="#formulas">公式庫</a><a href="#learn-mock">模擬考</a>
+      <a href="#bank">題庫</a><a href="#subjects">學習科目</a><a href="#learned">已學會</a><a href="#path">學習路徑</a><a href="#notebook">錯題</a><a href="#formulas">公式庫</a><a href="#learn-mock">模擬考</a>
     </nav>
     ${backupHtml}
     <section class="card progress-hero">
@@ -1060,6 +1093,7 @@ async function viewPath(app) {
   else steps.push({ href: '#learn-math', text: '數學基礎' });
   steps.push({ href: '#learn-tips', text: '備考技巧' });
   steps.push({ href: '#learn-mock', text: '計時模擬考' });
+  steps.push({ href: '#subjects', text: '看各科已學會進度' });
   app.innerHTML = `
     ${pageHead('學習工作區', '學習路徑', '用錯題待複習、練習正確率、數學單元順序和備考技巧，排出現在該做的下一步。', '<a class="btn btn-primary" href="#home">查看今日學習</a>')}
     <div class="path-grid">
@@ -1795,7 +1829,7 @@ async function buildBackupBlob() {
     lastCloudBackupDate: settings.driveBackup.lastCloudBackupDate || null
   } : null;
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE() } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {} } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -1900,6 +1934,7 @@ async function importBackup(file, mode) {
       DriveBackup.normalizeSchedule(settings.driveBackup);
       delete settings.driveBackup._scheduleMigrated;
     }
+    if (s.learned && typeof s.learned === 'object' && !Array.isArray(s.learned)) settings.learned = normalizeLearned(s.learned);
   } else {
     const existing = new Map((await DB.all()).map((m) => [m.id, m]));
     await DB.putMany(incoming.filter((m) => { const old = existing.get(m.id); return !old || (m.updatedAt || 0) > (old.updatedAt || 0); }));
@@ -1919,9 +1954,10 @@ async function importBackup(file, mode) {
       settings.examSchedule = normalizeExamSchedule(Object.assign({}, settings.examSchedule, s.examSchedule));
     }
     if (s.dailyGoal) settings.dailyGoal = Math.max(1, Math.min(50, Number(s.dailyGoal) || settings.dailyGoal || 10));
+    if (s.learned && typeof s.learned === 'object' && !Array.isArray(s.learned)) settings.learned = mergeLearned(settings.learned, s.learned);
     // 合併時保留這支手機自己的全域間隔設定
   }
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'dailyGoal', 'examSchedule');
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'dailyGoal', 'examSchedule', 'learned');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   toast(`還原完成，匯入 ${incoming.length} 題`);
   location.hash = '#home'; render();
@@ -1988,7 +2024,7 @@ async function viewSettings(app) {
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔與雲端設定）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會與雲端設定）。</p>
 
       <div class="settings-grid">
         <div class="stack">

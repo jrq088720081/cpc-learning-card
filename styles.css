@@ -263,7 +263,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 /* 底部導覽 */
 .tabbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-  display: grid; grid-template-columns: repeat(8, 1fr);
+  display: grid; grid-template-columns: repeat(9, 1fr);
   background: color-mix(in srgb, var(--card) 92%, transparent);
   backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
   border-top: 1px solid var(--line);
@@ -450,7 +450,8 @@ button.stat.stat-link:active { transform: scale(.97); }
   .learn-subjects { grid-template-columns: 1fr 1fr; gap: 14px; }
 }
 
-/* 八項底欄：略縮小標籤以免擠爆（手機與電腦相同底欄） */
+/* 九項底欄：略縮小標籤以免擠爆（手機與電腦相同底欄） */
+.tabbar a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabbar a { font-size: .62rem; gap: 2px; min-width: 0; }
 .tabbar a .ico { width: 22px; height: 22px; }
 .tabbar .fab { width: 46px; height: 46px; margin-top: -18px; border-radius: 15px; }
@@ -954,4 +955,59 @@ a.formula-q:hover { color: var(--primary); }
   }
   .exam-strip-main { font-size: 1.48rem; }
   .exam-strip-jobs { justify-self: start; margin-top: 8px; }
+  .bank-q-side { width: 100%; align-self: stretch; }
 }
+
+/* ---------- 已學會／學習科目進度 ---------- */
+.q-learned {
+  min-height: 44px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: .92rem;
+  cursor: pointer;
+  user-select: none;
+}
+.q-learned input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--primary);
+}
+.q-learned.on {
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--line));
+}
+.q-explain .q-tools { justify-content: flex-start; }
+.bank-q-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+  align-self: center;
+  min-width: 132px;
+}
+.bank-q-side .q-learned,
+.bank-q-side .bank-start { width: 100%; }
+.bank-q.is-learned { border-left: 3px solid var(--primary); }
+a.learned-open { display: block; text-decoration: none; color: inherit; }
+a.learned-open:hover { color: var(--primary); }
+.learned-group { margin: 18px 4px 8px; font-size: 1.05rem; }
+.subject-progress { border-top: 3px solid var(--primary); }
+.subject-progress.tone-em { border-top-color: var(--primary-2); }
+.subject-progress.tone-en { border-top-color: var(--accent); }
+.subject-progress.tone-zh { border-top-color: var(--ok); }
+.subject-progress.tone-math { border-top-color: var(--accent); }
+.subject-progress h3 { font-size: 1.28rem; margin: 2px 0 8px; }
+.subject-progress-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.subject-progress .btn-row { margin-top: 14px; }
+.subject-progress .btn { width: auto; flex: 1; }
+.learned-row { align-items: center; }
+.learned-row .q-learned { flex: none; align-self: center; }

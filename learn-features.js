@@ -590,7 +590,7 @@ const LearnUI = (() => {
       ? renderEnExplain(q)
       : formatExplainBody(explainBody);
     const explain = reveal && (q.explain || q.answer)
-      ? `<div class="q-explain card soft-card"><b>詳解</b><div class="explain-body">${explainHtml}</div>
+      ? `<div class="q-explain card soft-card"><div class="q-tools">${learnedLabel(!!q._learned)}</div><b>詳解</b><div class="explain-body">${explainHtml}</div>
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
           ${sourceTagHtml(q)}
           ${reveal ? (q._formulaChipsHtml || '') : ''}
@@ -605,6 +605,7 @@ const LearnUI = (() => {
       </section>
       <section class="card q-card" data-qid="${esc(q.id || '')}">
         ${(mode === 'mock' && !reveal) ? '' : `<div class="q-tools">
+          ${learnedLabel(!!q._learned)}
           <button type="button" class="q-fav ${q._fav ? 'on' : ''}" id="btnFav" aria-pressed="${q._fav ? 'true' : 'false'}" title="我的最愛">${q._fav ? '★' : '☆'}<span class="small">${q._fav ? '已收藏' : '收藏'}</span></button>
         </div>`}
         <div class="q-stem">${stemHtml} ${q.lang === 'en' ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(q.stem)}">🔊 整句</button>` : (typeof zhSpeakBtn === 'function' ? zhSpeakBtn(plainForSpeak(q.stem), '🔊') : '')}</div>
@@ -637,6 +638,33 @@ const LearnUI = (() => {
       fav.innerHTML = `${on ? '★' : '☆'}<span class="small">${on ? '已收藏' : '收藏'}</span>`;
       toast(on ? '已加入我的最愛' : '已取消收藏');
     };
+    const syncLearned = (on) => {
+      $$('.quiz-learned').forEach((input) => {
+        input.checked = on;
+        const label = input.closest('.q-learned');
+        if (label) label.classList.toggle('on', on);
+      });
+    };
+    $$('.quiz-learned').forEach((input) => {
+      input.addEventListener('change', async () => {
+        const on = input.checked;
+        if (!q.id) {
+          syncLearned(false);
+          toast('這題沒有編號，沒辦法記成已學會');
+          return;
+        }
+        const prev = await commitLearned(q.id, learnedSnapshotFromQuestion(q, state), on);
+        syncLearned(on);
+        if (on) toast('已記成已學會');
+        else if (prev && typeof toastAction === 'function') {
+          toastAction('已從已學會移出', '復原', async () => {
+            await commitLearned(q.id, prev, true);
+            syncLearned(true);
+            toast('已恢復已學會');
+          });
+        } else toast('已從已學會移出');
+      });
+    });
   }
   const FAV_CATS = [['all', '全部'], ['zh', '國文'], ['en', '英文'], ['ee', '電工原理'], ['em', '電工機械'], ['math', '數學'], ['other', '其他']];
   function favCat(f) {
@@ -802,6 +830,7 @@ const LearnUI = (() => {
       else q._formulaChipsHtml = '';
       const left = state.endsAt ? (state.endsAt - Date.now()) / 1000 : null;
       q._fav = !!(settings.learnFavs || {})[q.id];
+      q._learned = !!(settings && settings.learned && settings.learned[q.id]);
       q.lang = q.lang || (subjectTab === 'en' || subjectTab === 'english' ? 'en' : (subjectTab === 'zh' ? 'zh' : ''));
       app.innerHTML = renderMcShell({
         title: state.title,
@@ -878,6 +907,8 @@ const LearnUI = (() => {
         <p class="muted small">專業題庫 ${meta.total || 0} 題（有圖 ${meta.withFigure || 0}）・國文選擇 ${allExamQuestions(zh).length}＋常識自出 ${zh.fromKnowledge?.length || 0}・英文 ${allExamQuestions(en).length}・數學 ${math.units?.length || 0} 單元・備考技巧 ${tipN} 則</p>
       </section>
       <div class="learn-subjects">
+        <a class="overview-tab learn-card" href="#subjects"><b>學習科目</b><span class="muted small">各科已學會進度</span><span class="tag tag-ok">成就</span></a>
+        <a class="overview-tab learn-card" href="#learned"><b>已學會</b><span class="muted small">${Object.keys((settings && settings.learned) || {}).length} 題</span><span class="tag tag-ok">勾選</span></a>
         <a class="overview-tab learn-card" href="#learn-math"><b>數學基礎</b><span class="muted small">分數・方程式・單位換算</span><span class="tag tag-ok">可用</span></a>
         <a class="overview-tab learn-card" href="#favs"><b>★ 我的最愛</b><span class="muted small">${Object.keys(settings.learnFavs || {}).length} 題</span><span class="tag tag-star">收藏</span></a>
         <a class="overview-tab learn-card" href="#learn-tips"><b>備考技巧</b><span class="muted small">讀書方法・大範圍・心態</span><span class="tag tag-ok">可用</span></a>
@@ -1807,17 +1838,46 @@ const LearnUI = (() => {
         </section>
         <p class="bank-meta muted small">共 ${matched.length} 題符合條件，目前顯示前 ${shown.length} 題</p>
         <div class="bank-list">
-          ${shown.map((it) => `<article class="card bank-q">
+          ${shown.map((it) => {
+            const learnedOn = !!(settings && settings.learned && settings.learned[it.id]);
+            return `<article class="card bank-q${learnedOn ? ' is-learned' : ''}">
             <div class="bank-q-main">
               <div class="subj-kicker"><span class="tag">${esc(catalogTag(it))}</span><span>${esc(it.subjectName)}／${esc(it.chapter || it.type)}</span></div>
               <div class="bank-stem">${formatRichText(it.stem || '')}</div>
               ${it.hasFigure && it.figure ? `<figure class="bank-fig"><img src="${esc(figSrc(it.figure))}" alt="題目附圖" loading="lazy"></figure>` : ''}
             </div>
-            <a class="btn btn-primary bank-start" href="#bank/q/${encodeURIComponent(it.id)}">開始作答</a>
-          </article>`).join('') || '<section class="card"><p class="muted">沒有符合的題目。</p></section>'}
+            <div class="bank-q-side">
+              ${learnedLabel(learnedOn, it.id)}
+              <a class="btn btn-primary bank-start" href="#bank/q/${encodeURIComponent(it.id)}">開始作答</a>
+            </div>
+          </article>`;
+          }).join('') || '<section class="card"><p class="muted">沒有符合的題目。</p></section>'}
         </div>
         ${matched.length > shown.length ? `<button type="button" class="btn btn-soft" id="bankMore">再顯示 50 題</button>` : ''}`;
       typesetMath(app);
+      $$('.bank-learned', app).forEach((input) => {
+        input.addEventListener('change', async () => {
+          const id = input.dataset.id;
+          const it = items.find((x) => x.id === id);
+          const label = input.closest('.q-learned');
+          const card = input.closest('.bank-q');
+          if (!it || !id) { input.checked = false; return; }
+          const on = input.checked;
+          const prev = await commitLearned(id, learnedSnapshotFromItem(it), on);
+          if (label) label.classList.toggle('on', on);
+          if (card) card.classList.toggle('is-learned', on);
+          if (on) toast('已記成已學會');
+          else if (prev && typeof toastAction === 'function') {
+            toastAction('已從已學會移出', '復原', async () => {
+              await commitLearned(id, prev, true);
+              input.checked = true;
+              if (label) label.classList.add('on');
+              if (card) card.classList.add('is-learned');
+              toast('已恢復已學會');
+            });
+          } else toast('已從已學會移出');
+        });
+      });
       const rerun = (reset) => { if (reset) bankState.limit = 50; paint(); };
       $('#bankYear').onchange = () => { bankState.year = $('#bankYear').value; rerun(true); };
       $('#bankSubject').onchange = () => { bankState.subject = $('#bankSubject').value; bankState.type = 'all'; rerun(true); };
@@ -1935,9 +1995,223 @@ const LearnUI = (() => {
     paint();
   }
 
+  const LEARN_SUBJECTS = [
+    ['zh', '國文'],
+    ['en', '英文'],
+    ['ee', '電工原理'],
+    ['em', '電工機械'],
+    ['math', '數學基礎']
+  ];
+  const LEARN_SUBJECT_NAME = Object.fromEntries(LEARN_SUBJECTS);
+
+  function subjectKeyFromTab(tab) {
+    const t = String(tab || '');
+    if (t === 'english') return 'en';
+    if (LEARN_SUBJECT_NAME[t]) return t;
+    return 'other';
+  }
+  function learnedPct(learned, total) {
+    if (!total || learned <= 0) return { text: '0', width: 0 };
+    const raw = learned / total * 100;
+    if (raw > 0 && raw < 0.05) return { text: '<0.1', width: raw };
+    const rounded = Math.round(raw * 10) / 10;
+    const text = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    return { text, width: Math.min(100, raw) };
+  }
+  async function commitLearned(id, snap, on) {
+    if (typeof settings === 'undefined' || !settings || !id) return null;
+    if (!settings.learned || typeof settings.learned !== 'object' || Array.isArray(settings.learned)) settings.learned = {};
+    const prev = settings.learned[id] ? Object.assign({}, settings.learned[id]) : null;
+    if (on) {
+      if (!snap) return prev;
+      settings.learned[id] = snap;
+    } else delete settings.learned[id];
+    if (typeof saveSettings === 'function') await saveSettings('learned');
+    return prev;
+  }
+  function learnedLabel(on, id) {
+    const cls = id ? 'bank-learned' : 'quiz-learned';
+    const data = id ? ` data-id="${esc(id)}"` : '';
+    return `<label class="q-learned${on ? ' on' : ''}"><input type="checkbox" class="${cls}"${data}${on ? ' checked' : ''} aria-label="已學會"><span>已學會</span></label>`;
+  }
+  function learnedSnapshotFromItem(it) {
+    return {
+      id: it.id,
+      stem: it.stem || '',
+      subject: it.subject || 'other',
+      subjectName: it.subjectName || LEARN_SUBJECT_NAME[it.subject] || '其他',
+      year: it.year ? String(it.year) : '',
+      type: it.chapter || it.type || '',
+      at: Date.now()
+    };
+  }
+  function learnedSnapshotFromQuestion(q, state) {
+    const subject = subjectKeyFromTab(state && state.subjectTab);
+    return {
+      id: q.id,
+      stem: q.stem || '',
+      subject,
+      subjectName: LEARN_SUBJECT_NAME[subject] || '其他',
+      year: q.year ? String(q.year) : '',
+      type: q.label || (state && state.source) || '',
+      at: Date.now()
+    };
+  }
+  function learnedStats(items) {
+    const map = (typeof settings !== 'undefined' && settings && settings.learned) || {};
+    const by = {};
+    LEARN_SUBJECTS.forEach(([id]) => { by[id] = { total: 0, learned: 0 }; });
+    (items || []).forEach((it) => {
+      const slot = by[it.subject];
+      if (!slot || !it.id) return;
+      slot.total += 1;
+      if (map[it.id]) slot.learned += 1;
+    });
+    return by;
+  }
+
+  async function viewLearned(app, parts) {
+    $('#pageTitle').textContent = '已學會';
+    const asked = parts && parts[0];
+    const filter = (asked && (LEARN_SUBJECT_NAME[asked] || asked === 'other')) ? asked : 'all';
+    const items = await questionCatalog();
+    const byId = new Map();
+    items.forEach((it) => { if (it.id && !byId.has(it.id)) byId.set(it.id, it); });
+    const map = (settings && settings.learned) || {};
+    const rows = Object.keys(map).map((id) => {
+      const snap = map[id] || {};
+      const it = byId.get(id);
+      const subject = it ? it.subject : (snap.subject || 'other');
+      return {
+        id,
+        stem: (it && it.stem) || snap.stem || '',
+        subject,
+        subjectName: (it && it.subjectName) || snap.subjectName || LEARN_SUBJECT_NAME[subject] || '其他',
+        year: (it && it.year) || snap.year || '',
+        type: (it && (it.chapter || it.type)) || snap.type || '',
+        at: snap.at || 0
+      };
+    }).sort((a, b) => (b.at || 0) - (a.at || 0));
+    const head = typeof pageHead === 'function'
+      ? pageHead('成就', '已學會', '這裡只收你自己勾過的題。取消勾選就會移出，不會改到星號收藏或錯題本。')
+      : '<h2>已學會</h2>';
+    if (!rows.length) {
+      app.innerHTML = `${head}<section class="card"><p class="muted">還沒有勾選。在題庫或作答頁勾「已學會」，題目會收在這裡。</p><a class="btn btn-primary" href="#bank">去題庫</a></section>`;
+      return;
+    }
+    const counts = {};
+    rows.forEach((r) => { counts[r.subject] = (counts[r.subject] || 0) + 1; });
+    const chipOrder = [['all', '全部'], ...LEARN_SUBJECTS, ['other', '其他']];
+    const chips = chipOrder.filter(([k]) => k === 'all' || counts[k]).map(([k, n]) => {
+      const num = k === 'all' ? rows.length : counts[k];
+      return `<button type="button" class="chip fav-chip${k === filter ? ' active' : ''}" data-k="${esc(k)}">${esc(n)} ${num}</button>`;
+    }).join('');
+    const shown = filter === 'all' ? rows : rows.filter((r) => r.subject === filter);
+    const card = (r) => `<article class="card bank-q learned-row is-learned">
+      <a class="bank-q-main learned-open" href="#bank/q/${encodeURIComponent(r.id)}">
+        <div class="subj-kicker"><span class="tag">${esc(r.year ? String(r.year) + ' 年' : '題庫')}</span><span>${esc(r.subjectName)}${r.type ? '／' + esc(r.type) : ''}</span></div>
+        <div class="bank-stem">${formatRichText(r.stem || '')}</div>
+      </a>
+      <label class="q-learned on"><input type="checkbox" class="page-learned" data-id="${esc(r.id)}" checked aria-label="取消已學會"><span>已學會</span></label>
+    </article>`;
+    let listHtml = '';
+    if (!shown.length) listHtml = '<section class="card"><p class="muted">這一科還沒有已學會的題。</p></section>';
+    else if (filter === 'all') {
+      const order = LEARN_SUBJECTS.map(([k]) => k).concat('other');
+      listHtml = order.map((k) => {
+        const list = shown.filter((r) => r.subject === k);
+        if (!list.length) return '';
+        const name = LEARN_SUBJECT_NAME[k] || '其他';
+        return `<h3 class="learned-group">${esc(name)}</h3>${list.map(card).join('')}`;
+      }).join('');
+    } else listHtml = shown.map(card).join('');
+    app.innerHTML = `${head}
+      <section class="card">
+        <div class="fav-chips">${chips}</div>
+        <p class="muted small">這組 ${shown.length} 題。點題目可回去作答。</p>
+      </section>
+      <div class="bank-list">${listHtml}</div>`;
+    typesetMath(app);
+    $$('.fav-chip', app).forEach((b) => {
+      b.onclick = () => {
+        const k = b.dataset.k;
+        location.hash = !k || k === 'all' ? '#learned' : '#learned/' + encodeURIComponent(k);
+      };
+    });
+    $$('.page-learned', app).forEach((input) => {
+      input.addEventListener('change', async () => {
+        if (input.checked) return;
+        const id = input.dataset.id;
+        const prev = await commitLearned(id, null, false);
+        const again = () => viewLearned(app, filter === 'all' ? [] : [filter]);
+        if (prev && typeof toastAction === 'function') {
+          toastAction('已從已學會移出', '復原', async () => {
+            await commitLearned(id, prev, true);
+            toast('已恢復已學會');
+            again();
+          });
+        } else toast('已從已學會移出');
+        again();
+      });
+    });
+  }
+
+  async function viewSubjects(app) {
+    $('#pageTitle').textContent = '學習科目';
+    const items = await questionCatalog();
+    const stats = learnedStats(items);
+    const rows = LEARN_SUBJECTS.filter(([id]) => stats[id].total > 0);
+    const learnedTotal = rows.reduce((n, [id]) => n + stats[id].learned, 0);
+    const bankTotal = rows.reduce((n, [id]) => n + stats[id].total, 0);
+    const allPct = learnedPct(learnedTotal, bankTotal);
+    const head = typeof pageHead === 'function'
+      ? pageHead('成就進度', '學習科目', '百分比是這一科已勾「已學會」的題數，除以題庫裡實際有的題。星號收藏和錯題本另外計算。')
+      : '<h2>學習科目</h2>';
+    const cards = rows.map(([id, name]) => {
+      const s = stats[id];
+      const pct = learnedPct(s.learned, s.total);
+      return `<article class="card subject-progress tone-${esc(id)}">
+        <div class="subject-progress-top">
+          <div>
+            <p class="kicker">${esc(name)}</p>
+            <h3>${esc(name)}</h3>
+            <p class="muted small learned-count">已學會 ${s.learned} / ${s.total} 題</p>
+          </div>
+          <div class="progress-pct" data-subject="${esc(id)}">${esc(pct.text)}%</div>
+        </div>
+        <div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct.width)}" aria-label="${esc(name)} ${esc(pct.text)}%"><i class="ok" style="--w:${pct.width}%"></i></div>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="#bank" data-open-subject="${esc(id)}">去這一科</a>
+          <a class="btn btn-soft" href="#learned/${esc(id)}">看已學會</a>
+        </div>
+      </article>`;
+    }).join('');
+    app.innerHTML = `${head}
+      <section class="card progress-hero">
+        <div class="progress-hero-top">
+          <div>
+            <div class="eyebrow">全部科目</div>
+            <h3>已學會 ${learnedTotal} 題</h3>
+            <p class="muted small">題庫共 ${bankTotal} 題。自己勾了才算進百分比。</p>
+          </div>
+          <div class="progress-pct" id="learnedAllPct">${esc(allPct.text)}%</div>
+        </div>
+        <div class="bar bar-lg"><i class="ok" style="--w:${allPct.width}%"></i></div>
+      </section>
+      <div class="subj-grid">${cards}</div>`;
+    $$('[data-open-subject]', app).forEach((a) => {
+      a.addEventListener('click', () => {
+        bankState.subject = a.dataset.openSubject;
+        bankState.year = 'all';
+        bankState.type = 'all';
+        bankState.limit = 50;
+      });
+    });
+  }
+
   return {
     viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips, viewFavs,
-    viewBank, viewFormulas,
+    viewBank, viewFormulas, viewLearned, viewSubjects,
     todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank,
     bankSummary, countSeen, practicedToday, pathSnapshot
   };
