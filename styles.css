@@ -641,6 +641,35 @@ button.stat.stat-link:active { transform: scale(.97); }
   cursor:pointer; border-radius:4px; text-decoration: underline dotted color-mix(in srgb, var(--primary) 50%, transparent);
 }
 .en-word:hover, .en-word:focus-visible { background: color-mix(in srgb, var(--primary) 14%, transparent); outline:none; }
+/* 詳解裡的英文片語：虛線底線表示可點，不加成 padding／margin，避免把原文擠開 */
+button.en-gloss {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  white-space: inherit;
+  text-align: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  border-radius: 0;
+}
+button.en-gloss:hover, button.en-gloss:focus-visible {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  outline: none;
+}
 .math-pre {
   white-space: pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   background: var(--soft); padding:10px 12px; border-radius:12px; margin:6px 0 12px; font-size:.95rem;
