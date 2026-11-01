@@ -618,6 +618,7 @@ button.stat.stat-link:active { transform: scale(.97); }
   border:1px solid var(--line);
 }
 .mode-seg a.on { background: var(--primary); color:#fff; border-color: transparent; }
+.q-passage { font-size: 0.98rem; line-height: 1.6; margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--soft, rgba(0,0,0,.04)); }
 .q-card .q-stem { font-size:1.05rem; line-height:1.55; margin-bottom:12px; }
 .q-fig { margin:10px 0 14px; text-align:center; }
 .q-fig img { max-width:100%; height:auto; border-radius:12px; border:1px solid var(--line); background:#fff; }

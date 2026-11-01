@@ -624,7 +624,8 @@ const LearnUI = (() => {
           ${learnedLabel(!!q._learned)}
           <button type="button" class="q-fav ${q._fav ? 'on' : ''}" id="btnFav" aria-pressed="${q._fav ? 'true' : 'false'}" title="我的最愛">${q._fav ? '★' : '☆'}<span class="small">${q._fav ? '已收藏' : '收藏'}</span></button>
         </div>`}
-        <div class="q-stem">${stemHtml} ${q.lang === 'en' ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(q.stem)}">🔊 整句</button>` : (typeof zhSpeakBtn === 'function' ? zhSpeakBtn(plainForSpeak(q.stem), '🔊') : '')}</div>
+        ${q.passage ? `<div class="q-passage">${q.lang === 'en' ? enWordSpans(q.passage) : esc(q.passage)}</div>` : ''}
+        <div class="q-stem">${stemHtml} ${q.lang === 'en' && q.stem ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(q.stem)}">🔊 整句</button>` : (q.lang === 'en' ? '' : (typeof zhSpeakBtn === 'function' ? zhSpeakBtn(plainForSpeak(q.stem), '🔊') : ''))}</div>
         ${fig}
         <div class="mc-list">${choices}</div>
         <div class="btn-row q-actions" style="margin-top:12px;flex-wrap:wrap">
@@ -640,6 +641,7 @@ const LearnUI = (() => {
     return { id: q.id, stem: q.stem, choices: q.choices, answer: q.answer, explain: q.explain || '',
       figurePath: q.figurePath || '', hasFigure: !!q.hasFigure, label: q.label || '', lang: q.lang || '',
       translation: q.translation || '', phrases: q.phrases || [], words: q.words || [],
+      passage: q.passage || '', passageId: q.passageId || '',
       source: q.source || '', sourceNote: q.sourceNote || '', subjectTab: state.subjectTab, from: state.source || '', at: Date.now() };
   }
   async function wireQTools(q, state) {
@@ -1319,7 +1321,7 @@ const LearnUI = (() => {
   }
 
   /* ---------- EN ---------- */
-  const EN_SEC = { vocab: '字彙', grammar: '文法', dialogue: '會話' };
+  const EN_SEC = { vocab: '字彙', grammar: '文法', dialogue: '會話', cloze: '克漏字', reading: '閱讀' };
   function mapEnQuestion(q) {
     return {
       ...q,
@@ -1345,8 +1347,9 @@ const LearnUI = (() => {
       const picked = pickedYears('en', data);
       const pool = questionsForYears(data, picked);
       const yearsLabel = picked.join('、');
-      const secBtns = [['all', '全部練習'], ['vocab', '字彙'], ['grammar', '文法'], ['dialogue', '會話']].map(([sec, name]) => {
+      const secBtns = [['all', '全部練習'], ['vocab', '字彙'], ['grammar', '文法'], ['dialogue', '會話'], ['cloze', '克漏字'], ['reading', '閱讀']].map(([sec, name]) => {
         const n = sec === 'all' ? pool.length : pool.filter((q) => q.section === sec).length;
+        if (sec !== 'all' && !n) return '';
         return `<button type="button" class="btn ${sec === 'all' ? 'btn-primary' : 'btn-soft'}" data-sec="${sec}">${name}（${n}）</button>`;
       }).join('');
       app.innerHTML = `
@@ -2400,6 +2403,8 @@ const LearnUI = (() => {
       out.translation = raw.translation || '';
       out.phrases = raw.phrases || [];
       out.words = raw.words || [];
+      out.passage = raw.passage || '';
+      out.passageId = raw.passageId || '';
     } else if (q.subject === 'zh') {
       out.lang = 'zh';
     }
