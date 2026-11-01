@@ -365,6 +365,7 @@ const LearnUI = (() => {
     subjectTab, stem, answer, choices, reasons, source, chapter,
     learnId, picked, explain, figurePath, hasFigure, label, silent
   }) {
+    explain = stripGenericOptionBoilerplate(explain);
     const tabId = mapLearnTab(subjectTab);
     const cat = tabOf(tabId).category || 'calc';
     const choiceLine = (choices || []).find((c) => String(c).startsWith(answer)) || '';
@@ -1481,9 +1482,65 @@ const LearnUI = (() => {
     if (last < s.length) out += esc(s.slice(last));
     return out;
   }
+  /**
+   * 「題幹所問的正解是 X「…」。此項「…」並非該正解，對照上方說明即可排除。」
+   * 沒有該選項自己的字詞或錯因，整列拿掉。某一題的其他選項全是這句時，連【其他選項】一起不顯示。
+   * 有個別解析的選項留著。
+   */
+  function stripGenericOptionBoilerplate(text) {
+    const raw = String(text ?? '');
+    if (!raw || raw.indexOf('題幹所問的正解是') < 0) return raw;
+    const boiler = /^題幹所問的正解是\s*[A-D]「.*」。此項「.*」並非該正解，對照上方說明即可排除。?\s*$/;
+    const optRe = /^([A-D])[.．、]\s*(.*)$/;
+    const noise = (s) => !s || s === '・' || s === '·' || s === '•';
+    const keepLine = (ln) => {
+      const s = String(ln).trim();
+      return !noise(s) && !boiler.test(s);
+    };
+    const cleanSection = (section) => {
+      const blocks = [];
+      let cur = null;
+      const pre = [];
+      String(section).split('\n').forEach((ln) => {
+        const m = ln.trim().match(optRe);
+        if (m) {
+          if (cur) blocks.push(cur);
+          cur = { header: ln.replace(/\s+$/, ''), body: [] };
+        } else if (!cur) {
+          if (ln.trim()) pre.push(ln.replace(/\s+$/, ''));
+        } else {
+          cur.body.push(ln.replace(/\s+$/, ''));
+        }
+      });
+      if (cur) blocks.push(cur);
+      const keptPre = pre.filter(keepLine);
+      const kept = [];
+      blocks.forEach((b) => {
+        const body = b.body.filter(keepLine);
+        if (body.length) kept.push({ header: b.header.trim(), body });
+      });
+      return { keptPre, kept };
+    };
+    const dropBoilerLines = (chunk) => chunk.split('\n').filter((ln) => !boiler.test(ln.trim())).join('\n').replace(/\s+$/, '');
+    if (raw.indexOf('【其他選項】') < 0) return dropBoilerLines(raw).trim();
+    const parts = raw.split('【其他選項】');
+    const head = dropBoilerLines(parts[0]);
+    const blocks = [];
+    parts.slice(1).forEach((sec) => {
+      const { keptPre, kept } = cleanSection(sec);
+      if (!kept.length && !keptPre.length) return;
+      const lines = ['【其他選項】'].concat(keptPre);
+      kept.forEach((b) => {
+        lines.push(b.header);
+        b.body.forEach((ln) => lines.push(ln));
+      });
+      blocks.push(lines.join('\n'));
+    });
+    return [head].concat(blocks).filter(Boolean).join('\n').trim();
+  }
   function formatExplainBody(text, opts) {
     const speakEn = !!(opts && opts.speakEn);
-    const raw = String(text ?? '');
+    const raw = stripGenericOptionBoilerplate(text);
     if (!raw) return '';
     const lineHtml = (line) => (hasMathDelims(line) ? formatRichText(line) : (speakEn ? annotateExplainEnglish(line) : esc(line)));
     const lines = raw.split(/\n+/).map((l) => l.trim()).filter(Boolean);
