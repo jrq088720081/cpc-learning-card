@@ -181,15 +181,10 @@ const LearnUI = (() => {
   }
   function enSpeakRate() { return EN_RATES[enRateKey()]; }
   function speakEn(text, rate) {
-    if (!window.speechSynthesis || !text) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(text));
-    u.lang = 'en-US';
-    u.rate = rate != null ? rate : enSpeakRate();
-    const voices = speechSynthesis.getVoices();
-    const v = voices.find((x) => /en-US|en_US|English/.test(x.lang)) || voices.find((x) => /^en/.test(x.lang));
-    if (v) u.voice = v;
-    speechSynthesis.speak(u);
+    const t = String(text || '').trim();
+    if (!t || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
+    const r = rate != null ? rate : enSpeakRate();
+    if (typeof speakEnglishQueued === 'function') speakEnglishQueued(t, r);
   }
   function enWordSpans(text) {
     return String(text || '').split(/(\s+)/).map((tok) => {
@@ -229,18 +224,29 @@ const LearnUI = (() => {
     return `${enSpeedHtml()}${renderEnGloss(q)}`;
   }
   function wireEnSpeak(root) {
+    if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
     $$('.en-word, .en-speak-item', root).forEach((b) => {
       if (b._wired) return; b._wired = true;
-      b.addEventListener('click', (e) => { e.preventDefault(); speakEn(b.getAttribute('data-speak') || ''); });
+      b.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        speakEn(b.getAttribute('data-speak') || '');
+      });
     });
     $$('[data-en-sentence]', root).forEach((b) => {
       if (b._wired) return; b._wired = true;
-      b.addEventListener('click', (e) => { e.preventDefault(); speakEn(b.getAttribute('data-en-sentence') || ''); });
+      b.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        speakEn(b.getAttribute('data-en-sentence') || '');
+      });
     });
     $$('[data-en-rate]', root).forEach((b) => {
       if (b._wired) return; b._wired = true;
       b.addEventListener('click', async (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
         const rate = b.getAttribute('data-en-rate') || 'normal';
         if (typeof settings !== 'undefined' && settings) {
           settings.enTtsRate = EN_RATES[rate] ? rate : 'normal';
