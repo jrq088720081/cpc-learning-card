@@ -1040,3 +1040,112 @@ a.learned-open:hover { color: var(--primary); }
 .subject-progress .btn { width: auto; flex: 1; }
 .learned-row { align-items: center; }
 .learned-row .q-learned { flex: none; align-self: center; }
+
+/* ---------- 學習路徑 ---------- */
+.path-phase {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: var(--radius);
+  margin: 0 0 14px;
+  box-shadow: var(--shadow);
+}
+.path-phase > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 14px;
+  min-height: 64px;
+}
+.path-phase > summary::-webkit-details-marker { display: none; }
+.path-phase > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.path-phase-name { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.path-phase-name strong { font-size: 1.12rem; }
+.path-phase-pct { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--primary); }
+.path-phase-chev { color: var(--muted); font-size: 1rem; transition: transform .2s var(--ease); }
+.path-phase[open] > summary .path-phase-chev { transform: rotate(180deg); }
+.path-phase-body { padding: 0 14px 16px; }
+.path-today {
+  margin: 8px 0 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary-soft) 78%, var(--card));
+}
+.path-today p { margin: 2px 0; }
+.path-group-title, .path-other-title { margin: 16px 2px 6px; font-size: 1rem; }
+.path-ch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 12px 4px;
+  border-top: 1px solid var(--line);
+}
+.path-ch-hit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 64px;
+  text-decoration: none;
+  color: inherit;
+}
+.path-ch-hit:hover .path-ch-title { color: var(--primary); }
+.path-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--primary-soft); color: var(--primary);
+  font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.path-ch.is-done .path-num { background: var(--ok); color: #fff; }
+.path-ch-title { font-weight: 800; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.path-ch-sub { display: block; color: var(--muted); font-size: .86rem; margin-top: 2px; }
+.path-ch-pct { font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+.path-ch .bar { margin-top: 6px; }
+.path-done-btn { width: 100%; min-height: 44px; }
+.path-ch.is-today {
+  background: color-mix(in srgb, var(--primary-soft) 55%, transparent);
+  border-radius: 14px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.path-line { margin-top: 4px; }
+.path-pair {
+  background: color-mix(in srgb, var(--warn-soft) 82%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  border-radius: 14px;
+  padding: 8px 10px 4px;
+  margin-top: 8px;
+}
+.path-pair-kicker { margin: 4px 0; font-size: .78rem; font-weight: 800; color: var(--warn); }
+.path-pair .path-ch { border-top: 0; padding-top: 6px; }
+.path-next .btn { margin-top: 12px; }
+.path-next-note { margin-top: 10px; }
+.path-due { margin: 10px 0 0; }
+.path-due a { color: var(--primary); font-weight: 800; }
+.path-empty { font-size: 1.15rem; font-weight: 800; color: var(--warn); }
+.path-chapter-actions, .path-link-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.path-link .path-ch-title { display: flex; align-items: center; gap: 8px; }
+.path-link .path-num { flex: none; }
+.path-weak { margin-top: 4px; }
+@media (min-width: 768px) {
+  .path-phase:not([open]) > :not(summary) { display: block; }
+  .path-phase > summary { pointer-events: none; cursor: default; }
+  .path-phase-chev { display: none; }
+  .path-ch { grid-template-columns: minmax(0, 1fr) auto; }
+  .path-done-btn { width: auto; white-space: nowrap; }
+  .path-line.has-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(260px, .9fr);
+    gap: 10px;
+    align-items: start;
+  }
+  .path-line-side .path-ch { grid-template-columns: minmax(0, 1fr); }
+  .path-line-side .path-done-btn { width: 100%; }
+  .path-chapter-actions, .path-link-actions { flex-direction: row; flex-wrap: wrap; }
+  .path-chapter-actions .btn, .path-link-actions .btn { width: auto; min-width: 140px; }
+}
+@media (prefers-color-scheme: dark) {
+  .path-ch.is-done .path-num { color: #0f1a17; }
+}

@@ -397,6 +397,23 @@ function mergeLearned(base, incoming) {
   });
   return out;
 }
+function normalizePathDone(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out = {};
+  Object.entries(raw).forEach(([id, v]) => {
+    if (!id || !v || typeof v !== 'object' || Array.isArray(v)) return;
+    out[String(id)] = { on: !!v.on, at: Number(v.at) || 0 };
+  });
+  return out;
+}
+function mergePathDone(base, incoming) {
+  const out = Object.assign({}, normalizePathDone(base));
+  Object.entries(normalizePathDone(incoming)).forEach(([id, v]) => {
+    const old = out[id];
+    if (!old || (v.at || 0) >= (old.at || 0)) out[id] = v;
+  });
+  return out;
+}
 let settings = null;
 let currentTab = ''; // '' = 全部
 async function loadSettings() {
@@ -411,6 +428,7 @@ async function loadSettings() {
     learnLinks: mergeLearnLinks(await DB.meta('learnLinks', null)),
     learnFavs: await DB.meta('learnFavs', {}) || {},
     learned: normalizeLearned(await DB.meta('learned', {})),
+    pathDone: normalizePathDone(await DB.meta('pathDone', {})),
     dailyGoal: Math.max(1, Math.min(50, Number(await DB.meta('dailyGoal', 10)) || 10)),
     examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null)),
     enTtsRate: await DB.meta('enTtsRate', 'normal') || 'normal'
@@ -856,9 +874,10 @@ async function render() {
   const inBankQuiz = view === 'bank' && parts[1] === 'q';
   const inFormulaDetail = view === 'formulas' && !!parts[1];
   const inMockRun = view === 'learn-mock' && parts[1] === 'run';
-  const hero = !inBankQuiz && !inMockRun && !inFormulaDetail && ['home', 'bank', 'path', 'subjects', 'learned', 'notebook', 'formulas', 'learn-mock'].includes(view);
+  const inPathSub = view === 'path' && parts.length > 1;
+  const hero = !inBankQuiz && !inMockRun && !inFormulaDetail && !inPathSub && ['home', 'bank', 'path', 'subjects', 'learned', 'notebook', 'formulas', 'learn-mock'].includes(view);
   document.body.classList.toggle('has-page-hero', hero);
-  $('#backBtn').hidden = !(inBankQuiz || inFormulaDetail || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
+  $('#backBtn').hidden = !(inBankQuiz || inFormulaDetail || inPathSub || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
   const app = $('#app');
   app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
   await renderTabstrip(['review', 'list'].includes(view));
@@ -1234,81 +1253,7 @@ async function viewHome(app) {
 }
 
 async function viewPath(app) {
-  const t = today();
-  const everything = await DB.all();
-  const due = everything.filter((m) => isDue(m, t));
-  const snap = await LearnUI.pathSnapshot();
-  const st = snap.st || { bySubject: {} };
-  const names = { ee: '電工原理', em: '電工機械', en: '英文', english: '英文', zh: '國文', math: '數學基礎' };
-  const hrefs = { ee: '#learn-ee/drill', em: '#learn-em/drill', en: '#learn-en', english: '#learn-en', zh: '#learn-zh/quiz', math: '#learn-math' };
-  const weak = Object.entries(st.bySubject || {})
-    .filter(([, s]) => s && s.total >= 5)
-    .sort((a, b) => (a[1].correct / a[1].total) - (b[1].correct / b[1].total))[0];
-  const method = snap.methodTip;
-  let stageTitle = '建立節奏';
-  let stageBody = method ? method.title : '先養成每天固定的練習時間';
-  if (due.length) {
-    stageTitle = '先處理待複習';
-    stageBody = `錯題本今天有 ${due.length} 題要複習`;
-  } else if (weak) {
-    stageTitle = '弱科加強';
-    stageBody = `${names[weak[0]] || weak[0]}　練習正確率 ${LearnUI.accuracyOf(st, weak[0])}%（${weak[1].total} 題）`;
-  } else {
-    const total = Object.values(st.bySubject || {}).reduce((n, s) => n + (s.total || 0), 0);
-    if (total > 0) {
-      stageTitle = '持續練習';
-      stageBody = `學習區累計作答 ${total} 題`;
-    }
-  }
-  let nextTitle = '數學基礎';
-  let nextBody = '打開數學單元，從教材順序往下練';
-  let nextHref = '#learn-math';
-  if (due.length) {
-    nextTitle = '今日複習';
-    nextBody = `先做 ${Math.min(due.length, snap.goal || 10)} 題待複習錯題`;
-    nextHref = '#session';
-  } else if (weak && hrefs[weak[0]]) {
-    nextTitle = names[weak[0]] || weak[0];
-    nextBody = '正確率最低、且已作答至少 5 題的科目';
-    nextHref = hrefs[weak[0]];
-  } else if (!snap.mathTotal && snap.units[0]) {
-    nextTitle = snap.units[0].name;
-    nextBody = '數學基礎尚無練習紀錄。這是教材第一個單元，不是估出來的章節進度。';
-    nextHref = `#learn-math/${snap.units[0].id}`;
-  } else if (snap.mathTotal) {
-    nextBody = `數學已練習 ${snap.mathTotal} 題。各單元完成度沒有逐題記錄，所以不標「已學到哪一章」。`;
-  }
-  const steps = [];
-  if (due.length) steps.push({ href: '#session', text: `複習錯題 ${Math.min(due.length, snap.goal || 10)} 題` });
-  steps.push({ href: '#learn-zh/quiz', text: '國文刷題' });
-  steps.push({ href: '#learn-ee/drill', text: '電工原理刷題' });
-  steps.push({ href: '#learn-em/drill', text: '電工機械刷題' });
-  steps.push({ href: '#learn-en', text: '英文練習' });
-  if (!snap.mathTotal && snap.units[0]) steps.push({ href: `#learn-math/${snap.units[0].id}`, text: `數學：${snap.units[0].name}` });
-  else steps.push({ href: '#learn-math', text: '數學基礎' });
-  steps.push({ href: '#learn-tips', text: '備考技巧' });
-  steps.push({ href: '#learn-mock', text: '計時模擬考' });
-  steps.push({ href: '#subjects', text: '看各科已學會進度' });
-  app.innerHTML = `
-    ${pageHead('學習工作區', '學習路徑', '用錯題待複習、練習正確率、數學單元順序和備考技巧，排出現在該做的下一步。', '<a class="btn btn-primary" href="#home">查看今日學習</a>')}
-    <div class="path-grid">
-      <section class="card">
-        <p class="kicker">目前階段</p>
-        <h3>${esc(stageTitle)}</h3>
-        <p class="muted">${esc(stageBody)}</p>
-      </section>
-      <section class="card">
-        <p class="kicker">下一個節點</p>
-        <h3>${esc(nextTitle)}</h3>
-        <p class="muted">${esc(nextBody)}</p>
-        <a class="btn btn-primary" href="${nextHref}">前往</a>
-      </section>
-    </div>
-    <section class="card">
-      <h3>本週路徑</h3>
-      <p class="muted small">清單接現有頁面：錯題複習、四科練習、數學基礎、備考技巧、模擬考。每日題數沿用設定的 ${snap.goal || 10} 題。</p>
-      <ul class="path-list">${steps.map((s) => `<li><a href="${s.href}">${esc(s.text)}</a></li>`).join('')}</ul>
-    </section>`;
+  await LearnUI.viewPath(app, parseHash().parts.slice(1));
 }
 
 async function viewNotebook(app) {
@@ -2024,7 +1969,7 @@ async function buildBackupBlob() {
     lastCloudBackupDate: settings.driveBackup.lastCloudBackupDate || null
   } : null;
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {} } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone) } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2130,6 +2075,7 @@ async function importBackup(file, mode) {
       delete settings.driveBackup._scheduleMigrated;
     }
     if (s.learned && typeof s.learned === 'object' && !Array.isArray(s.learned)) settings.learned = normalizeLearned(s.learned);
+    settings.pathDone = normalizePathDone(s.pathDone);
   } else {
     const existing = new Map((await DB.all()).map((m) => [m.id, m]));
     await DB.putMany(incoming.filter((m) => { const old = existing.get(m.id); return !old || (m.updatedAt || 0) > (old.updatedAt || 0); }));
@@ -2150,9 +2096,10 @@ async function importBackup(file, mode) {
     }
     if (s.dailyGoal) settings.dailyGoal = Math.max(1, Math.min(50, Number(s.dailyGoal) || settings.dailyGoal || 10));
     if (s.learned && typeof s.learned === 'object' && !Array.isArray(s.learned)) settings.learned = mergeLearned(settings.learned, s.learned);
+    if (s.pathDone && typeof s.pathDone === 'object' && !Array.isArray(s.pathDone)) settings.pathDone = mergePathDone(settings.pathDone, s.pathDone);
     // 合併時保留這支手機自己的全域間隔設定
   }
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'dailyGoal', 'examSchedule', 'learned');
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'dailyGoal', 'examSchedule', 'learned', 'pathDone');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   toast(`還原完成，匯入 ${incoming.length} 題`);
   location.hash = '#home'; render();
