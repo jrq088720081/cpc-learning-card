@@ -289,7 +289,7 @@ async function removeMistakesWithUndo(ids, { redirectList = false } = {}) {
     toast('已復原');
     if (typeof render === 'function') render();
   });
-  if (redirectList) location.hash = '#list';
+  if (redirectList) location.hash = '#mine/list';
   else if (typeof render === 'function') render();
   return true;
 }
@@ -821,35 +821,55 @@ async function renderTabstrip(show) {
 }
 
 /* ---------- 路由 ---------- */
-const TITLES = { learn: '學習', home: '今日學習', bank: '題庫', path: '學習路徑', subjects: '學習科目', learned: '已學會', notebook: '錯題與公式', formulas: '公式庫', review: '今天要複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '計時模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
+const TITLES = { learn: '學習', home: '今日', progress: '進度', mine: '我的題目', bank: '全部題庫', 'learn-bank': '全部題庫', path: '進度', subjects: '進度', learned: '已學會', notebook: '我的題目', formulas: '公式庫', review: '待複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '綜合模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
 function pageHead(kicker, title, sub, actionHtml) {
   return `<header class="desk-head"><div class="desk-head-text">${kicker ? `<p class="kicker">${kicker}</p>` : ''}<h2 class="desk-title">${title}</h2>${sub ? `<p class="desk-sub muted">${sub}</p>` : ''}</div>${actionHtml ? `<div class="desk-head-action">${actionHtml}</div>` : ''}</header>`;
 }
-function bottomTabFor(view) {
-  if (view === 'add-done') return 'add';
-  if (view === 'session') return 'review';
-  if (view === 'edit' || view === 'detail' || view === 'practice' || view === 'notebook') return 'list';
-  if (view === 'learn-tips') return 'learn-tips';
-  if (view === 'favs' || view === 'learn-favs') return 'favs';
-  if (view === 'learned') return 'learned';
-  if (view === 'subjects' || view === 'path') return 'home';
-  if (view === 'bank' || view === 'formulas' || view === 'learn-mock' || view.startsWith('learn')) return 'learn';
-  return view;
+function mainTabFor(view) {
+  if (view === 'home' || view === 'learn-tips' || view === 'tips') return 'home';
+  if (view === 'progress' || view === 'subjects' || view === 'path') return 'progress';
+  if (['mine', 'review', 'list', 'favs', 'learned', 'learn-favs', 'notebook', 'add', 'add-done', 'edit', 'detail', 'practice', 'session'].includes(view)) return 'mine';
+  if (view === 'settings') return 'settings';
+  return 'learn';
 }
-function sideTabFor(view) {
-  const sub = (location.hash.replace(/^#/, '').split('/')[1] || '');
-  if (view === 'learn-en' && (sub === 'vocab' || sub === 'roots')) return 'en-vocab';
-  if (view === 'learn-math') return 'learn-math';
-  if (view === 'learn-mock') return 'learn-mock';
-  if (view === 'learn-tips') return 'learn-tips';
-  if (view === 'favs' || view === 'learn-favs') return 'favs';
-  if (view === 'learned') return 'learned';
-  if (view === 'subjects') return 'subjects';
-  if (view === 'add-done') return 'add';
-  if (view === 'session') return 'review';
-  if (view === 'edit' || view === 'detail' || view === 'practice') return 'list';
-  if (view.startsWith('learn')) return 'learn';
-  return view;
+function learnSubjectOf(view) {
+  if (view === 'learn-zh') return 'zh';
+  if (view === 'learn-en') return 'en';
+  if (view === 'learn-ee') return 'ee';
+  if (view === 'learn-em') return 'em';
+  if (view === 'learn-math') return 'math';
+  return '';
+}
+function hashParts() {
+  return (location.hash.replace(/^#/, '') || 'home').split('/').filter(Boolean);
+}
+function encRest(parts) {
+  return parts.map((p) => encodeURIComponent(p)).join('/');
+}
+/** 舊入口轉到新位置。回 true 表示已經 replace，這次不用再畫。 */
+function redirectLegacy(view, parts) {
+  let next = '';
+  const tail = parts.length > 1 ? '/' + encRest(parts.slice(1)) : '';
+  if (view === 'subjects') next = '#progress';
+  else if (view === 'notebook') next = '#mine/list';
+  else if (view === 'favs' || view === 'learn-favs') next = '#mine/favs';
+  else if (view === 'learned') next = '#mine/learned' + tail;
+  else if (view === 'review') next = '#mine';
+  else if (view === 'list') next = '#mine/list';
+  else if (view === 'path' && parts.length === 1) next = '#progress';
+  else if (view === 'tips' || (view === 'learn-tips' && parts.length === 1)) {
+    try { sessionStorage.setItem('scrollTips', '1'); } catch (_) {}
+    next = '#home';
+  } else if (view === 'math') next = '#learn-math' + tail;
+  else if (view === 'vocab') next = '#learn-en/vocab' + tail;
+  else if (view === 'mock') next = '#learn-mock' + tail;
+  else if (view === 'bank') next = '#learn-bank' + tail;
+  else if (view === 'formulas' && parts.length === 1) next = '#learn-ee/formulas';
+  else if (view === 'learn' && parts.length === 1) next = LearnUI.learnSubjectHref(LearnUI.lastLearnSubject());
+  else if ((view === 'learn-ee' || view === 'learn-em') && (parts.length === 1 || parts[1] === 'hub')) next = `#${view}/drill`;
+  if (!next || next === location.hash) return false;
+  location.replace(next);
+  return true;
 }
 function parseHash() {
   const parts = (location.hash.replace(/^#/, '') || 'home').split('/').filter(Boolean).map((p) => {
@@ -857,57 +877,102 @@ function parseHash() {
   });
   return { view: parts[0] || 'home', id: parts[1], parts };
 }
+function isActiveQuiz(view, parts) {
+  if ((view === 'learn-ee' || view === 'learn-em') && (parts[1] === 'q' || parts[2] === 'run')) return true;
+  if (view === 'learn-mock' && parts[1] === 'run') return true;
+  if (view === 'learn-en' && parts[1] === 'quiz') return true;
+  if (view === 'learn-bank' && parts[1] === 'q') return true;
+  return false;
+}
+function needsBack(view, parts) {
+  if (['session', 'edit', 'detail', 'practice', 'add', 'add-done'].includes(view)) return true;
+  if (view === 'path' && parts.length > 1) return true;
+  if (view === 'learn-tips' && parts.length > 1) return true;
+  if (view === 'learn-math' && parts[1] && parts[1] !== 'examples') return true;
+  if (view === 'learn-zh' && parts[1] === 'kb' && parts.length > 2) return true;
+  if (view === 'learn-en' && (parts[1] === 'recall' || parts[1] === 'quiz' || ((parts[1] === 'vocab' || parts[1] === 'roots') && parts.length > 2))) return true;
+  if ((view === 'learn-ee' || view === 'learn-em') && (parts[1] === 'q' || parts[2] === 'run' || (parts[1] === 'formulas' && parts[2]))) return true;
+  if (view === 'learn-bank' && parts[1] === 'q') return true;
+  if (view === 'learn-mock' && parts[1] === 'run') return true;
+  if (view === 'formulas' && parts[1]) return true;
+  return false;
+}
+function paintMineBar(view, parts) {
+  const bar = $('#mineBar');
+  if (!bar) return;
+  if (view !== 'mine') {
+    bar.hidden = true;
+    bar.innerHTML = '';
+    const addBtn = $('#addMistakeBtn');
+    if (addBtn) addBtn.hidden = true;
+    return;
+  }
+  const active = parts[1] === 'list' ? 'list' : parts[1] === 'favs' ? 'favs' : parts[1] === 'learned' ? 'learned' : 'review';
+  const tabs = [
+    ['review', '待複習', '#mine'],
+    ['list', '錯題列表', '#mine/list'],
+    ['favs', '最愛', '#mine/favs'],
+    ['learned', '已學會', '#mine/learned']
+  ];
+  bar.hidden = false;
+  bar.innerHTML = `<nav class="mode-seg mine-seg" role="tablist" aria-label="我的題目">${tabs.map(([id, name, href]) => `<a href="${href}" role="tab" class="${id === active ? 'on' : ''}" aria-selected="${id === active}">${name}</a>`).join('')}</nav>`;
+  const addBtn = $('#addMistakeBtn');
+  if (addBtn) addBtn.hidden = false;
+}
+async function viewMine(app, parts) {
+  const tab = parts[0] || 'review';
+  if (tab === 'list') await viewList(app);
+  else if (tab === 'favs') await LearnUI.viewFavs(app);
+  else if (tab === 'learned') await LearnUI.viewLearned(app, parts.slice(1));
+  else await viewReview(app);
+  $('#pageTitle').textContent = '我的題目';
+}
 async function render() {
   releaseUrls();
-  // 離開刷題／模擬考時清掉計時器（同頁 paint 不走 render）
+  const early = parseHash();
+  if (redirectLegacy(early.view, early.parts)) return;
   try {
-    const v = (location.hash.replace(/^#/,'').split('/')[0]||'');
-    const inQuiz = /^(learn-(ee|em|en|zh|math|tips|mock|favs)|favs)/.test(v);
-    if (!inQuiz && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
+    if (!isActiveQuiz(early.view, early.parts) && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
   const { view, id, parts } = parseHash();
-  const bottom = bottomTabFor(view);
-  const side = sideTabFor(view);
-  $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === bottom));
+  const tab = mainTabFor(view);
+  const subject = learnSubjectOf(view);
+  $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   $$('.desk-nav a.nav-link').forEach((a) => {
-    const on = a.dataset.tab === side;
+    const on = a.dataset.subject ? a.dataset.subject === subject : a.dataset.tab === tab;
     a.classList.toggle('active', on);
     if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
   $('#pageTitle').textContent = TITLES[view] || TITLES.home;
-  const inBankQuiz = view === 'bank' && parts[1] === 'q';
-  const inFormulaDetail = view === 'formulas' && !!parts[1];
-  const inMockRun = view === 'learn-mock' && parts[1] === 'run';
-  const inPathSub = view === 'path' && parts.length > 1;
-  const hero = !inBankQuiz && !inMockRun && !inFormulaDetail && !inPathSub && ['home', 'bank', 'path', 'subjects', 'learned', 'notebook', 'formulas', 'learn-mock'].includes(view);
+  const hero = view === 'progress'
+    || (view === 'learn-mock' && parts[1] !== 'run')
+    || (view === 'learn-bank' && parts[1] !== 'q');
   document.body.classList.toggle('has-page-hero', hero);
-  $('#backBtn').hidden = !(inBankQuiz || inFormulaDetail || inPathSub || ['session', 'edit', 'detail', 'practice', 'learn-en', 'learn-zh', 'learn-ee', 'learn-em', 'learn-math', 'learn-tips', 'learn-mock', 'learn-favs'].includes(view));
+  $('#backBtn').hidden = !needsBack(view, parts);
+  paintMineBar(view, parts);
   const app = $('#app');
   app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
-  await renderTabstrip(['review', 'list'].includes(view));
+  const mineTab = view === 'mine' ? (parts[1] || 'review') : '';
+  await renderTabstrip(view === 'mine' && (mineTab === 'review' || mineTab === 'list'));
   try {
     switch (view) {
-      case 'bank': await LearnUI.viewBank(app, parts.slice(1)); break;
-      case 'subjects': await LearnUI.viewSubjects(app); break;
-      case 'learned': await LearnUI.viewLearned(app, parts.slice(1)); break;
+      case 'progress': await LearnUI.viewProgress(app); break;
+      case 'mine': await viewMine(app, parts.slice(1)); break;
+      case 'learn-bank': await LearnUI.viewBank(app, parts.slice(1)); break;
       case 'path': await viewPath(app); break;
-      case 'notebook': await viewNotebook(app); break;
       case 'formulas': await LearnUI.viewFormulas(app, parts.slice(1)); break;
       case 'learn': await LearnUI.viewLearn(app); break;
-      case 'learn-en': await LearnUI.viewEn(app, parseHash().parts.slice(1)); break;
-      case 'learn-zh': await viewLearnZh(app, parseHash().parts.slice(1)); break;
-      case 'learn-ee': await LearnUI.viewPro(app, 'ee', parseHash().parts.slice(1)); break;
-      case 'learn-em': await LearnUI.viewPro(app, 'em', parseHash().parts.slice(1)); break;
-      case 'learn-math': await LearnUI.viewMath(app, parseHash().parts.slice(1)); break;
-      case 'learn-tips': await LearnUI.viewTips(app, parseHash().parts.slice(1)); break;
-      case 'learn-favs': case 'favs': await LearnUI.viewFavs(app, parseHash().parts.slice(1)); break;
-      case 'learn-mock': await LearnUI.viewMock(app, parseHash().parts.slice(1)); break;
-      case 'review': await viewReview(app); break;
+      case 'learn-en': await LearnUI.viewEn(app, parts.slice(1)); break;
+      case 'learn-zh': await viewLearnZh(app, parts.slice(1)); break;
+      case 'learn-ee': await LearnUI.viewPro(app, 'ee', parts.slice(1)); break;
+      case 'learn-em': await LearnUI.viewPro(app, 'em', parts.slice(1)); break;
+      case 'learn-math': await LearnUI.viewMath(app, parts.slice(1)); break;
+      case 'learn-tips': await LearnUI.viewTips(app, parts.slice(1)); break;
+      case 'learn-mock': await LearnUI.viewMock(app, parts.slice(1)); break;
       case 'session': await viewSession(app); break;
       case 'add': await viewForm(app, null); break;
       case 'add-done': await viewAddDone(app); break;
       case 'edit': await viewForm(app, id); break;
-      case 'list': await viewList(app); break;
       case 'detail': await viewDetail(app, id); break;
       case 'practice': await viewPractice(app, id); break;
       case 'settings': await viewSettings(app); break;
@@ -915,9 +980,16 @@ async function render() {
     }
   } catch (err) {
     console.error(err);
-    app.innerHTML = `<div class="card"><h2>出了點問題</h2><p>${esc(err.message)}</p><a class="btn btn-primary" href="#home">回首頁</a></div>`;
+    app.innerHTML = `<div class="card"><h2>出了點問題</h2><p>${esc(err.message)}</p><a class="btn btn-primary" href="#home">回今日</a></div>`;
   }
   window.scrollTo(0, 0);
+  try {
+    if (sessionStorage.getItem('scrollTips') === '1') {
+      sessionStorage.removeItem('scrollTips');
+      const el = document.getElementById('exam-tips');
+      if (el) el.scrollIntoView({ block: 'start' });
+    }
+  } catch (_) {}
   updateBadge();
 }
 async function updateBadge() {
@@ -961,6 +1033,10 @@ function zhFindSec(cat, secId) {
   return cat && (cat.sections || []).find((s) => s.id === secId);
 }
 
+function zhTop(active) {
+  const chrome = (window.LearnUI && LearnUI.subjectChrome) ? LearnUI.subjectChrome('zh') : '';
+  return chrome + zhSeg(active);
+}
 function zhSeg(active) {
   return `<div class="mode-seg zh-seg" role="tablist" aria-label="國文分段">
     <a href="#learn-zh/quiz" role="tab" class="${active === 'quiz' ? 'on' : ''}" aria-selected="${active === 'quiz'}">刷題</a>
@@ -1017,6 +1093,7 @@ async function viewLearnZh(app, parts) {
         <span class="muted small">${s.rowCount} 筆</span>
       </a>`).join('');
     app.innerHTML = `
+      ${zhTop('kb')}
       <nav class="zh-bc" aria-label="目前位置">
         <a href="#learn-zh">國文</a><span class="zh-bc-sep">›</span>
         <a href="#learn-zh">常識總表</a><span class="zh-bc-sep">›</span>
@@ -1046,7 +1123,7 @@ async function viewLearnZh(app, parts) {
     </a>`).join('');
 
   app.innerHTML = `
-    ${zhSeg('kb')}
+    ${zhTop('kb')}
     <section class="card learn-shell">
       <h2>常識總表 <span class="tag tag-ok">第一批</span></h2>
       <p>依字音字形、古典文學、國學常識、應用文、現代文學分類查表複習。標「考古」者附年份；「延伸補充」為考卷未直接出、但常考的補強。</p>
@@ -1120,6 +1197,7 @@ async function viewZhTable(app, data, cat, sec) {
     : '<p class="muted small">可按 🔊 念整詞（內建語音）。</p>';
 
   app.innerHTML = `
+    ${zhTop('kb')}
     <nav class="zh-bc" aria-label="目前位置">
       <a href="#learn-zh">國文</a><span class="zh-bc-sep">›</span>
       <a href="#learn-zh">常識總表</a><span class="zh-bc-sep">›</span>
@@ -1226,14 +1304,26 @@ async function viewHome(app) {
     return `<button type="button" class="overview-tab" data-tab="${esc(x.id)}"><span><b>${esc(x.name)}</b><br><span class="muted small">${items.length} 題錯題</span></span><span class="${d ? 'pill-bad' : 'pill-ok'}">${d ? `${d} 題要複習` : '今天已清空'}</span></button>`;
   }).join('')}</section>` : '';
 
+  const dueN = everything.filter((m) => isDue(m, t)).length;
+  let nextHtml = '';
+  try {
+    const model = await LearnUI.pathModel();
+    const next = model && model.next;
+    if (next) {
+      const meta = next.stats && next.stats.total ? `已學會 ${next.stats.learned} / ${next.stats.total} 題` : '題目補充中';
+      nextHtml = `<section class="card today-next"><p class="kicker">下一個章節</p><h3>${esc(next.name)}</h3><p class="muted small">${esc(meta)}</p><a class="btn btn-primary" href="#path/go/${encodeURIComponent(next.id)}">開始這一章</a></section>`;
+    } else {
+      nextHtml = `<section class="card today-next"><p class="kicker">下一個章節</p><h3>主線章節都完成了</h3><p class="muted small">接著用錯題、歷屆計時和模擬考把弱點補上。</p><a class="btn btn-primary" href="#learn-mock">綜合模擬考</a></section>`;
+    }
+  } catch (err) { console.warn(err); }
+  const dueHtml = `<section class="card today-due"><h3>待複習 ${dueN} 題，開始複習</h3><p class="muted small">${dueN ? '先把到期的錯題做完。' : '今天沒有到期的錯題。'}</p>${dueN ? `<a class="btn btn-primary" href="#session">開始複習</a>` : `<a class="btn btn-soft" href="#mine/list">打開錯題列表</a>`}</section>`;
+  const tipsHtml = await LearnUI.tipsSectionHtml();
+  const backupNote = `<p class="muted small center">上次備份：${age === null ? '從沒備份過' : age === 0 ? '今天' : `${age} 天前`}</p>`;
+
   app.innerHTML = `
     ${examHtml}
     ${regAlertHtml}
-    ${pageHead('完成進度', '今日學習', '依每日目標練習國文、英文、電工原理與電工機械。題庫裡做過的題會記成首次完成。')}
-    <nav class="today-jumps" aria-label="相關頁面">
-      <a href="#bank">題庫</a><a href="#subjects">學習科目</a><a href="#learned">已學會</a><a href="#path">學習路徑</a><a href="#notebook">錯題</a><a href="#formulas">公式庫</a><a href="#learn-mock">模擬考</a>
-    </nav>
-    ${backupHtml}
+    <h2 class="section-label">今日該做</h2>
     <section class="card progress-hero">
       <div class="progress-hero-top">
         <div>
@@ -1247,13 +1337,20 @@ async function viewHome(app) {
     </section>
     <div class="subj-grid">${cards}</div>
     ${extraHtml}
-    <p class="muted small center">上次備份：${age === null ? '從沒備份過' : age === 0 ? '今天' : `${age} 天前`}</p>
-    <p class="muted small center">若畫面怪異，請硬重新整理，或清除此站資料。</p>`;
+    ${nextHtml}
+    ${dueHtml}
+    ${backupHtml}
+    ${backupNote}
+    <p class="muted small center">若畫面怪異，請硬重新整理，或清除此站資料。</p>
+    ${tipsHtml}`;
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
     if (DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected) await uploadBackupToDrive();
     else await exportBackup();
   };
-  $$('.overview-tab', app).forEach((b) => { b.onclick = async () => { await setCurrentTab(b.dataset.tab); location.hash = '#list'; }; });
+  $$('.overview-tab', app).forEach((b) => {
+    if (!b.dataset.tab) return;
+    b.onclick = async () => { await setCurrentTab(b.dataset.tab); location.hash = '#mine/list'; };
+  });
 }
 
 async function viewPath(app) {
@@ -1277,7 +1374,7 @@ async function viewNotebook(app) {
       <section class="card">
         <p class="kicker">待複習錯題</p>
         <h3>${due.length ? `${due.length} 題` : '尚無待複習'}</h3>
-        ${due.length ? `<ul class="path-list">${duePreview}</ul>${due.length > 3 ? `<p class="muted small">另有 ${due.length - 3} 題在複習清單。</p>` : ''}<a class="btn btn-primary" href="#session">開始複習</a>` : `<p class="muted">今天沒有到期的錯題。新題會依間隔出現。</p><a class="btn btn-soft" href="#list">打開錯題列表</a>`}
+        ${due.length ? `<ul class="path-list">${duePreview}</ul>${due.length > 3 ? `<p class="muted small">另有 ${due.length - 3} 題在複習清單。</p>` : ''}<a class="btn btn-primary" href="#session">開始複習</a>` : `<p class="muted">今天沒有到期的錯題。新題會依間隔出現。</p><a class="btn btn-soft" href="#mine/list">打開錯題列表</a>`}
       </section>
       <section class="card">
         <p class="kicker">常用公式</p>
@@ -1296,19 +1393,19 @@ async function viewNotebook(app) {
         <li>學習區答錯可勾原因，寫進同一本錯題本</li>
       </ul>
       <div class="btn-row" style="margin-top:12px">
-        <a class="btn btn-soft" href="#list">錯題列表</a>
+        <a class="btn btn-soft" href="#mine/list">錯題列表</a>
         <a class="btn btn-soft" href="#learn-math">數學基礎</a>
       </div>
     </section>`;
   if (quizN) {
     const row = document.createElement('p');
     row.className = 'muted small';
-    row.innerHTML = `<a href="#list" id="quizHintLink">查看可抽考的 ${quizN} 題</a>`;
+    row.innerHTML = `<a href="#mine/list" id="quizHintLink">查看可抽考的 ${quizN} 題</a>`;
     app.appendChild(row);
     $('#quizHintLink').onclick = (e) => {
       e.preventDefault();
       Object.assign(filters, { status: 'done', quiz: true, onlyDue: false });
-      location.hash = '#list';
+      location.hash = '#mine/list';
     };
   }
 }
@@ -1345,7 +1442,7 @@ async function viewSession(app) {
   if (session && session.tab !== currentTab) session = null;
   if (!session) {
     const due = await dueSorted(today());
-    if (!due.length) { location.replace('#review'); return; }
+    if (!due.length) { location.replace('#mine'); return; }
     session = { tab: currentTab, ids: due.map((m) => m.id), index: 0, correct: 0, wrong: 0 };
   }
   if (session.index >= session.ids.length) {
@@ -1665,7 +1762,7 @@ async function viewList(app) {
 /* ---------- 單題內容 ---------- */
 async function viewDetail(app, id) {
   const m = await DB.get(id);
-  if (!m) { app.innerHTML = '<div class="empty"><p>找不到這題，可能已經刪除了。</p></div><a class="btn btn-primary" href="#list">回列表</a>'; return; }
+  if (!m) { app.innerHTML = '<div class="empty"><p>找不到這題，可能已經刪除了。</p></div><a class="btn btn-primary" href="#mine/list">回列表</a>'; return; }
   const t = today(); const iv = intervalsFor(m.subject);
   const hLabel = { correct: '✓ 答對', wrong: '✗ 答錯', revive: '↩︎ 重新複習', relearn: '↩︎ 重新複習（第 1 關，1 天後）', manual: '📅 手動改日期', done: '🏁 標記為完成', 'auto-done': '🏁 最後一關答對，完成複習' };
   app.innerHTML = `
@@ -1727,7 +1824,7 @@ async function viewDetail(app, id) {
 /* ---------- 自由練習（已完成的題目，不影響排程） ---------- */
 async function viewPractice(app, id) {
   const m = await DB.get(id);
-  if (!m) { app.innerHTML = '<div class="empty"><p>找不到這題。</p></div><a class="btn btn-primary" href="#list">回列表</a>'; return; }
+  if (!m) { app.innerHTML = '<div class="empty"><p>找不到這題。</p></div><a class="btn btn-primary" href="#mine/list">回列表</a>'; return; }
   if (m.status !== 'done') { location.replace('#detail/' + m.id); return; }
   const t = today();
   app.innerHTML = `
@@ -1754,7 +1851,7 @@ async function viewPractice(app, id) {
   wireSpeak(app, () => m.qText);
   $('#pShow').onclick = () => { $('#pAnswer').hidden = false; $('#pShow').hidden = true; $('#pAfter').hidden = false; $('#pAnswer').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   $('#pRelearn').onclick = async () => { relearn(m); await DB.put(m); toast(`這題回到複習中，${prettyDate(m.nextDue)}（1 天後）再複習`); location.hash = '#detail/' + m.id; };
-  $('#pKeep').onclick = () => { toast('很好！這題維持「已完成」'); Object.assign(filters, { status: 'done' }); location.hash = '#list'; };
+  $('#pKeep').onclick = () => { toast('很好！這題維持「已完成」'); Object.assign(filters, { status: 'done' }); location.hash = '#mine/list'; };
 }
 
 /* ---------- 分頁編輯視窗 ---------- */
@@ -2607,7 +2704,7 @@ async function start() {
   window.addEventListener('hashchange', () => render());
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-      if (['home', 'review', ''].includes(parseHash().view)) render();
+      if (['home', 'mine', 'review', ''].includes(parseHash().view)) render();
       maybeAutoCloudBackup();
     }
   });
