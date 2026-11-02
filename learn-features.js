@@ -2554,8 +2554,57 @@ const LearnUI = (() => {
   }
   function pathCircle(ch) {
     if (ch.stats && ch.stats.done) return '✓';
-    if (ch.role === 'parallel' || ch.role === 'other' || !ch.order || ch.order >= 90) return '＋';
+    if (ch.role === 'other' || !ch.order || ch.order >= 90) return '＋';
     return String(ch.order);
+  }
+  function pathOrderSpan(orders) {
+    const nums = Array.from(new Set((orders || []).filter((n) => Number.isFinite(n) && n > 0 && n < 90))).sort((a, b) => a - b);
+    if (!nums.length) return '';
+    const parts = [];
+    let start = nums[0];
+    let prev = nums[0];
+    for (let i = 1; i <= nums.length; i++) {
+      const n = nums[i];
+      if (n === prev + 1) { prev = n; continue; }
+      parts.push(start === prev ? String(start) : `${start}–${prev}`);
+      start = n;
+      prev = n;
+    }
+    return parts.join('、');
+  }
+  function pathHint(ch) {
+    return (ch && (ch.hint || ch.name)) || '';
+  }
+  function pathParallelNote(ch, model) {
+    if (!ch || ch.role !== 'parallel') return '';
+    const byId = (model && model.byId) || {};
+    if (ch.pairWith && ch.pairWith.length) {
+      const span = pathOrderSpan(ch.pairWith.map((id) => byId[id] && byId[id].order));
+      return span ? `搭配電工原理<span class="path-ch-keep">第 ${esc(span)} 章</span>` : '';
+    }
+    if (ch.pairAfter && byId[ch.pairAfter] && byId[ch.pairAfter].order < 90) {
+      return `電工原理<span class="path-ch-keep">第 ${esc(byId[ch.pairAfter].order)} 章之後</span>`;
+    }
+    return '';
+  }
+  function pathMainNotes(ch, model) {
+    if (!ch || ch.role !== 'main') return [];
+    const chapters = (model && model.chapters) || [];
+    const withs = chapters.filter((c) => c.role === 'parallel' && (c.pairWith || []).includes(ch.id));
+    const afters = chapters.filter((c) => c.role === 'parallel' && c.pairAfter === ch.id);
+    const notes = [];
+    if (withs.length) notes.push(`可同時學：${esc(withs.map(pathHint).filter(Boolean).join('、'))}`);
+    if (afters.length) notes.push(`本章之後：${esc(afters.map(pathHint).filter(Boolean).join('、'))}`);
+    return notes;
+  }
+  function pathRowNotes(ch, model) {
+    if (!ch) return [];
+    if (ch.role === 'parallel') {
+      const note = pathParallelNote(ch, model);
+      return note ? [note] : [];
+    }
+    if (ch.role === 'main') return pathMainNotes(ch, model);
+    return [];
   }
   function pathTitle(ch) {
     if (ch.role !== 'other') return ch.name;
@@ -2573,6 +2622,7 @@ const LearnUI = (() => {
     const unitLine = (ch.units && ch.units.length)
       ? `<span class="path-ch-sub">教材：${ch.units.map((u) => esc(u.name)).join('、')}</span>`
       : '';
+    const notes = (opts.notes || []).filter(Boolean).map((n) => `<span class="path-ch-sub">${n}</span>`).join('');
     const extra = (ch.role === 'other' && ch.blurb) ? `<span class="path-ch-sub">${esc(ch.blurb)}</span>` : '';
     const pctNow = Math.round(s.pct.width || 0);
     return `<article class="path-ch${s.done ? ' is-done' : ''}${opts.today ? ' is-today' : ''}">
@@ -2581,6 +2631,7 @@ const LearnUI = (() => {
         <span class="path-ch-body">
           <span class="path-ch-title">${esc(pathTitle(ch))} ${today}${manual}</span>
           <span class="path-ch-sub">${countLine}</span>
+          ${notes}
           ${unitLine}
           ${extra}
           <span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pctNow}" aria-label="${esc(pathTitle(ch))} ${esc(s.pct.text)}%"><i class="${s.autoDone ? 'ok' : ''}" style="--w:${s.pct.width}%"></i></span>
@@ -2599,15 +2650,6 @@ const LearnUI = (() => {
         <div class="path-link-actions">${links.map((l) => `<a class="btn btn-primary" href="${esc(l.href)}">${esc(l.label || '前往')}</a>`).join('')}</div>
       </div>
     </article>`;
-  }
-  function pathPairHtml(ch, chapters) {
-    const withs = chapters.filter((c) => c.role === 'parallel' && (c.pairWith || []).includes(ch.id));
-    const afters = chapters.filter((c) => c.role === 'parallel' && c.pairAfter === ch.id);
-    if (!withs.length && !afters.length) return '';
-    return `<div class="path-pair">
-      ${withs.length ? `<p class="path-pair-kicker">可同時學</p>${withs.map((c) => pathChapterRow(c)).join('')}` : ''}
-      ${afters.length ? `<p class="path-pair-kicker">本章之後</p>${afters.map((c) => pathChapterRow(c)).join('')}` : ''}
-    </div>`;
   }
   function pathWire(app) {
     $$('[data-path-done]', app).forEach((btn) => {
@@ -2646,8 +2688,10 @@ const LearnUI = (() => {
   async function viewPathHome(app, model) {
     const phases = (model.plan.phases || []);
     if (!pathPhaseMemory) pathPhaseMemory = new Set(['lang']);
-    if (model.next) pathPhaseMemory.add(model.next.phase);
-    else pathPhaseMemory.add('sprint');
+    if (model.next) {
+      pathPhaseMemory.add(model.next.phase);
+      if (model.next.phase === 'ee') pathPhaseMemory.add('em');
+    } else pathPhaseMemory.add('sprint');
     let dueN = 0;
     try {
       const t = today();
@@ -2663,10 +2707,7 @@ const LearnUI = (() => {
     const stageBody = next
       ? `主線已學會 ${stageSum.learned} / ${stageSum.total} 題。下一個還沒完成的章節在下面。`
       : '主線章節都完成了。接著用錯題、歷屆計時和模擬考收斂。';
-    const pairs = next ? {
-      withs: model.chapters.filter((c) => c.role === 'parallel' && (c.pairWith || []).includes(next.id)),
-      afters: model.chapters.filter((c) => c.role === 'parallel' && c.pairAfter === next.id)
-    } : { withs: [], afters: [] };
+    const nextNotes = next ? pathRowNotes(next, model) : [];
     const sprintFirst = model.byId['sprint-review'];
     const nextTitle = next ? next.name : (sprintFirst ? sprintFirst.name : '總複習衝刺');
     const nextHref = next ? `#path/go/${encodeURIComponent(next.id)}` : (sprintFirst && sprintFirst.href) || '#review';
@@ -2681,16 +2722,12 @@ const LearnUI = (() => {
       const open = pathPhaseMemory.has(phase.id);
       const inPhase = model.chapters.filter((c) => c.phase === phase.id);
       const counted = inPhase.filter((c) => c.role !== 'link');
-      const summed = pathSum(phase.id === 'ee' ? counted.filter((c) => c.subject === 'ee') : counted);
-      const sideSum = phase.id === 'ee' ? pathSum(counted.filter((c) => c.subject === 'em')) : null;
+      const summed = pathSum(counted);
       let body = '';
       if (phase.id === 'math') {
         body = inPhase.filter((c) => c.role === 'main').sort((a, b) => a.order - b.order).map((c) => pathChapterRow(c)).join('');
-      } else if (phase.id === 'ee') {
-        const lines = inPhase.filter((c) => c.role === 'main').sort((a, b) => a.order - b.order).map((c) => {
-          const side = pathPairHtml(c, model.chapters);
-          return `<div class="path-line${side ? ' has-side' : ''}"><div class="path-line-main">${pathChapterRow(c)}</div>${side ? `<div class="path-line-side">${side}</div>` : ''}</div>`;
-        }).join('');
+      } else if (phase.id === 'ee' || phase.id === 'em') {
+        const lines = inPhase.filter((c) => c.role === 'main' || c.role === 'parallel').sort((a, b) => a.order - b.order).map((c) => pathChapterRow(c, { notes: pathRowNotes(c, model) })).join('');
         const others = inPhase.filter((c) => c.role === 'other').map((c) => pathChapterRow(c)).join('');
         body = `${lines}${others ? `<h3 class="path-other-title">尚未對上的題</h3>${others}` : ''}`;
       } else if (phase.id === 'lang') {
@@ -2707,7 +2744,7 @@ const LearnUI = (() => {
       const pctLabel = phase.id === 'sprint' ? '' : `<span class="path-phase-pct">${esc(summed.pct.text)}%</span>`;
       const sumLine = phase.id === 'sprint'
         ? ''
-        : `<p class="muted small">${phase.id === 'ee' ? '主線' : ''}已學會 ${summed.learned} / ${summed.total} 題</p>${pathBar(summed.pct, phase.name)}${sideSum ? `<p class="muted small">可同時學已學會 ${sideSum.learned} / ${sideSum.total} 題</p>${pathBar(sideSum.pct, '可同時學')}` : ''}`;
+        : `<p class="muted small">已學會 ${summed.learned} / ${summed.total} 題</p>${pathBar(summed.pct, phase.name)}`;
       return `<details class="path-phase" data-phase="${esc(phase.id)}"${open ? ' open' : ''}>
         <summary>
           <span class="path-phase-name"><span class="kicker">${esc(phase.label)}</span><strong>${esc(phase.name)}</strong></span>
@@ -2740,8 +2777,7 @@ const LearnUI = (() => {
           ${next ? pathBar(nextPct, nextTitle) : ''}
           <a class="btn btn-primary" href="${esc(nextHref)}">前往</a>
           ${next && next.nextNote ? `<p class="path-next-note">${esc(next.nextNote)}</p>` : ''}
-          ${pairs.withs.length ? `<div class="path-pair"><p class="path-pair-kicker">可同時學</p>${pairs.withs.map((c) => pathChapterRow(c)).join('')}</div>` : ''}
-          ${pairs.afters.length ? `<div class="path-pair"><p class="path-pair-kicker">本章之後</p>${pairs.afters.map((c) => pathChapterRow(c)).join('')}</div>` : ''}
+          ${nextNotes.length ? `<p class="path-next-note">${nextNotes.join('。')}</p>` : ''}
         </section>
       </div>
       ${phaseHtml}
@@ -2778,6 +2814,7 @@ const LearnUI = (() => {
       <section class="card">
         <p class="kicker">${phase ? esc(phase.label + '　' + phase.name) : ''}</p>
         <h2>${esc(title)}</h2>
+        ${pathRowNotes(ch, model).map((n) => `<p class="muted">${n}</p>`).join('')}
         ${empty ? '<p class="path-empty">題目補充中</p><p class="muted">這一章還沒有對上的題目，先練別章，或先標記完成。</p>' : `<p>已學會 ${s.learned} / ${s.total} 題（${esc(s.pct.text)}%）</p>${pathBar(s.pct, ch.name)}`}
         ${s.manual ? '<p><span class="tag">已標記完成</span></p>' : ''}
         ${s.done && !s.manual ? '<p><span class="tag tag-ok">這一章已學會</span></p>' : ''}
