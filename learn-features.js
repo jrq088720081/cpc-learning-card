@@ -110,7 +110,8 @@ const LearnUI = (() => {
     const chips = ids.map((fid) => {
       const f = (data.byId || {})[fid];
       if (!f) return '';
-      return `<a class="chip chip-formula" href="#formulas/${esc(fid)}">${esc(f.name)}</a>`;
+      const track = f.subject === 'em' ? 'em' : 'ee';
+      return `<a class="chip chip-formula" href="#learn-${track}/formulas/${esc(fid)}">${esc(f.name)}</a>`;
     }).filter(Boolean).join('');
     if (!chips) return '';
     return `<div class="link-chips muted small"><span>相關公式：</span>${chips}</div>`;
@@ -921,97 +922,100 @@ const LearnUI = (() => {
     paint();
   }
 
-  /* ---------- LEARN HUB ---------- */
-  async function viewLearn(app) {
-    const bank = await loadBank();
-    const zh = await loadZhQuiz();
-    const en = await loadEnQuiz();
-    const math = await loadMath();
-    const tipsData = await loadTips();
-    const tipN = (tipsData.categories || []).reduce((n, c) => n + (c.tips || []).length, 0);
-    const meta = bank.meta || {};
-    app.innerHTML = `
-      <section class="card learn-shell">
-        <h2>學習區</h2>
-        <p>考古題刷題、觀念卡、計時模擬考、國英發音、數學基礎與備考技巧都在這裡。寫錯可勾原因寫進同一本錯題本。</p>
-        <p class="muted small">專業題庫 ${meta.total || 0} 題（有圖 ${meta.withFigure || 0}）・國文選擇 ${allExamQuestions(zh).length}＋常識自出 ${zh.fromKnowledge?.length || 0}・英文 ${allExamQuestions(en).length}・數學 ${math.units?.length || 0} 單元・備考技巧 ${tipN} 則</p>
-      </section>
-      <div class="learn-subjects">
-        <a class="overview-tab learn-card" href="#subjects"><b>學習科目</b><span class="muted small">各科已學會進度</span><span class="tag tag-ok">成就</span></a>
-        <a class="overview-tab learn-card" href="#learned"><b>已學會</b><span class="muted small">${Object.keys((settings && settings.learned) || {}).length} 題</span><span class="tag tag-ok">勾選</span></a>
-        <a class="overview-tab learn-card" href="#learn-math"><b>數學基礎</b><span class="muted small">分數・方程式・單位換算</span><span class="tag tag-ok">可用</span></a>
-        <a class="overview-tab learn-card" href="#favs"><b>★ 我的最愛</b><span class="muted small">${Object.keys(settings.learnFavs || {}).length} 題</span><span class="tag tag-star">收藏</span></a>
-        <a class="overview-tab learn-card" href="#learn-tips"><b>備考技巧</b><span class="muted small">讀書方法・大範圍・心態</span><span class="tag tag-ok">可用</span></a>
-        <a class="overview-tab learn-card" href="#learn-en"><b>英文</b><span class="muted small">114 考古・點字發音・回想卡</span><span class="tag tag-ok">可用</span></a>
-        <a class="overview-tab learn-card" href="#learn-zh"><b>國文</b><span class="muted small">常識總表・刷題</span><span class="tag tag-ok">可用</span></a>
-        <a class="overview-tab learn-card" href="#learn-ee"><b>電工原理</b><span class="muted small">觀念＋刷題＋模擬</span><span class="tag tag-ok">可用</span></a>
-        <a class="overview-tab learn-card" href="#learn-em"><b>電工機械</b><span class="muted small">觀念＋刷題＋模擬</span><span class="tag tag-ok">可用</span></a>
-        <a class="overview-tab learn-card" href="#learn-mock"><b>計時模擬考</b><span class="muted small">20／40／60 分・交卷才看答案</span><span class="tag tag-ok">可用</span></a>
-      </div>
-      <section class="card soft-card">
-        <h3>與錯題本的銜接</h3>
-        <p class="muted small">學習區答錯 → 勾錯誤原因 → 存進 IndexedDB → 艾賓浩斯複習；雲端備份一併帶走。</p>
-        <div class="btn-row"><a class="btn btn-soft" href="#home">錯題首頁</a><a class="btn btn-soft" href="#add">新增錯題</a></div>
-      </section>`;
+  /* ---------- 學習科目列（上次停留記在 localStorage，不進 IndexedDB） ---------- */
+  const LEARN_NAV = [
+    ['zh', '國文', '#learn-zh/quiz'],
+    ['en', '英文', '#learn-en'],
+    ['ee', '電工原理', '#learn-ee/drill'],
+    ['em', '電工機械', '#learn-em/drill'],
+    ['math', '數學基礎', '#learn-math']
+  ];
+  const LEARN_SUBJECT_KEY = 'cpcLearnSubject';
+  function rememberLearnSubject(id) {
+    if (!LEARN_NAV.some(([k]) => k === id)) return;
+    try { localStorage.setItem(LEARN_SUBJECT_KEY, id); } catch (_) {}
+  }
+  function lastLearnSubject() {
+    try {
+      const v = localStorage.getItem(LEARN_SUBJECT_KEY);
+      if (LEARN_NAV.some(([k]) => k === v)) return v;
+    } catch (_) {}
+    return 'zh';
+  }
+  function learnSubjectHref(id) {
+    const row = LEARN_NAV.find(([k]) => k === id);
+    return row ? row[2] : LEARN_NAV[0][2];
+  }
+  function subjectChrome(active) {
+    if (active) rememberLearnSubject(active);
+    const hash = (location.hash || '').replace(/^#/, '');
+    const bankOn = hash === 'learn-bank' || hash.startsWith('learn-bank/');
+    const mockOn = hash === 'learn-mock' || hash.startsWith('learn-mock/');
+    const tabs = LEARN_NAV.map(([id, name, href]) =>
+      `<a href="${href}" role="tab" class="${id === active ? 'on' : ''}" aria-selected="${id === active}">${name}</a>`
+    ).join('');
+    return `<nav class="subject-tabs" role="tablist" aria-label="科目">${tabs}</nav>
+      <p class="learn-extras"><a href="#learn-bank" class="${bankOn ? 'on' : ''}">全部題庫</a><a href="#learn-mock" class="${mockOn ? 'on' : ''}">綜合模擬考</a></p>`;
+  }
+  async function tipsSectionHtml() {
+    const data = await loadTips();
+    const cats = data.categories || [];
+    const cards = cats.map((c) => `
+      <a class="overview-tab learn-card" href="#learn-tips/${esc(c.id)}">
+        <b>${esc(c.name)}</b>
+        <span class="muted small">${(c.tips || []).length} 則</span>
+      </a>`).join('');
+    return `<section id="exam-tips" class="today-tips">
+      <h2>備考技巧</h2>
+      <p class="muted small">${esc(data.sourceNote || '讀書方法、大範圍練習、答卷關鍵與心態。')}</p>
+      <div class="learn-subjects">${cards || '<p class="muted">尚無分類</p>'}</div>
+    </section>`;
+  }
+
+  /* ---------- LEARN HUB（入口卡頁已拿掉，#learn 直接進上次的科目） ---------- */
+  async function viewLearn() {
+    location.replace(learnSubjectHref(lastLearnSubject()));
   }
 
   function proSeg(track, active) {
     const base = `#learn-${track}`;
-    return `<div class="mode-seg" role="tablist">
-      <a href="${base}" class="${active === 'hub' ? 'on' : ''}">總覽</a>
-      <a href="${base}/concepts" class="${active === 'concepts' ? 'on' : ''}">觀念區</a>
-      <a href="${base}/drill" class="${active === 'drill' ? 'on' : ''}">刷題／計算</a>
-      <a href="#learn-mock/${track}" class="${active === 'mock' ? 'on' : ''}">模擬考</a>
+    return `<div class="mode-seg" role="tablist" aria-label="${track === 'em' ? '電工機械' : '電工原理'}">
+      <a href="${base}/concepts" class="${active === 'concepts' ? 'on' : ''}">觀念</a>
+      <a href="${base}/drill" class="${active === 'drill' ? 'on' : ''}">刷題</a>
+      <a href="${base}/formulas" class="${active === 'formulas' ? 'on' : ''}">公式庫</a>
+      <a href="${base}/mock" class="${active === 'mock' ? 'on' : ''}">模擬考</a>
     </div>`;
   }
 
   async function viewPro(app, track, parts) {
+    rememberLearnSubject(track);
     const name = track === 'em' ? '電工機械' : '電工原理';
-    const sub = parts[0] || 'hub';
+    const sub = parts[0] || 'drill';
     $('#pageTitle').textContent = name;
+    if (!parts[0] || sub === 'hub') {
+      location.replace(`#learn-${track}/drill`);
+      return;
+    }
     if (sub === 'q' && parts[1]) return viewExamQuestion(app, track, parts[1]);
     if (sub === 'concepts') return viewProConcepts(app, track);
-    if (sub === 'drill') return viewProDrill(app, track, parts.slice(1));
-    if (sub === 'quiz') return viewProDrill(app, track, parts.slice(1));
-
-    const bank = await loadBank();
-    const concepts = await loadConcepts();
-    const qs = bank.questions.filter((q) => track === 'all' || q.track === track);
-    const withAns = qs.filter((q) => q.answer).length;
-    const figs = qs.filter((q) => q.hasFigure).length;
-    const curatedN = concepts.curated.filter((c) => c.track === track).length;
-    const bankConceptN = concepts.fromBank.filter((c) => c.track === track).length;
-
-    app.innerHTML = `
-      ${proSeg(track, 'hub')}
-      <section class="card learn-shell">
-        <h2>${esc(name)}</h2>
-        <p>觀念區整理「較少計算」的觀念題與延伸小卡（高中／高職統測電機電子群難度）；刷題區為歷屆選擇題（含附圖）。</p>
-        <p class="muted small">本題庫篩選：${qs.length} 題（有答案 ${withAns}、附圖 ${figs}）・延伸觀念卡 ${curatedN}・歷屆觀念 ${bankConceptN}。分類為關鍵字啟發式，可用「全部專業」查看。</p>
-        <div class="btn-row" style="margin-top:12px;flex-wrap:wrap">
-          <a class="btn btn-primary" href="#learn-${track}/concepts">進觀念區</a>
-          <a class="btn btn-primary" href="#learn-${track}/drill">進刷題</a>
-          <a class="btn btn-soft" href="#learn-mock/${track}">計時模擬考</a>
-          <a class="btn btn-soft" href="#learn">回學習</a>
-        </div>
-      </section>
-      <section class="card soft-card">
-        <h3>提示</h3>
-        <ul class="muted small" style="margin:0;padding-left:1.2rem">
-          <li>練習模式：選完或按「看詳解」才顯示講解。</li>
-          <li>模擬考：交卷前不顯示任何答案。</li>
-          <li>106／108／109 部分題缺答案，仍可練習，計分時會略過。</li>
-        </ul>
-      </section>`;
+    if (sub === 'drill' || sub === 'quiz') return viewProDrill(app, track, parts.slice(1));
+    if (sub === 'formulas') return viewFormulas(app, parts.slice(1), { track });
+    if (sub === 'mock') {
+      if (parts[1] === 'run') {
+        const cfg = JSON.parse(sessionStorage.getItem('mockCfg') || '{}');
+        return startMock(app, cfg);
+      }
+      return viewMock(app, [track], { track });
+    }
+    location.replace(`#learn-${track}/drill`);
   }
 
   async function viewProConcepts(app, track) {
     const concepts = await loadConcepts();
     const curated = concepts.curated.filter((c) => c.track === track);
     const fromBank = concepts.fromBank.filter((c) => c.track === track);
-    $('#pageTitle').textContent = '觀念區';
     app.innerHTML = `
-      ${proSeg(track, 'concepts')}
+      ${subjectChrome(track)}${proSeg(track, 'concepts')}
       <section class="card learn-shell">
         <h2>觀念區 <span class="tag tag-ok">${curated.length + fromBank.length}</span></h2>
         <p>先打基礎再刷計算題。標「延伸」者非中油原題，難度控制在統測電機電子群。</p>
@@ -1092,7 +1096,6 @@ const LearnUI = (() => {
 
   async function viewProDrill(app, track, rest) {
     const bank = await loadBank();
-    $('#pageTitle').textContent = '刷題';
     // if rest[0]==='run' → start with filters in sessionStorage
     if (rest[0] === 'run') {
       const cfg = JSON.parse(sessionStorage.getItem('drillCfg') || '{}');
@@ -1123,7 +1126,7 @@ const LearnUI = (() => {
     const years = [...new Set(bank.questions.map((q) => q.year))].sort();
     const count = (pred) => bank.questions.filter(pred).length;
     app.innerHTML = `
-      ${proSeg(track, 'drill')}
+      ${subjectChrome(track)}${proSeg(track, 'drill')}
       <section class="card learn-shell">
         <h2>刷題／計算區</h2>
         <p class="muted small">選完選項即對錯；也可按「看詳解」。附圖會一併顯示（離線已快取）。</p>
@@ -1150,7 +1153,6 @@ const LearnUI = (() => {
         <label class="check"><input type="checkbox" id="drillAns" checked> 只出有答案的題（約 ${count((q) => q.answer)} 題）</label>
         <div class="btn-row" style="margin-top:12px">
           <button type="button" class="btn btn-primary" id="drillStart">開始刷題</button>
-          <a class="btn btn-soft" href="#learn-${track}">回總覽</a>
         </div>
       </section>`;
     $('#drillStart').onclick = () => {
@@ -1167,11 +1169,13 @@ const LearnUI = (() => {
   }
 
   /* ---------- MOCK EXAM ---------- */
-  async function viewMock(app, parts) {
+  async function viewMock(app, parts, opts) {
+    opts = opts || {};
+    parts = parts || [];
     stopRunner();
-    $('#pageTitle').textContent = '計時模擬考';
-    const preset = parts[0] || '';
-    if (parts[0] === 'run') {
+    $('#pageTitle').textContent = opts.track === 'em' ? '電工機械' : opts.track === 'ee' ? '電工原理' : '綜合模擬考';
+    const preset = opts.track || ((parts[0] && parts[0] !== 'run') ? parts[0] : '');
+    if (!opts.track && parts[0] === 'run') {
       const cfg = JSON.parse(sessionStorage.getItem('mockCfg') || '{}');
       return startMock(app, cfg);
     }
@@ -1183,9 +1187,11 @@ const LearnUI = (() => {
     allExamQuestions(zh).forEach((q) => { if (q.year) years.add(q.year); });
     allExamQuestions(en).forEach((q) => { if (q.year) years.add(q.year); });
     const yearOpts = [...years].sort((a, b) => b - a).map((y) => `<option value="${y}">${y}</option>`).join('');
-    const head = typeof pageHead === 'function'
-      ? pageHead('離線模擬', '模擬考', '交卷前不顯示答案。題目從這台裝置上的題庫抽，時間到會自動交卷。沒有另外的封存題庫。')
-      : '<h2>模擬考</h2>';
+    const head = opts.track
+      ? subjectChrome(opts.track) + proSeg(opts.track, 'mock')
+      : (subjectChrome('') + (typeof pageHead === 'function'
+        ? pageHead('離線模擬', '綜合模擬考', '交卷前不顯示答案。題目從這台裝置上的題庫抽，時間到會自動交卷。範圍可以混國文、英文和專業。')
+        : '<h2>綜合模擬考</h2>'));
     app.innerHTML = `
       ${head}
       <div class="mock-wrap">
@@ -1233,7 +1239,7 @@ const LearnUI = (() => {
       if ($('#mockDur').value === 'custom') mins = Math.max(1, Math.min(180, parseInt($('#mockCustom').value, 10) || 30));
       const cfg = { scope: $('#mockScope').value, minutes: mins, n: parseInt($('#mockN').value, 10) || 30, year: $('#mockYear').value };
       sessionStorage.setItem('mockCfg', JSON.stringify(cfg));
-      location.hash = '#learn-mock/run';
+      location.hash = opts.track ? `#learn-${opts.track}/mock/run` : '#learn-mock/run';
     };
   }
 
@@ -1304,7 +1310,7 @@ const LearnUI = (() => {
       const yearsLabel = picked.join('、');
       const kbN = (data.fromKnowledge || []).length;
       app.innerHTML = `
-        ${typeof zhSeg === 'function' ? zhSeg('quiz') : ''}
+        ${subjectChrome('zh')}${typeof zhSeg === 'function' ? zhSeg('quiz') : ''}
         <section class="card learn-shell">
           <h2>國文刷題</h2>
           <p>有題的年份可複選，題池是所選年份的聯集。常識表出題不依年份；混合＝選取年份＋常識。</p>
@@ -1342,6 +1348,7 @@ const LearnUI = (() => {
     };
   }
   async function viewEn(app, parts) {
+    rememberLearnSubject('en');
     const data = await loadEnQuiz();
     if (parts[0] === 'vocab') return viewVocab(app, parts.slice(1));
     if (parts[0] === 'roots') return viewVocabRoots(app, parts.slice(1));
@@ -1367,7 +1374,7 @@ const LearnUI = (() => {
         return `<button type="button" class="btn ${sec === 'all' ? 'btn-primary' : 'btn-soft'}" data-sec="${sec}">${name}（${n}）</button>`;
       }).join('');
       app.innerHTML = `
-        ${enSeg('practice')}
+        ${subjectChrome('en')}${enSeg('practice')}
         <section class="card learn-shell">
           <h2>英文</h2>
           <p>有題的年份可複選，下方練習用所選年份的聯集。點單字、片語或整句可發音（en-US）。語速分慢／正常／快，會記在這台裝置。</p>
@@ -1413,6 +1420,7 @@ const LearnUI = (() => {
       const c = cards[i];
       const blanked = (c.sentence || '').replace(/_+/g, '______');
       app.innerHTML = `
+        ${subjectChrome('en')}${enSeg('practice')}
         <section class="card learn-shell">
           <div class="bar-label"><h2>遮答案回想卡</h2><span class="tag">${i + 1}/${cards.length}</span></div>
           <p class="muted small">${esc(c.promptZh || '先自己想，再翻開。')}</p>
@@ -1448,9 +1456,43 @@ const LearnUI = (() => {
   }
 
   /* ---------- MATH ---------- */
+  function mathSeg(active) {
+    return `<div class="mode-seg" role="tablist" aria-label="數學基礎">
+      <a href="#learn-math" class="${active === 'units' ? 'on' : ''}">單元</a>
+      <a href="#learn-math/examples" class="${active === 'examples' ? 'on' : ''}">例題</a>
+    </div>`;
+  }
+  function mathChrome(active) {
+    rememberLearnSubject('math');
+    return subjectChrome('math') + mathSeg(active);
+  }
+  async function viewMathExamples(app, data) {
+    $('#pageTitle').textContent = '數學基礎';
+    const examLinks = await loadExamLinks();
+    const blocks = (data.units || []).map((u) => {
+      const chips = examChipsForUnit(u.id, examLinks);
+      const items = (u.examples || []).map((ex) => `<li><a href="#learn-math/${esc(u.id)}">${esc(ex.title || '例題')}</a>${ex.level === '變' ? ' <span class="tag">變題</span>' : ''}</li>`).join('');
+      return `<section class="card">
+        <h3>${esc(u.name)}</h3>
+        <p class="muted small">完整步驟和練習在單元裡。下面是例題目錄，以及這一單元對上的歷屆題。</p>
+        ${items ? `<ul class="path-list">${items}</ul>` : '<p class="muted">這一單元沒有例題。</p>'}
+        ${chips}
+        <a class="btn btn-soft" href="#learn-math/${esc(u.id)}">打開單元</a>
+      </section>`;
+    }).join('');
+    app.innerHTML = `${mathChrome('examples')}
+      <section class="card learn-shell">
+        <h2>例題</h2>
+        <p>各單元的例題集中在這裡。點標題或「打開單元」看步驟、練習，以及和歷屆題的連結。</p>
+      </section>
+      ${blocks || '<p class="muted">尚無例題。</p>'}`;
+    typesetMath(app);
+  }
   async function viewMath(app, parts) {
+    rememberLearnSubject('math');
     const data = await loadMath();
     const unitId = parts[0];
+    if (unitId === 'examples') return viewMathExamples(app, data);
     if (unitId && unitId !== 'practice') {
       const unit = (data.units || []).find((u) => u.id === unitId);
       if (!unit) {
@@ -1462,6 +1504,7 @@ const LearnUI = (() => {
     $('#pageTitle').textContent = '數學基礎';
     const links = (settings.learnLinks || []).filter((l) => l.subject === 'math' && l.url);
     app.innerHTML = `
+      ${mathChrome('units')}
       <section class="card learn-shell">
         <h2>數學基礎</h2>
         <p>國小～高中職會用到的底子，服務電工計算。每單元有短講解、例題與練習題；搞不懂再點外部連結（均一等）。</p>
@@ -1622,6 +1665,7 @@ const LearnUI = (() => {
     const examChipBlock = examChipsForUnit(unit.id, examLinks);
     const varN = (unit.practice || []).filter((p) => p.level === '變' || /^【變題/.test(p.stem || '')).length;
     app.innerHTML = `
+      ${mathChrome('units')}
       <section class="card learn-shell">
         <h2>${esc(unit.name)}</h2>
         <p class="math-inline">${formatRichText(unit.blurb || '')}</p>
@@ -1677,7 +1721,7 @@ const LearnUI = (() => {
             ${(tip.tags || []).length ? `<p class="muted small">${(tip.tags || []).map((tg) => `<span class="tag">${esc(tg)}</span>`).join(' ')}</p>` : ''}
             ${sourceTagHtml(tip)}
           </section>`).join('') || '<p class="muted">尚無內容</p>'}
-        <div class="btn-row"><a class="btn btn-soft" href="#learn-tips">回備考技巧</a><a class="btn btn-soft" href="#learn">回學習</a></div>`;
+        <div class="btn-row"><a class="btn btn-soft" href="#tips">回備考技巧</a><a class="btn btn-soft" href="#learn">回學習</a></div>`;
       typesetMath(app);
       return;
     }
@@ -1902,7 +1946,7 @@ const LearnUI = (() => {
     if (parts[0] === 'q' && parts[1]) {
       const item = items.find((x) => x.id === parts[1]);
       if (!item) {
-        app.innerHTML = `<section class="card"><h2>找不到這題</h2><a class="btn btn-primary" href="#bank">回題庫</a></section>`;
+        app.innerHTML = `<section class="card"><h2>找不到這題</h2><a class="btn btn-primary" href="#learn-bank">回題庫</a></section>`;
         return;
       }
       $('#pageTitle').textContent = '作答';
@@ -1928,9 +1972,10 @@ const LearnUI = (() => {
       const shown = matched.slice(0, bankState.limit);
       const years = [...new Set(items.map((it) => it.year).filter(Boolean))].sort((a, b) => b - a);
       const head = typeof pageHead === 'function'
-        ? pageHead('學習題庫', '題庫', '先縮小年份、科目或類型，再從一題開始作答。難度沒有標，所以這裡不篩難度。')
-        : '<h2>題庫</h2>';
+        ? pageHead('學習題庫', '全部題庫', '先縮小年份、科目或類型，再從一題開始作答。難度沒有標，所以這裡不篩難度。')
+        : '<h2>全部題庫</h2>';
       app.innerHTML = `
+        ${subjectChrome('')}
         ${head}
         <section class="card">
           <div class="filter-bar">
@@ -1960,7 +2005,7 @@ const LearnUI = (() => {
             </div>
             <div class="bank-q-side">
               ${learnedLabel(learnedOn, it.id)}
-              <a class="btn btn-primary bank-start" href="#bank/q/${encodeURIComponent(it.id)}">開始作答</a>
+              <a class="btn btn-primary bank-start" href="#learn-bank/q/${encodeURIComponent(it.id)}">開始作答</a>
             </div>
           </article>`;
           }).join('') || '<section class="card"><p class="muted">沒有符合的題目。</p></section>'}
@@ -2001,7 +2046,7 @@ const LearnUI = (() => {
     paint();
   }
 
-  async function viewFormulaDetail(app, formula, bank, examLinks) {
+  async function viewFormulaDetail(app, formula, bank, examLinks, base, track) {
     $('#pageTitle').textContent = formula.name || '公式';
     const byId = new Map();
     (bank.questions || []).forEach((q) => { if (q && q.id && !byId.has(q.id)) byId.set(q.id, q); });
@@ -2013,7 +2058,10 @@ const LearnUI = (() => {
       return `<a class="chip chip-math" href="#learn-math/${esc(uid)}">對應數學單元：${esc(name)}</a>`;
     }).join('');
     const origin = formula.origin || '歷屆';
+    const seg = track ? subjectChrome(track) + proSeg(track, 'formulas') : subjectChrome('');
+    const back = base || (formula.subject === 'em' ? '#learn-em/formulas' : '#learn-ee/formulas');
     app.innerHTML = `
+      ${seg}
       <section class="card formula-card">
         <div class="formula-tags">
           <span class="tag">${esc(formulaSubjectName(formula.subject))}</span>
@@ -2023,7 +2071,7 @@ const LearnUI = (() => {
         <div class="formula-eq">${formula.tex ? displayMath(formula.tex) : ''}</div>
         <p>${esc(formula.plain || formula.blurb || '')}</p>
         ${unitChips ? `<div class="link-chips muted small"><span>數學基礎：</span>${unitChips}</div>` : ''}
-        <div class="btn-row" style="margin-top:12px"><a class="btn btn-soft" href="#formulas">回公式庫</a></div>
+        <div class="btn-row" style="margin-top:12px"><a class="btn btn-soft" href="${back}">回公式庫</a></div>
       </section>
       <section class="card">
         <h3>相關歷屆</h3>
@@ -2038,21 +2086,31 @@ const LearnUI = (() => {
     typesetMath(app);
   }
 
-  async function viewFormulas(app, parts) {
+  async function viewFormulas(app, parts, opts) {
+    opts = opts || {};
     const data = await loadFormulas();
     const formulas = data.formulas || [];
     const fid = parts && parts[0];
+    if (!opts.track) {
+      if (!fid) { location.replace('#learn-ee/formulas'); return; }
+      const known = (data.byId || {})[fid];
+      const dest = known && known.subject === 'em' ? 'em' : 'ee';
+      location.replace(`#learn-${dest}/formulas/${encodeURIComponent(fid)}`);
+      return;
+    }
+    const track = opts.track === 'em' ? 'em' : 'ee';
+    const base = `#learn-${track}/formulas`;
     if (fid) {
       const formula = (data.byId || {})[fid];
       if (!formula) {
         $('#pageTitle').textContent = '公式庫';
-        app.innerHTML = `<section class="card"><h2>找不到這條公式</h2><a class="btn btn-primary" href="#formulas">回公式庫</a></section>`;
+        app.innerHTML = `${subjectChrome(track)}${proSeg(track, 'formulas')}<section class="card"><h2>找不到這條公式</h2><a class="btn btn-primary" href="${base}">回公式庫</a></section>`;
         return;
       }
       const [bank, examLinks] = await Promise.all([loadBank(), loadExamLinks()]);
-      return viewFormulaDetail(app, formula, bank, examLinks);
+      return viewFormulaDetail(app, formula, bank, examLinks, base, track);
     }
-    const state = { subject: 'all', q: '' };
+    const state = { subject: track, q: '' };
     const paint = () => {
       const q = state.q.trim().toLowerCase();
       const shown = formulas.filter((f) => {
@@ -2061,9 +2119,7 @@ const LearnUI = (() => {
         const blob = [f.name, f.blurb, f.plain, f.tex, formulaSubjectName(f.subject), f.origin].join(' ');
         return blob.toLowerCase().includes(q);
       });
-      const head = typeof pageHead === 'function'
-        ? pageHead('歷屆公式', '公式庫', '每一張卡是歷屆試題會用到的一條公式。點進去看說明，並連到相關考題。')
-        : '<h2>公式庫</h2>';
+      const head = `${subjectChrome(track)}${proSeg(track, 'formulas')}<section class="card learn-shell"><h2>公式庫</h2><p class="muted small">每一張卡是歷屆試題會用到的一條公式。點進去看說明，並連到相關考題。數學公式也可以從這裡篩。</p></section>`;
       app.innerHTML = `
         ${head}
         <section class="card">
@@ -2091,7 +2147,7 @@ const LearnUI = (() => {
             <h3>${esc(f.name || '')}</h3>
             <div class="formula-eq">${f.tex ? displayMath(f.tex) : ''}</div>
             <p class="small">${esc(f.blurb || '')}</p>
-            <a class="btn btn-soft btn-sm" href="#formulas/${esc(f.id)}">查看詳情</a>
+            <a class="btn btn-soft btn-sm" href="${base}/${esc(f.id)}">查看詳情</a>
           </article>`).join('') || '<p class="muted">沒有符合的公式。</p>'}
         </div>`;
       typesetMath(app);
@@ -2208,7 +2264,7 @@ const LearnUI = (() => {
       ? pageHead('成就', '已學會', '這裡只收你自己勾過的題。取消勾選就會移出，不會改到星號收藏或錯題本。')
       : '<h2>已學會</h2>';
     if (!rows.length) {
-      app.innerHTML = `${head}<section class="card"><p class="muted">還沒有勾選。在題庫、作答頁或單字庫勾「已學會」，就會收在這裡。</p><a class="btn btn-primary" href="#bank">去題庫</a></section>`;
+      app.innerHTML = `${head}<section class="card"><p class="muted">還沒有勾選。在題庫、作答頁或單字庫勾「已學會」，就會收在這裡。</p><a class="btn btn-primary" href="#learn-bank">去題庫</a></section>`;
       return;
     }
     const counts = {};
@@ -2222,7 +2278,7 @@ const LearnUI = (() => {
     const card = (r) => {
       const href = r.subject === 'en-vocab'
         ? `#learn-en/vocab/w/${encodeURIComponent(r.id)}`
-        : `#bank/q/${encodeURIComponent(r.id)}`;
+        : `#learn-bank/q/${encodeURIComponent(r.id)}`;
       const tag = r.subject === 'en-vocab' ? (r.type || '單字') : (r.year ? String(r.year) + ' 年' : '題庫');
       return `<article class="card bank-q learned-row is-learned">
       <a class="bank-q-main learned-open" href="${href}">
@@ -2253,7 +2309,7 @@ const LearnUI = (() => {
     $$('.fav-chip', app).forEach((b) => {
       b.onclick = () => {
         const k = b.dataset.k;
-        location.hash = !k || k === 'all' ? '#learned' : '#learned/' + encodeURIComponent(k);
+        location.hash = !k || k === 'all' ? '#mine/learned' : '#mine/learned/' + encodeURIComponent(k);
       };
     });
     $$('.page-learned', app).forEach((input) => {
@@ -2274,17 +2330,18 @@ const LearnUI = (() => {
     });
   }
 
-  async function viewSubjects(app) {
-    $('#pageTitle').textContent = '學習科目';
+  async function viewSubjects(app, opts) {
+    opts = opts || {};
+    if (!opts.embedded) $('#pageTitle').textContent = '學習科目';
     const items = await questionCatalog();
     const stats = learnedStats(items);
     const rows = LEARN_SUBJECTS.filter(([id]) => stats[id].total > 0);
     const learnedTotal = rows.reduce((n, [id]) => n + stats[id].learned, 0);
     const bankTotal = rows.reduce((n, [id]) => n + stats[id].total, 0);
     const allPct = learnedPct(learnedTotal, bankTotal);
-    const head = typeof pageHead === 'function'
+    const head = opts.embedded ? '' : (typeof pageHead === 'function'
       ? pageHead('成就進度', '學習科目', '百分比是這一科已勾「已學會」的題數，除以題庫裡實際有的題。星號收藏和錯題本另外計算。')
-      : '<h2>學習科目</h2>';
+      : '<h2>學習科目</h2>');
     const cards = rows.map(([id, name]) => {
       const s = stats[id];
       const pct = learnedPct(s.learned, s.total);
@@ -2299,8 +2356,8 @@ const LearnUI = (() => {
         </div>
         <div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct.width)}" aria-label="${esc(name)} ${esc(pct.text)}%"><i class="ok" style="--w:${pct.width}%"></i></div>
         <div class="btn-row">
-          <a class="btn btn-primary" href="#bank" data-open-subject="${esc(id)}">去這一科</a>
-          <a class="btn btn-soft" href="#learned/${esc(id)}">看已學會</a>
+          <a class="btn btn-primary" href="${learnSubjectHref(id)}">去這一科</a>
+          <a class="btn btn-soft" href="#mine/learned/${esc(id)}">看已學會</a>
         </div>
       </article>`;
     }).join('');
@@ -2317,14 +2374,6 @@ const LearnUI = (() => {
         <div class="bar bar-lg"><i class="ok" style="--w:${allPct.width}%"></i></div>
       </section>
       <div class="subj-grid">${cards}</div>`;
-    $$('[data-open-subject]', app).forEach((a) => {
-      a.addEventListener('click', () => {
-        bankState.subject = a.dataset.openSubject;
-        bankState.year = 'all';
-        bankState.type = 'all';
-        bankState.limit = 50;
-      });
-    });
   }
 
   /* ---------- 學習路徑：章節計畫 ---------- */
@@ -2685,7 +2734,8 @@ const LearnUI = (() => {
     const now = Math.round((pct && pct.width) || 0);
     return `<div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${now}" aria-label="${esc(label || '')}"><i class="ok" style="--w:${(pct && pct.width) || 0}%"></i></div>`;
   }
-  async function viewPathHome(app, model) {
+  async function viewPathHome(app, model, opts) {
+    opts = opts || {};
     const phases = (model.plan.phases || []);
     if (!pathPhaseMemory) pathPhaseMemory = new Set(['lang']);
     if (model.next) {
@@ -2715,9 +2765,11 @@ const LearnUI = (() => {
       ? (next.stats.total ? `已學會 ${next.stats.learned} / ${next.stats.total} 題` : '題目補充中')
       : '主線已經走完，從錯題本重練開始。';
     const nextPct = next ? next.stats.pct : { text: '完成', width: 100 };
-    const head = typeof pageHead === 'function'
-      ? pageHead('學習計畫', '學習路徑', '按章節順序往下練。百分比是這一章已勾「已學會」的題數，除以對上的題。滿百分，或按「標記完成」，這一章就打勾。', '<a class="btn btn-primary" href="#home">查看今日學習</a>')
-      : '<h2>學習路徑</h2>';
+    const head = opts.listOnly
+      ? (opts.prefix || '')
+      : (typeof pageHead === 'function'
+        ? pageHead('學習計畫', '學習路徑', '按章節順序往下練。百分比是這一章已勾「已學會」的題數，除以對上的題。滿百分，或按「標記完成」，這一章就打勾。', '<a class="btn btn-primary" href="#home">查看今日</a>')
+        : '<h2>學習路徑</h2>');
     const phaseHtml = phases.map((phase) => {
       const open = pathPhaseMemory.has(phase.id);
       const inPhase = model.chapters.filter((c) => c.phase === phase.id);
@@ -2760,15 +2812,13 @@ const LearnUI = (() => {
     }).join('');
     let weak = '';
     try { weak = await weaknessHtml(); } catch (_) { weak = ''; }
-    app.innerHTML = `
-      ${head}
-      <div class="path-grid">
+    const stage = opts.listOnly ? '' : `<div class="path-grid">
         <section class="card path-stage">
           <p class="kicker">目前階段</p>
           <h3>${esc(stageTitle)}</h3>
           <p class="muted">${esc(stageBody)}</p>
           ${next ? pathBar(stageSum.pct, stageTitle) : ''}
-          ${dueN ? `<p class="path-due"><a href="#review">錯題本今天有 ${dueN} 題要複習</a></p>` : ''}
+          ${dueN ? `<p class="path-due"><a href="#mine">錯題本今天有 ${dueN} 題要複習</a></p>` : ''}
         </section>
         <section class="card path-next">
           <p class="kicker">下一個節點</p>
@@ -2779,9 +2829,9 @@ const LearnUI = (() => {
           ${next && next.nextNote ? `<p class="path-next-note">${esc(next.nextNote)}</p>` : ''}
           ${nextNotes.length ? `<p class="path-next-note">${nextNotes.join('。')}</p>` : ''}
         </section>
-      </div>
-      ${phaseHtml}
-      ${weak ? `<section class="card path-weak"><h3>弱點看板</h3><p class="muted small">錯因和練習正確率，補強時先看這裡。模擬考在第四階段。</p>${weak}</section>` : ''}`;
+      </div>`;
+    const weakBlock = weak ? `<section class="card path-weak"><h3>弱點看板</h3><p class="muted small">錯因和練習正確率，補強時先看這裡。模擬考在第四階段。</p>${weak}</section>` : '';
+    app.innerHTML = `${head}${stage}<div class="progress-chapters">${phaseHtml}</div>${weakBlock}`;
     pathWire(app);
     pathBindMedia();
     pathApplyPhaseOpen();
@@ -2790,7 +2840,7 @@ const LearnUI = (() => {
     const ch = model.byId[id];
     if (!ch || ch.role === 'link') {
       $('#pageTitle').textContent = '學習路徑';
-      app.innerHTML = `<section class="card"><h2>找不到這一章</h2><p class="muted">回到學習路徑再選一次。</p><a class="btn btn-primary" href="#path">回學習路徑</a></section>`;
+      app.innerHTML = `<section class="card"><h2>找不到這一章</h2><p class="muted">回到進度再選一次。</p><a class="btn btn-primary" href="#progress">回進度</a></section>`;
       return;
     }
     const title = pathTitle(ch);
@@ -2804,8 +2854,8 @@ const LearnUI = (() => {
         mode: 'practice',
         subjectTab: ch.subject,
         source: '學習路徑・' + ch.name,
-        doneHref: '#path',
-        doneLabel: '回學習路徑'
+        doneHref: '#progress',
+        doneLabel: '回進度'
       });
     }
     const unitLinks = (ch.units || []).map((u) => `<a class="btn btn-soft" href="#learn-math/${esc(u.id)}">看教材：${esc(u.name)}</a>`).join('');
@@ -2822,17 +2872,26 @@ const LearnUI = (() => {
           ${empty ? '' : `<button type="button" class="btn btn-primary" id="pathStart" data-href="#path/go/${encodeURIComponent(ch.id)}/run">開始練習（${s.total} 題）</button>`}
           <button type="button" class="btn btn-soft" data-path-done="${esc(ch.id)}">${s.manual ? '取消完成' : '標記完成'}</button>
           ${unitLinks}
-          <a class="btn btn-soft" href="#path">回學習路徑</a>
+          <a class="btn btn-soft" href="#progress">回進度</a>
         </div>
       </section>`;
     pathWire(app);
+  }
+  async function viewProgress(app) {
+    const holder = document.createElement('div');
+    await viewSubjects(holder, { embedded: true });
+    $('#pageTitle').textContent = '進度';
+    const model = await pathModel();
+    const prefix = `${typeof pageHead === 'function' ? pageHead('進度', '各科進度', '上面是各科已學會的百分比。下面照學習路徑列章節，可以標記完成。') : '<h2>進度</h2>'}
+      ${holder.innerHTML}
+      <h2 class="section-label">學習路徑</h2>`;
+    return viewPathHome(app, model, { listOnly: true, prefix });
   }
   async function viewPath(app, parts) {
     const model = await pathModel();
     parts = parts || [];
     if (parts[0] === 'go' && parts[1]) return viewPathChapter(app, model, parts[1], parts[2] === 'run');
-    $('#pageTitle').textContent = '學習路徑';
-    return viewPathHome(app, model);
+    location.replace('#progress');
   }
 
 
@@ -2852,7 +2911,7 @@ const LearnUI = (() => {
   }
   function enSeg(active) {
     return `<div class="mode-seg en-seg" role="tablist" aria-label="英文">
-      <a href="#learn-en" role="tab" class="${active === 'practice' ? 'on' : ''}" aria-selected="${active === 'practice'}">練習</a>
+      <a href="#learn-en" role="tab" class="${active === 'practice' ? 'on' : ''}" aria-selected="${active === 'practice'}">刷題</a>
       <a href="#learn-en/vocab" role="tab" class="${active === 'vocab' ? 'on' : ''}" aria-selected="${active === 'vocab'}">單字庫</a>
     </div>`;
   }
@@ -2980,7 +3039,7 @@ const LearnUI = (() => {
       const head = typeof pageHead === 'function'
         ? pageHead('英文', '單字庫', `考古題單字 ${bank.meta?.wordCount || 0}、片語 ${bank.meta?.phraseCount || 0}。點一列看發音、構詞和出處。`)
         : '<h2>單字庫</h2>';
-      app.innerHTML = `${enSeg('vocab')}${head}
+      app.innerHTML = `${subjectChrome('en')}${enSeg('vocab')}${head}
         ${vocabProgressHtml(bank)}
         ${vocabSubnav(mode === 'phrases' ? 'phrases' : 'words')}
         <section class="card">
@@ -3037,7 +3096,7 @@ const LearnUI = (() => {
     const item = map.get(rawId);
     if (!item) {
       $('#pageTitle').textContent = '單字庫';
-      app.innerHTML = `${enSeg('vocab')}<section class="card"><h2>找不到這個項目</h2><a class="btn btn-primary" href="#learn-en/vocab">回單字庫</a></section>`;
+      app.innerHTML = `${subjectChrome('en')}${enSeg('vocab')}<section class="card"><h2>找不到這個項目</h2><a class="btn btn-primary" href="#learn-en/vocab">回單字庫</a></section>`;
       return;
     }
     const kind = item._kind === 'phrase' ? 'phrase' : 'word';
@@ -3068,9 +3127,9 @@ const LearnUI = (() => {
     };
     const src = (item.src || []).slice().sort((a, b) => (b.y - a.y) || (a.n - b.n));
     const srcHtml = src.length
-      ? `<div class="vocab-src">${src.map((s) => `<a href="#bank/q/${encodeURIComponent(s.id)}">${esc(String(s.y))} 年第 ${esc(String(s.n))} 題</a>`).join('')}</div>`
+      ? `<div class="vocab-src">${src.map((s) => `<a href="#learn-bank/q/${encodeURIComponent(s.id)}">${esc(String(s.y))} 年第 ${esc(String(s.n))} 題</a>`).join('')}</div>`
       : '<p class="muted">沒有對上的題號。</p>';
-    app.innerHTML = `${enSeg('vocab')}
+    app.innerHTML = `${subjectChrome('en')}${enSeg('vocab')}
       <section class="card vocab-card">
         <div class="vocab-card-tools">
           <label class="q-learned${learned ? ' on' : ''}" id="vocabLearned"><input type="checkbox" ${learned ? 'checked' : ''} aria-label="已學會"><span>已學會</span></label>
@@ -3159,13 +3218,13 @@ const LearnUI = (() => {
     if (affixId) {
       const aff = affixes.find((a) => a.id === affixId);
       if (!aff) {
-        app.innerHTML = `${enSeg('vocab')}<section class="card"><h2>找不到這個字根或字首</h2><a class="btn btn-primary" href="#learn-en/roots">回字根字首表</a></section>`;
+        app.innerHTML = `${subjectChrome('en')}${enSeg('vocab')}<section class="card"><h2>找不到這個字根或字首</h2><a class="btn btn-primary" href="#learn-en/roots">回字根字首表</a></section>`;
         return;
       }
       const by = vocabById(bank);
       const words = (aff.words || []).map((id) => by.get(id)).filter(Boolean);
       const kindName = { prefix: '字首', root: '字根', suffix: '字尾' }[aff.kind] || '';
-      app.innerHTML = `${enSeg('vocab')}${vocabSubnav('roots')}
+      app.innerHTML = `${subjectChrome('en')}${enSeg('vocab')}${vocabSubnav('roots')}
         <section class="card">
           <p class="kicker">${esc(kindName)}</p>
           <h2>${esc(aff.form || aff.id)}</h2>
@@ -3192,13 +3251,14 @@ const LearnUI = (() => {
     const head = typeof pageHead === 'function'
       ? pageHead('英文', '字根字首表', '只列出單字庫裡真的有拆開的字首、字根、字尾。點一列看包含它的單字。')
       : '<h2>字根字首表</h2>';
-    app.innerHTML = `${enSeg('vocab')}${head}${vocabSubnav('roots')}${blocks || '<section class="card"><p class="muted">目前沒有可拆的字根或字首。</p></section>'}`;
+    app.innerHTML = `${subjectChrome('en')}${enSeg('vocab')}${head}${vocabSubnav('roots')}${blocks || '<section class="card"><p class="muted">目前沒有可拆的字根或字首。</p></section>'}`;
   }
 
   return {
     viewLearn, viewPro, viewMock, viewZhQuizHub, viewEn, viewMath, viewTips, viewFavs,
-    viewBank, viewFormulas, viewLearned, viewSubjects, viewPath,
+    viewBank, viewFormulas, viewLearned, viewSubjects, viewPath, viewProgress,
     todaySuggestions, weaknessHtml, stopRunner, getStats, accuracyOf, loadBank,
-    bankSummary, countSeen, practicedToday, pathSnapshot
+    bankSummary, countSeen, practicedToday, pathSnapshot,
+    pathModel, subjectChrome, tipsSectionHtml, lastLearnSubject, learnSubjectHref
   };
 })();
