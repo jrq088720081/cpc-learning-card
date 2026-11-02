@@ -205,6 +205,52 @@ const LearnUI = (() => {
       return `<button type="button" class="en-word" data-speak="${esc(clean)}">${esc(tok)}</button>`;
     }).join('');
   }
+  function passageFlat(text) {
+    return String(text || '').replace(/\s+/g, ' ').trim();
+  }
+  function passageRecord(q) {
+    const data = _enQuiz || (typeof window !== 'undefined' ? window.__EN_QUIZ__ : null);
+    const id = q && q.passageId;
+    return (data && data.passages && id && data.passages[id]) || null;
+  }
+  function passageParts(q) {
+    const pack = passageRecord(q);
+    const fromText = String((q && q.passage) || '').replace(/\r\n/g, '\n').trim();
+    const split = fromText
+      ? fromText.split(/\n{2,}/).map((s) => s.replace(/\s*\n\s*/g, ' ').trim()).filter(Boolean)
+      : [];
+    if (pack && Array.isArray(pack.paragraphs) && pack.paragraphs.length) {
+      if (!fromText || passageFlat(pack.paragraphs.join(' ')) === passageFlat(fromText)) return pack.paragraphs;
+    }
+    return split;
+  }
+  function renderPassageBlock(q) {
+    if (!q || !q.passage) return '';
+    const paras = passageParts(q);
+    const body = (paras.length ? paras : [String(q.passage)]).map((p) => (
+      `<p>${q.lang === 'en' ? enWordSpans(p) : esc(p)}</p>`
+    )).join('');
+    const tools = q.lang === 'en'
+      ? `<div class="q-passage-tools"><button type="button" class="btn btn-soft btn-sm" data-en-passage="1" aria-pressed="false">朗讀全文</button></div>`
+      : '';
+    return `<div class="q-passage">${tools}${body}</div>`;
+  }
+  function renderPassageTranslation(q) {
+    if (!q || q.lang !== 'en' || !q.passage) return '';
+    const pack = passageRecord(q);
+    const zh = (pack && Array.isArray(pack.zh) && pack.zh.length)
+      ? pack.zh
+      : (Array.isArray(q.passageZh) ? q.passageZh : []);
+    if (!zh.length) return '';
+    const filled = pack && Array.isArray(pack.filled) && pack.filled.length === zh.length ? pack.filled : null;
+    const enParas = filled || passageParts(q);
+    const cloze = q.section === 'cloze' || (pack && pack.section === 'cloze');
+    const note = cloze ? '<p class="muted small passage-tr-note">中文是填入正解後的全文翻譯，段落與英文對應。</p>' : '';
+    const rows = enParas.map((en, i) => (
+      `<div class="passage-tr-row"><p class="passage-tr-en">${enWordSpans(en)}</p><p class="passage-tr-zh">${esc(zh[i] || '')}</p></div>`
+    )).join('');
+    return `<details class="passage-tr"><summary>文章翻譯</summary>${note}<div class="passage-tr-body">${rows}</div></details>`;
+  }
   function enSpeedHtml() {
     const cur = enRateKey();
     const opts = [['slow', '慢'], ['normal', '正常'], ['fast', '快']];
@@ -240,7 +286,37 @@ const LearnUI = (() => {
       b.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        $$('[data-en-passage]', root).forEach((x) => {
+          x.classList.remove('is-reading');
+          x.setAttribute('aria-pressed', 'false');
+        });
+        b.classList.add('is-hot');
+        clearTimeout(b._hot);
+        b._hot = setTimeout(() => b.classList.remove('is-hot'), 700);
         speakEn(b.getAttribute('data-speak') || '');
+      });
+    });
+    $$('[data-en-passage]', root).forEach((b) => {
+      if (b._wired) return; b._wired = true;
+      b.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const speaking = !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending));
+        if (b.classList.contains('is-reading') && speaking) {
+          if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
+          b.classList.remove('is-reading');
+          b.setAttribute('aria-pressed', 'false');
+          return;
+        }
+        const box = b.closest('.q-passage');
+        const text = box ? [...box.querySelectorAll('p')].map((p) => p.innerText || '').join(' ').replace(/\s+/g, ' ').trim() : '';
+        if (!text || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+          if (typeof toast === 'function') toast('這台裝置無法朗讀');
+          return;
+        }
+        b.classList.add('is-reading');
+        b.setAttribute('aria-pressed', 'true');
+        speakEn(text);
       });
     });
     $$('[data-en-sentence]', root).forEach((b) => {
@@ -606,8 +682,10 @@ const LearnUI = (() => {
     const explainHtml = (q.lang === 'en' && (q.translation || (q.phrases && q.phrases.length) || (q.words && q.words.length)))
       ? renderEnExplain(q)
       : formatExplainBody(explainBody, { speakEn: q.lang === 'en' });
+    const passageTr = reveal ? renderPassageTranslation(q) : '';
     const explain = reveal && (q.explain || q.answer)
       ? `<div class="q-explain card soft-card"><div class="q-tools">${learnedLabel(!!q._learned)}</div><b>詳解</b><div class="explain-body">${explainHtml}</div>
+          ${passageTr}
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
           ${sourceTagHtml(q)}
           ${reveal ? (q._formulaChipsHtml || '') : ''}
@@ -625,7 +703,7 @@ const LearnUI = (() => {
           ${learnedLabel(!!q._learned)}
           <button type="button" class="q-fav ${q._fav ? 'on' : ''}" id="btnFav" aria-pressed="${q._fav ? 'true' : 'false'}" title="我的最愛">${q._fav ? '★' : '☆'}<span class="small">${q._fav ? '已收藏' : '收藏'}</span></button>
         </div>`}
-        ${q.passage ? `<div class="q-passage">${q.lang === 'en' ? enWordSpans(q.passage) : esc(q.passage)}</div>` : ''}
+        ${renderPassageBlock(q)}
         <div class="q-stem">${stemHtml} ${q.lang === 'en' && q.stem ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(q.stem)}">🔊 整句</button>` : (q.lang === 'en' ? '' : (typeof zhSpeakBtn === 'function' ? zhSpeakBtn(plainForSpeak(q.stem), '🔊') : ''))}</div>
         ${fig}
         <div class="mc-list">${choices}</div>
