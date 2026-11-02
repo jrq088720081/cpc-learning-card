@@ -11,7 +11,13 @@
       "id": "ee",
       "label": "第二階段",
       "name": "電工原理",
-      "blurb": "這是主線。標「可同時學」的電工機械可以跟對應章一起練，不必等主線全部結束。"
+      "blurb": "這是主線。小字標「可同時學」的章，可以跟下面的電工機械一起練，兩邊進度各自計算。"
+    },
+    {
+      "id": "em",
+      "label": "可同時學",
+      "name": "電工機械",
+      "blurb": "跟對應的電工原理章一起練，不必等主線全部結束。每一章只列一次，小字是搭配範圍。"
     },
     {
       "id": "lang",
@@ -61,12 +67,12 @@
     { "id": "ee-14", "phase": "ee", "order": 14, "name": "三相電路", "subject": "ee", "role": "main" },
     { "id": "ee-other", "phase": "ee", "order": 99, "name": "其他", "subject": "ee", "role": "other", "blurb": "題幹對不上上面章節的電工原理題，先收在這裡。" },
 
-    { "id": "em-dc", "phase": "ee", "order": 1, "name": "直流發電機＋直流電動機", "subject": "em", "role": "parallel", "pairWith": ["ee-2", "ee-3", "ee-4", "ee-5", "ee-6", "ee-7"] },
-    { "id": "em-xf", "phase": "ee", "order": 2, "name": "變壓器原理", "subject": "em", "role": "parallel", "pairWith": ["ee-9"] },
-    { "id": "em-xf-char", "phase": "ee", "order": 3, "name": "變壓器特性（效率、調整率）", "subject": "em", "role": "parallel", "pairWith": ["ee-11", "ee-12"] },
-    { "id": "em-ind", "phase": "ee", "order": 4, "name": "感應電動機、同步機、三相變壓器接線", "subject": "em", "role": "parallel", "pairWith": ["ee-14"] },
-    { "id": "em-special", "phase": "ee", "order": 5, "name": "特殊電機", "subject": "em", "role": "parallel", "pairAfter": "ee-14" },
-    { "id": "em-other", "phase": "ee", "order": 99, "name": "其他", "subject": "em", "role": "other", "blurb": "題幹對不上上面章節的電工機械題，先收在這裡。" },
+    { "id": "em-dc", "phase": "em", "order": 1, "name": "直流發電機＋直流電動機", "subject": "em", "role": "parallel", "hint": "直流機", "pairWith": ["ee-2", "ee-3", "ee-4", "ee-5", "ee-6", "ee-7"] },
+    { "id": "em-xf", "phase": "em", "order": 2, "name": "變壓器原理", "subject": "em", "role": "parallel", "hint": "變壓器原理", "pairWith": ["ee-9"] },
+    { "id": "em-xf-char", "phase": "em", "order": 3, "name": "變壓器特性（效率、調整率）", "subject": "em", "role": "parallel", "hint": "變壓器特性", "pairWith": ["ee-11", "ee-12"] },
+    { "id": "em-ind", "phase": "em", "order": 4, "name": "感應電動機、同步機、三相變壓器接線", "subject": "em", "role": "parallel", "hint": "感應機、同步機、三相變壓器", "pairWith": ["ee-14"] },
+    { "id": "em-special", "phase": "em", "order": 5, "name": "特殊電機", "subject": "em", "role": "parallel", "hint": "特殊電機", "pairAfter": "ee-14" },
+    { "id": "em-other", "phase": "em", "order": 99, "name": "其他", "subject": "em", "role": "other", "blurb": "題幹對不上上面章節的電工機械題，先收在這裡。" },
 
     { "id": "zh-phon", "phase": "lang", "order": 1, "name": "字音字形", "subject": "zh", "role": "side" },
     { "id": "zh-idiom", "phase": "lang", "order": 2, "name": "成語", "subject": "zh", "role": "side" },
