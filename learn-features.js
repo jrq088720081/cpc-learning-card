@@ -2420,17 +2420,18 @@ const LearnUI = (() => {
     const head = opts.embedded ? '' : (typeof pageHead === 'function'
       ? pageHead('成就進度', '學習科目', '百分比是這一科已勾「已學會」的題數，除以題庫裡實際有的題。星號收藏和錯題本另外計算。')
       : '<h2>學習科目</h2>');
+    const SUBJECT_GROUP = { zh: '共同科目', en: '共同科目', ee: '專業科目', em: '專業科目', math: '基礎能力' };
     const cards = rows.map(([id, name]) => {
       const s = stats[id];
       const pct = learnedPct(s.learned, s.total);
       return `<article class="card subject-progress tone-${esc(id)}">
         <div class="subject-progress-top">
           <div>
-            <p class="kicker">${esc(name)}</p>
+            <p class="kicker">${esc(SUBJECT_GROUP[id] || '學習科目')}</p>
             <h3>${esc(name)}</h3>
             <p class="muted small learned-count">已學會 ${s.learned} / ${s.total} 題</p>
           </div>
-          <div class="progress-pct" data-subject="${esc(id)}">${esc(pct.text)}%</div>
+          <div class="progress-pct" data-subject="${esc(id)}">${esc(pct.text)}<span class="pct-unit">%</span></div>
         </div>
         <div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(pct.width)}" aria-label="${esc(name)} ${esc(pct.text)}%"><i class="ok" style="--w:${pct.width}%"></i></div>
         <div class="btn-row">
@@ -2447,7 +2448,7 @@ const LearnUI = (() => {
             <h3>已學會 ${learnedTotal} 題</h3>
             <p class="muted small">題庫共 ${bankTotal} 題。自己勾了才算進百分比。</p>
           </div>
-          <div class="progress-pct" id="learnedAllPct">${esc(allPct.text)}%</div>
+          <div class="progress-pct" id="learnedAllPct">${esc(allPct.text)}<span class="pct-unit">%</span></div>
         </div>
         <div class="bar bar-lg"><i class="ok" style="--w:${allPct.width}%"></i></div>
       </section>
@@ -3051,7 +3052,7 @@ const LearnUI = (() => {
           <h3>已學會 ${p.learned} / ${p.total}</h3>
           <p class="muted small">單字與片語都算。勾選會記在這台裝置，並跟著雲端備份走。</p>
         </div>
-        <div class="progress-pct" id="vocabPct">${esc(p.pct.text)}%</div>
+        <div class="progress-pct" id="vocabPct">${esc(p.pct.text)}<span class="pct-unit">%</span></div>
       </div>
       <div class="bar bar-lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(p.pct.width)}" aria-label="單字庫進度 ${esc(p.pct.text)}%"><i class="ok" style="--w:${p.pct.width}%"></i></div>
     </section>`;

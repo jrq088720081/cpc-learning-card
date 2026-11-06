@@ -1331,7 +1331,7 @@ async function viewHome(app) {
           <h3>先建立每天都做得到的節奏</h3>
           <p class="muted small">首次完成 ${seenAll} / ${bankAll} 題（本機作答過的題，含已寫進錯題本的題）。四科的今日目標都用設定裡的 ${goal} 題。</p>
         </div>
-        <div class="progress-pct">${pctAll}%</div>
+        <div class="progress-pct">${pctAll}<span class="pct-unit">%</span></div>
       </div>
       <div class="bar bar-lg"><i class="ok" style="--w:${pctAll}%"></i></div>
     </section>
