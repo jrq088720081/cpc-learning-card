@@ -616,26 +616,22 @@ button.stat.stat-link:active { transform: scale(.97); }
   font-size: 1.08rem; line-height: 1.8; margin: 0 0 14px; padding: 14px 16px 12px;
   border-radius: 12px; background: var(--soft, rgba(0,0,0,.04)); color: var(--text);
 }
-.q-passage-tools { display: flex; justify-content: flex-end; margin: 0 0 8px; }
-.q-passage-tools .btn { width: auto; min-height: 40px; }
-.q-passage p { margin: 0 0 0.95em; line-height: 1.8; overflow-wrap: break-word; }
-.q-passage p:last-child { margin-bottom: 0; }
-.passage-tr { margin-top: 12px; padding-top: 4px; border-top: 1px solid var(--line); }
-.passage-tr > summary {
-  cursor: pointer; font-weight: 800; color: var(--primary);
-  padding: 8px 0; list-style: none;
+.q-para { margin: 0 0 1.15em; }
+.q-para:last-child { margin-bottom: 0; }
+.q-para-tools { display: flex; justify-content: flex-end; margin: 0 0 4px; }
+.q-para-tools .btn { width: auto; min-height: 34px; padding: 4px 12px; font-size: .82rem; }
+.q-para-tools .btn.is-reading { background: var(--primary); color: var(--on-primary); }
+.q-para-en { margin: 0; line-height: 1.8; overflow-wrap: break-word; }
+.q-para-zh {
+  margin: 0.4em 0 0; line-height: 1.8; font-size: 0.95rem;
+  padding-left: 0.7em;
+  border-left: 2px solid color-mix(in srgb, var(--primary) 55%, var(--line));
+  color: color-mix(in srgb, var(--text) 88%, var(--primary));
 }
-.passage-tr > summary::-webkit-details-marker { display: none; }
-.passage-tr > summary::before { content: '▸ '; }
-.passage-tr[open] > summary::before { content: '▾ '; }
-.passage-tr-note { margin: 0 0 8px; }
-.passage-tr-row { margin: 0 0 14px; }
-.passage-tr-row:last-child { margin-bottom: 0; }
-.passage-tr-en { margin: 0 0 4px; line-height: 1.8; font-size: 1.02rem; }
-.passage-tr-zh { margin: 0; line-height: 1.8; }
 @media (max-width: 520px) {
   .q-passage { font-size: 1.06rem; line-height: 1.8; padding: 12px 12px 10px; }
-  .q-passage p, .passage-tr-en, .passage-tr-zh { line-height: 1.8; }
+  .q-para-en, .q-para-zh { line-height: 1.8; }
+  .q-para-tools .btn { min-height: 36px; }
 }
 .q-card .q-stem { font-size:1.05rem; line-height:1.55; margin-bottom:12px; }
 .q-fig { margin:10px 0 14px; text-align:center; }
