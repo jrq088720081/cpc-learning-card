@@ -224,32 +224,49 @@ const LearnUI = (() => {
     }
     return split;
   }
-  function renderPassageBlock(q) {
+  function passageZhList(q) {
+    const pack = passageRecord(q);
+    if (pack && Array.isArray(pack.zh) && pack.zh.length) return pack.zh;
+    if (q && Array.isArray(q.passageZh)) return q.passageZh;
+    return [];
+  }
+  function renderPassageBlock(q, reveal) {
     if (!q || !q.passage) return '';
     const paras = passageParts(q);
-    const body = (paras.length ? paras : [String(q.passage)]).map((p) => (
-      `<p>${q.lang === 'en' ? enWordSpans(p) : esc(p)}</p>`
-    )).join('');
-    const tools = q.lang === 'en'
-      ? `<div class="q-passage-tools"><button type="button" class="btn btn-soft btn-sm" data-en-passage="1" aria-pressed="false">朗讀全文</button></div>`
-      : '';
-    return `<div class="q-passage">${tools}${body}</div>`;
+    const list = paras.length ? paras : [String(q.passage)];
+    const zh = passageZhList(q);
+    const showZh = !!(reveal && q.lang === 'en' && zh.length);
+    const blocks = list.map((p, i) => {
+      const en = q.lang === 'en' ? enWordSpans(p) : esc(p);
+      const read = q.lang === 'en'
+        ? `<div class="q-para-tools"><button type="button" class="btn btn-soft btn-sm" data-en-para="${i}" data-speak="${esc(p)}" aria-pressed="false">朗讀本段</button></div>`
+        : '';
+      const zhHtml = showZh && zh[i] ? `<p class="q-para-zh">${esc(zh[i])}</p>` : '';
+      return `<div class="q-para">${read}<p class="q-para-en">${en}</p>${zhHtml}</div>`;
+    }).join('');
+    return `<div class="q-passage">${blocks}</div>`;
   }
-  function renderPassageTranslation(q) {
-    if (!q || q.lang !== 'en' || !q.passage) return '';
-    const pack = passageRecord(q);
-    const zh = (pack && Array.isArray(pack.zh) && pack.zh.length)
-      ? pack.zh
-      : (Array.isArray(q.passageZh) ? q.passageZh : []);
-    if (!zh.length) return '';
-    const filled = pack && Array.isArray(pack.filled) && pack.filled.length === zh.length ? pack.filled : null;
-    const enParas = filled || passageParts(q);
-    const cloze = q.section === 'cloze' || (pack && pack.section === 'cloze');
-    const note = cloze ? '<p class="muted small passage-tr-note">中文是填入正解後的全文翻譯，段落與英文對應。</p>' : '';
-    const rows = enParas.map((en, i) => (
-      `<div class="passage-tr-row"><p class="passage-tr-en">${enWordSpans(en)}</p><p class="passage-tr-zh">${esc(zh[i] || '')}</p></div>`
-    )).join('');
-    return `<details class="passage-tr"><summary>文章翻譯</summary>${note}<div class="passage-tr-body">${rows}</div></details>`;
+  function setParaBtn(b, on) {
+    if (!b) return;
+    b.classList.toggle('is-reading', !!on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.textContent = on ? '停止朗讀' : '朗讀本段';
+  }
+  function resetParaBtns(root, except) {
+    $$('[data-en-para]', root).forEach((x) => { if (x !== except) setParaBtn(x, false); });
+  }
+  function armParaWatch(b) {
+    clearTimeout(b._watch);
+    let ticks = 0;
+    const step = () => {
+      if (!b.isConnected || !b.classList.contains('is-reading')) return;
+      ticks += 1;
+      let busy = false;
+      try { busy = !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)); } catch (e) { busy = false; }
+      if (ticks > 2 && !busy) { setParaBtn(b, false); return; }
+      b._watch = setTimeout(step, 350);
+    };
+    b._watch = setTimeout(step, 350);
   }
   function enSpeedHtml() {
     const cur = enRateKey();
@@ -286,37 +303,32 @@ const LearnUI = (() => {
       b.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        $$('[data-en-passage]', root).forEach((x) => {
-          x.classList.remove('is-reading');
-          x.setAttribute('aria-pressed', 'false');
-        });
+        resetParaBtns(root);
         b.classList.add('is-hot');
         clearTimeout(b._hot);
         b._hot = setTimeout(() => b.classList.remove('is-hot'), 700);
         speakEn(b.getAttribute('data-speak') || '');
       });
     });
-    $$('[data-en-passage]', root).forEach((b) => {
+    $$('[data-en-para]', root).forEach((b) => {
       if (b._wired) return; b._wired = true;
       b.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const speaking = !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending));
-        if (b.classList.contains('is-reading') && speaking) {
+        if (b.classList.contains('is-reading')) {
           if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
-          b.classList.remove('is-reading');
-          b.setAttribute('aria-pressed', 'false');
+          setParaBtn(b, false);
           return;
         }
-        const box = b.closest('.q-passage');
-        const text = box ? [...box.querySelectorAll('p')].map((p) => p.innerText || '').join(' ').replace(/\s+/g, ' ').trim() : '';
-        if (!text || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+        const text = b.getAttribute('data-speak') || '';
+        if (!text.trim() || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
           if (typeof toast === 'function') toast('這台裝置無法朗讀');
           return;
         }
-        b.classList.add('is-reading');
-        b.setAttribute('aria-pressed', 'true');
+        resetParaBtns(root);
+        setParaBtn(b, true);
         speakEn(text);
+        armParaWatch(b);
       });
     });
     $$('[data-en-sentence]', root).forEach((b) => {
@@ -324,6 +336,7 @@ const LearnUI = (() => {
       b.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        resetParaBtns(root);
         speakEn(b.getAttribute('data-en-sentence') || '');
       });
     });
@@ -333,6 +346,7 @@ const LearnUI = (() => {
         e.preventDefault();
         e.stopPropagation();
         if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
+        resetParaBtns(root);
         const rate = b.getAttribute('data-en-rate') || 'normal';
         if (typeof settings !== 'undefined' && settings) {
           settings.enTtsRate = EN_RATES[rate] ? rate : 'normal';
@@ -682,10 +696,8 @@ const LearnUI = (() => {
     const explainHtml = (q.lang === 'en' && (q.translation || (q.phrases && q.phrases.length) || (q.words && q.words.length)))
       ? renderEnExplain(q)
       : formatExplainBody(explainBody, { speakEn: q.lang === 'en' });
-    const passageTr = reveal ? renderPassageTranslation(q) : '';
     const explain = reveal && (q.explain || q.answer)
       ? `<div class="q-explain card soft-card"><div class="q-tools">${learnedLabel(!!q._learned)}</div><b>詳解</b><div class="explain-body">${explainHtml}</div>
-          ${passageTr}
           ${q.answer ? `<p class="muted small">答案：${esc(q.answer)}</p>` : '<p class="muted small">此題題庫尚無答案，請自行核對講義。</p>'}
           ${sourceTagHtml(q)}
           ${reveal ? (q._formulaChipsHtml || '') : ''}
@@ -703,7 +715,7 @@ const LearnUI = (() => {
           ${learnedLabel(!!q._learned)}
           <button type="button" class="q-fav ${q._fav ? 'on' : ''}" id="btnFav" aria-pressed="${q._fav ? 'true' : 'false'}" title="我的最愛">${q._fav ? '★' : '☆'}<span class="small">${q._fav ? '已收藏' : '收藏'}</span></button>
         </div>`}
-        ${renderPassageBlock(q)}
+        ${renderPassageBlock(q, reveal)}
         <div class="q-stem">${stemHtml} ${q.lang === 'en' && q.stem ? `<button type="button" class="btn btn-soft btn-sm" data-en-sentence="${esc(q.stem)}">🔊 整句</button>` : (q.lang === 'en' ? '' : (typeof zhSpeakBtn === 'function' ? zhSpeakBtn(plainForSpeak(q.stem), '🔊') : ''))}</div>
         ${fig}
         <div class="mc-list">${choices}</div>
@@ -821,6 +833,7 @@ const LearnUI = (() => {
   function stopRunner() {
     if (_runner && _runner.timer) clearInterval(_runner.timer);
     _runner = null;
+    if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
   }
 
   async function runQuiz(app, {
@@ -864,6 +877,7 @@ const LearnUI = (() => {
     async function finish(auto) {
       if (state.finished) return;
       state.finished = true;
+      if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
       if (state.timer) clearInterval(state.timer);
       let correct = 0, graded = 0;
       state.qs.forEach((q) => {
