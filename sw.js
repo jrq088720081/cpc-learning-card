@@ -1,5 +1,5 @@
 // 錯題本 service worker：讓 App 不用網路也能打開
-const CACHE = 'mistake-notebook-v37';
+const CACHE = 'mistake-notebook-v38';
 const ASSETS = [
   './',
   './index.html',

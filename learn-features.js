@@ -273,12 +273,21 @@ const LearnUI = (() => {
     const opts = [['slow', '慢'], ['normal', '正常'], ['fast', '快']];
     return `<div class="en-speed" role="group" aria-label="語速"><span class="lbl">語速</span>${opts.map(([k, n]) => `<button type="button" class="en-rate ${cur === k ? 'on' : ''}" data-en-rate="${k}" aria-pressed="${cur === k ? 'true' : 'false'}">${n}</button>`).join('')}</div>`;
   }
+  function glossKey(s) {
+    return String(s || '')
+      .replace(/^[A-D][.、．)\]]\s*/, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase()
+      .replace(/[.。!！?？]+$/g, '');
+  }
   function enSpeakList(items) {
     return (items || []).map((it) => {
       const en = (it && it.en) || '';
       const zh = (it && it.zh) || '';
       if (!en) return '';
-      return `<li><button type="button" class="en-speak-item" data-speak="${esc(en)}"><b>${esc(en)}</b><span>${esc(zh)}</span></button></li>`;
+      const long = en.trim().split(/\s+/).length >= 7;
+      return `<li><button type="button" class="en-speak-item${long ? ' is-long' : ''}" data-speak="${esc(en)}"><b>${esc(en)}</b><span>${esc(zh)}</span></button></li>`;
     }).filter(Boolean).join('');
   }
   function renderEnGloss(q) {
@@ -286,12 +295,23 @@ const LearnUI = (() => {
     const tr = q.translation
       ? `<div class="en-block"><h4>整句中譯</h4><p>${esc(q.translation)}</p></div>`
       : '';
-    const phrases = enSpeakList(q.phrases);
+    const choiceKeys = new Set((q.choices || []).map(glossKey));
+    const phraseItems = [];
+    const optionItems = [];
+    (q.phrases || []).forEach((it) => {
+      const en = (it && it.en) || '';
+      if (!en) return;
+      if (choiceKeys.has(glossKey(en))) optionItems.push(it);
+      else phraseItems.push(it);
+    });
+    const phrases = enSpeakList(phraseItems);
+    const options = enSpeakList(optionItems);
     const words = enSpeakList(q.words);
     const ph = phrases ? `<div class="en-block"><h4>片語</h4><ul class="en-speak-list">${phrases}</ul></div>` : '';
+    const opt = options ? `<div class="en-block"><h4>選項對照</h4><ul class="en-speak-list en-speak-options">${options}</ul></div>` : '';
     const wd = words ? `<div class="en-block"><h4>單字</h4><ul class="en-speak-list">${words}</ul></div>` : '';
     const note = q.explain ? `<div class="en-block"><h4>說明</h4>${formatExplainBody(q.explain, { speakEn: true })}</div>` : '';
-    return `${tr}${ph}${wd}${note}`;
+    return `${tr}${ph}${opt}${wd}${note}`;
   }
   function renderEnExplain(q) {
     return `${enSpeedHtml()}${renderEnGloss(q)}`;
