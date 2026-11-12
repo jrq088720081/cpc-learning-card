@@ -537,6 +537,9 @@ button.stat.stat-link:active { transform: scale(.97); }
 }
 
 .tag-est { background: rgba(180,120,40,.16); color: #8a5a10; }
+@media (prefers-color-scheme: dark) {
+  .tag-est { color: #f0cf96; background: rgba(233, 190, 114, .18); }
+}
 .exam-disc { margin: 6px 0; line-height: 1.45; }
 .hist-box { display: flex; flex-direction: column; gap: 8px; }
 .hist-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -961,7 +964,8 @@ body.has-page-hero { padding-top: env(safe-area-inset-top); }
     "title edit"
     "main main"
     "note jobs"
-    "nodes nodes";
+    "nodes nodes"
+    "form form";
   align-items: center;
   column-gap: 16px;
   row-gap: 2px;
@@ -971,15 +975,19 @@ body.has-page-hero { padding-top: env(safe-area-inset-top); }
   background: color-mix(in srgb, var(--primary-soft) 78%, var(--card));
   border: 1.5px solid color-mix(in srgb, var(--primary) 42%, var(--line));
   box-shadow: var(--shadow);
+  min-width: 0;
+  max-width: 100%;
 }
 .exam-strip-title {
   grid-area: title; margin: 0;
   font-size: .92rem; font-weight: 800; line-height: 1.35; color: var(--primary);
+  min-width: 0; overflow-wrap: anywhere;
 }
 .exam-strip-edit {
   grid-area: edit; justify-self: end;
   color: var(--primary); font-weight: 800; font-size: 1rem;
   text-decoration: none; white-space: nowrap;
+  background: none; border: 0; padding: 6px 2px; min-height: 40px; cursor: pointer;
 }
 .exam-strip-main {
   grid-area: main;
@@ -988,11 +996,75 @@ body.has-page-hero { padding-top: env(safe-area-inset-top); }
   color: var(--primary); font-size: 1.62rem; font-weight: 800;
   line-height: 1.15; letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
+  min-width: 0;
 }
 .exam-strip-date, .exam-strip-cd { white-space: nowrap; }
 .exam-strip-note, .exam-strip-nodes {
   margin: 0; color: var(--muted); font-size: .8rem; font-weight: 500; line-height: 1.4;
+  min-width: 0; overflow-wrap: anywhere;
 }
+.exam-quick { grid-area: form; min-width: 0; max-width: 100%; margin-top: 8px; }
+.exam-quick input, .exam-quick .hint { min-width: 0; max-width: 100%; }
+.exam-quick-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.exam-quick-actions .btn { width: auto; }
+
+.quote-card {
+  min-width: 0; max-width: 100%;
+  margin: 0 0 14px; padding: 12px 8px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, var(--primary));
+  box-shadow: var(--shadow);
+}
+.quote-top {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center; gap: 2px; min-width: 0;
+}
+.quote-nav {
+  width: 40px; height: 40px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--soft); color: var(--primary);
+  font-size: 1.45rem; line-height: 1; padding: 0; cursor: pointer;
+}
+.quote-body { position: relative; min-width: 0; }
+.quote-main { min-width: 0; min-height: 48px; padding: 2px 30px 2px 6px; cursor: pointer; border-radius: 12px; }
+.quote-main:focus-visible, .quote-nav:focus-visible, .quote-chevron:focus-visible,
+.quote-star:focus-visible, .quote-speak:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.quote-text, .quote-zh, .quote-by, .quote-more, .quote-warn, .quote-empty {
+  overflow-wrap: anywhere; word-break: break-word; min-width: 0; max-width: 100%;
+}
+.quote-text {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 1.08rem; line-height: 1.55; margin: 0; letter-spacing: .02em;
+}
+.quote-zh { margin: 4px 0 0; font-size: .95rem; }
+.quote-by { margin: 4px 0 0; color: var(--muted); font-size: .86rem; }
+.quote-chevron {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 28px; border: 0; background: transparent; color: var(--muted);
+  display: grid; place-items: center; padding: 0; cursor: pointer;
+}
+.quote-chevron svg { width: 18px; height: 18px; }
+.quote-chevron.is-open svg { transform: rotate(180deg); }
+.quote-more {
+  margin: 8px 4px 0; padding-top: 8px; border-top: 1px solid var(--line);
+  font-size: .92rem; min-width: 0;
+}
+.quote-more p { margin: 4px 0; }
+.quote-k { color: var(--muted); font-weight: 800; margin-right: 6px; }
+.quote-note { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.quote-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.quote-star, .quote-speak { width: auto; min-height: 40px; cursor: pointer; }
+.quote-star {
+  min-width: 40px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); color: var(--accent); font-size: 1.15rem;
+}
+.quote-star.on { background: color-mix(in srgb, var(--accent) 18%, var(--card)); }
+.quote-speak {
+  border: 0; border-radius: 999px; padding: 6px 14px;
+  background: var(--primary-soft); color: var(--primary); font-weight: 800;
+}
+.quote-speak.is-reading { background: var(--primary); color: var(--on-primary); }
 .exam-strip-note { grid-area: note; }
 .exam-strip-nodes { grid-area: nodes; margin-top: 4px; }
 .exam-strip-jobs {
@@ -1067,7 +1139,8 @@ a.formula-q:hover { color: var(--primary); }
       "main main"
       "note note"
       "nodes nodes"
-      "jobs jobs";
+      "jobs jobs"
+      "form form";
   }
   .exam-strip-main { font-size: 1.48rem; }
   .exam-strip-jobs { justify-self: start; margin-top: 8px; }
@@ -1548,7 +1621,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible, .btn:focus-visible
 /* 窄螢幕：長字串、公式、圖、表留在自己的欄裡，不把整頁撐出橫向捲軸 */
 .page { min-width: 0; }
 .card, .q-card, .q-explain, .explain-body, .en-block, .q-passage, .q-para,
-.q-stem, .mc-choice, .explain-line, .math-inline, .formula-card, .vocab-card {
+.q-stem, .mc-choice, .explain-line, .math-inline, .formula-card, .vocab-card,
+.quote-card, .quote-top, .quote-body, .quote-main, .quote-text, .quote-zh, .quote-by, .quote-more, .exam-strip, .exam-quick {
   min-width: 0;
   max-width: 100%;
 }
