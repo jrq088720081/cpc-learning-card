@@ -155,25 +155,70 @@ function examNodeLine(ex) {
   if (ok(ex.certDeadline)) bits.push(`證書截止 ${prettyDate(ex.certDeadline)}`);
   return bits.slice(0, 4);
 }
-/** 今日學習頂部考試時程橫條。未設定筆試日維持原本提示。 */
+function examQuickFields(ex, open) {
+  return `<form class="exam-quick" id="examQuickForm" ${open ? '' : 'hidden'}>
+    <label class="field"><span class="field-title">考試名稱</span>
+      <input type="text" id="examQuickTitle" maxlength="40" value="${esc(ex.title || '')}" autocomplete="off" required></label>
+    <label class="field"><span class="field-title">筆試日期</span>
+      <input type="date" id="examQuickDate" value="${esc(ex.writtenDate || '')}" required></label>
+    <p class="hint">這裡改名稱和筆試日。推估的日期會標「推估」。</p>
+    <div class="exam-quick-actions">
+      <button type="submit" class="btn btn-primary btn-sm">儲存</button>
+      <a class="btn btn-soft btn-sm" href="#settings">完整時程</a>
+    </div>
+  </form>`;
+}
+/** 今日學習頂部考試時程橫條。未設定筆試日顯示「尚未設定考試日期」，可就地改名稱與日期。 */
 function examHomeHtml(ex, t = today()) {
-  if (!ex || !ex.writtenDate) {
-    return `<div class="alert alert-warn" role="status"><div><b>尚未設定考試日期</b><br><span class="small">倒數與每日節奏會用設定裡的筆試日。目前沒有有效日期。</span></div><a class="btn btn-soft btn-sm" href="#settings">設定考試日期</a></div>`;
-  }
+  ex = ex || {};
+  const noDate = !ex.writtenDate;
   const title = ex.title || '中油僱員甄試';
+  if (noDate) {
+    return `<section class="exam-strip" aria-label="考試倒數">
+      <p class="exam-strip-title">考試倒數</p>
+      <button type="button" class="exam-strip-edit" id="examQuickToggle" aria-expanded="true" aria-controls="examQuickForm">收合</button>
+      <p class="exam-strip-main">尚未設定考試日期</p>
+      ${examQuickFields(ex, true)}
+    </section>`;
+  }
   const noteParts = [];
-  if (ex.status !== 'official') noteParts.push('可能為歷屆推估');
+  if (ex.status === 'manual') noteParts.push('手動設定');
   noteParts.push(examDisclaimerShort(ex));
   const nodes = examNodeLine(ex);
   const jobs = examJobsLink(ex);
+  const est = ex.status === 'estimate' ? '<span class="tag tag-est">推估</span>' : '';
   return `<section class="exam-strip" aria-label="考試倒數">
     <p class="exam-strip-title">考試倒數 · ${esc(title)}</p>
-    <a class="exam-strip-edit" href="#settings">編輯時程</a>
-    <p class="exam-strip-main"><span class="exam-strip-date">${esc(prettyDate(ex.writtenDate))}</span><span class="exam-strip-cd">${esc(countdownText(ex.writtenDate, t))}</span></p>
+    <button type="button" class="exam-strip-edit" id="examQuickToggle" aria-expanded="false" aria-controls="examQuickForm">修改</button>
+    <p class="exam-strip-main"><span class="exam-strip-date">${esc(prettyDate(ex.writtenDate))}</span>${est}<span class="exam-strip-cd">${esc(countdownText(ex.writtenDate, t))}</span></p>
     <p class="exam-strip-note">${esc(noteParts.join('　·　'))}</p>
     ${nodes.length ? `<p class="exam-strip-nodes">${esc(nodes.join('　·　'))}</p>` : ''}
     <a class="exam-strip-jobs" href="${esc(jobs.url)}" target="_blank" rel="noopener">${esc(jobs.name)}</a>
+    ${examQuickFields(ex, false)}
   </section>`;
+}
+function bindExamQuick() {
+  const btn = $('#examQuickToggle');
+  const form = $('#examQuickForm');
+  if (!btn || !form) return;
+  const hasDate = !!(settings.examSchedule && settings.examSchedule.writtenDate);
+  btn.onclick = () => {
+    const open = form.hidden;
+    form.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.textContent = open ? '收合' : (hasDate ? '修改' : '設定');
+  };
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const title = $('#examQuickTitle').value.trim().slice(0, 40);
+    const writtenDate = $('#examQuickDate').value;
+    if (!title) { toast('請填考試名稱'); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(writtenDate)) { toast('請選擇考試日期'); return; }
+    settings.examSchedule = normalizeExamSchedule(Object.assign({}, settings.examSchedule, { title, writtenDate }));
+    await saveSettings('examSchedule');
+    toast('已更新考試名稱與日期');
+    render();
+  };
 }
 
 
@@ -433,7 +478,12 @@ async function loadSettings() {
     pathDone: normalizePathDone(await DB.meta('pathDone', {})),
     dailyGoal: Math.max(1, Math.min(50, Number(await DB.meta('dailyGoal', 10)) || 10)),
     examSchedule: normalizeExamSchedule(await DB.meta('examSchedule', null)),
-    enTtsRate: await DB.meta('enTtsRate', 'normal') || 'normal'
+    enTtsRate: await DB.meta('enTtsRate', 'normal') || 'normal',
+    quoteFavs: QuoteDeck.normalizeQuoteFavs(await DB.meta('quoteFavs', {})),
+    quoteState: QuoteDeck.normalizeQuoteState(await DB.meta('quoteState', null)),
+    quoteIntervalHours: QuoteDeck.normalizeQuoteHours(await DB.meta('quoteIntervalHours', 24)),
+    quoteAutoplay: QuoteDeck.normalizeQuoteAutoplay(await DB.meta('quoteAutoplay', false)),
+    customQuotes: QuoteDeck.normalizeCustomQuotes(await DB.meta('customQuotes', []))
   };
   DriveBackup.normalizeSchedule(settings.driveBackup);
   const scheduleMigrated = !!settings.driveBackup._scheduleMigrated;
@@ -931,6 +981,12 @@ async function render() {
   releaseUrls();
   const early = parseHash();
   if (redirectLegacy(early.view, early.parts)) return;
+  if ((early.view || 'home') !== 'home') {
+    quoteBrowse = 0;
+    quoteExpanded = false;
+    quoteFocus = '';
+  }
+  stopQuoteDeck();
   try {
     if (!isActiveQuiz(early.view, early.parts) && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
@@ -1257,6 +1313,292 @@ async function viewLearnSubject(app, subject) {
 }
 
 
+let quoteCatalog = null;
+let quoteCatalogTried = false;
+let quoteCatalogError = '';
+let quotePoolNow = [];
+let quoteBrowse = 0;
+let quoteSchedId = '';
+let quoteExpanded = false;
+let quoteFocus = '';
+let quoteAutoTimer = 0;
+let quoteSpeaking = false;
+let quoteSpeakWatch = 0;
+
+async function loadQuoteCatalog() {
+  if (quoteCatalogTried) return quoteCatalog;
+  quoteCatalogTried = true;
+  try {
+    const res = await fetch('./data/quotes.json');
+    if (!res.ok) throw new Error('讀不到語錄（' + res.status + '）');
+    const data = await res.json();
+    if (!data || !Array.isArray(data.quotes) || !data.quotes.length) throw new Error('語錄檔是空的');
+    quoteCatalog = data.quotes;
+    quoteCatalogError = '';
+  } catch (err) {
+    quoteCatalog = null;
+    quoteCatalogError = (err && err.message) || '讀不到語錄';
+  }
+  return quoteCatalog;
+}
+function quoteStateSame(a, b) {
+  return QuoteDeck.sameQuoteState(a, b);
+}
+function displayedQuote() {
+  if (!quotePoolNow.length) return null;
+  return QuoteDeck.displayQuote(quotePoolNow, settings.quoteState, quoteBrowse);
+}
+async function syncQuoteForHome() {
+  await loadQuoteCatalog();
+  const pool = QuoteDeck.rotationPool(quoteCatalog || [], settings.customQuotes);
+  quotePoolNow = pool;
+  if (quoteCatalog && pool.length) {
+    const next = QuoteDeck.syncQuoteState(settings.quoteState, pool, settings.quoteIntervalHours, Date.now());
+    if (!quoteStateSame(settings.quoteState, next)) {
+      settings.quoteState = next;
+      await saveSettings('quoteState');
+    }
+    if (quoteSchedId && next.id !== quoteSchedId) quoteBrowse = 0;
+    quoteSchedId = next.id || '';
+  }
+  quoteExpanded = false;
+}
+function quoteSpeakRate() {
+  return ({ slow: 0.72, normal: 1, fast: 1.22 })[settings.enTtsRate] || 1;
+}
+function stopQuoteSpeech() {
+  if (quoteSpeakWatch) { clearTimeout(quoteSpeakWatch); quoteSpeakWatch = 0; }
+  quoteSpeaking = false;
+  if (typeof stopEnglishSpeak === 'function') stopEnglishSpeak();
+  const b = $('#quoteSpeak');
+  if (b) {
+    b.classList.remove('is-reading');
+    b.setAttribute('aria-pressed', 'false');
+    b.textContent = '朗讀英文';
+  }
+}
+function armQuoteSpeakWatch() {
+  if (quoteSpeakWatch) clearTimeout(quoteSpeakWatch);
+  let ticks = 0;
+  const step = () => {
+    if (!quoteSpeaking) return;
+    ticks += 1;
+    let busy = false;
+    try { busy = !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)); } catch (e) { busy = false; }
+    if (ticks > 2 && !busy) {
+      quoteSpeaking = false;
+      const b = $('#quoteSpeak');
+      if (b) {
+        b.classList.remove('is-reading');
+        b.setAttribute('aria-pressed', 'false');
+        b.textContent = '朗讀英文';
+      }
+      return;
+    }
+    quoteSpeakWatch = setTimeout(step, 350);
+  };
+  quoteSpeakWatch = setTimeout(step, 350);
+}
+function stopQuoteDeck() {
+  if (quoteAutoTimer) { clearInterval(quoteAutoTimer); quoteAutoTimer = 0; }
+  stopQuoteSpeech();
+}
+function quoteReducedMotion() {
+  return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function armQuoteAutoplay() {
+  if (quoteAutoTimer) { clearInterval(quoteAutoTimer); quoteAutoTimer = 0; }
+  const onHome = (parseHash().view || 'home') === 'home';
+  if (!onHome || !quotePoolNow.length) return;
+  if (!QuoteDeck.autoplayAllowed(settings.quoteAutoplay, quoteReducedMotion(), quoteExpanded)) return;
+  quoteAutoTimer = setInterval(() => {
+    if ((parseHash().view || 'home') !== 'home') { stopQuoteDeck(); return; }
+    if (!QuoteDeck.autoplayAllowed(settings.quoteAutoplay, quoteReducedMotion(), quoteExpanded)) return;
+    quoteFocus = '';
+    quoteBrowse += 1;
+    quoteExpanded = false;
+    stopQuoteSpeech();
+    fillQuoteCard($('#quoteCard'));
+  }, QuoteDeck.QUOTE_AUTOPLAY_MS);
+}
+function quoteCardInnerHtml(q) {
+  const warn = quoteCatalogError ? `<p class="quote-warn muted small">${quotePoolNow.length ? '內建語錄讀不到，先顯示自訂語錄。' : '內建語錄讀不到。'}</p>` : '';
+  if (!q) return `${warn}<p class="muted small quote-empty">目前沒有可輪播的語錄。</p>`;
+  const view = QuoteDeck.quoteView(q);
+  const open = quoteExpanded;
+  const tag = QuoteDeck.statusTag(q);
+  const who = `${q.author ? q.author : '作者不詳'}${q.era ? ' · ' + q.era : ''}`;
+  const favOn = QuoteDeck.isQuoteFav(settings.quoteFavs, q.id);
+  const speaking = quoteSpeaking && open;
+  const speak = view.english ? `<button type="button" class="quote-speak${speaking ? ' is-reading' : ''}" id="quoteSpeak" data-qf="speak" aria-pressed="${speaking ? 'true' : 'false'}">${speaking ? '停止' : '朗讀英文'}</button>` : '';
+  return `${warn}
+    <div class="quote-top">
+      <button type="button" class="quote-nav" id="quotePrev" data-qf="prev" aria-label="上一則">‹</button>
+      <div class="quote-body">
+        <div class="quote-main" id="quoteMain" data-qf="main" tabindex="0" role="button" aria-expanded="${open ? 'true' : 'false'}" aria-controls="quoteMore">
+          <p class="quote-text">${esc(view.primary)}</p>
+          ${view.secondary ? `<p class="quote-zh">${esc(view.secondary)}</p>` : ''}
+          <p class="quote-by">${esc(view.author)}</p>
+        </div>
+        <button type="button" class="quote-chevron${open ? ' is-open' : ''}" id="quoteToggle" data-qf="toggle" aria-expanded="${open ? 'true' : 'false'}" aria-controls="quoteMore" aria-label="${open ? '收合語錄' : '展開語錄'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      </div>
+      <button type="button" class="quote-nav" id="quoteNext" data-qf="next" aria-label="下一則">›</button>
+    </div>
+    <div id="quoteMore" class="quote-more" ${open ? '' : 'hidden'}>
+      <p><span class="quote-k">白話</span>${esc(q.plain || '—')}</p>
+      <p><span class="quote-k">出處</span>${esc(q.source || '—')}</p>
+      <p><span class="quote-k">作者</span>${esc(who)}</p>
+      ${tag || q.note ? `<p class="quote-note">${tag ? `<span class="tag">${esc(tag)}</span>` : ''}${q.note ? `<span>${esc(q.note)}</span>` : ''}</p>` : ''}
+      <div class="quote-actions">
+        <button type="button" class="quote-star${favOn ? ' on' : ''}" id="quoteStar" data-qf="star" aria-pressed="${favOn ? 'true' : 'false'}" aria-label="${favOn ? '取消收藏' : '收藏這則語錄'}">${favOn ? '★' : '☆'}</button>
+        ${speak}
+      </div>
+    </div>`;
+}
+function fillQuoteCard(el) {
+  if (!el) return;
+  const q = displayedQuote();
+  el.innerHTML = quoteCardInnerHtml(q);
+  if (q) el.dataset.quoteId = q.id;
+  else el.removeAttribute('data-quote-id');
+  el.dataset.expanded = quoteExpanded ? 'true' : 'false';
+  bindQuoteCard(el, q);
+  if (quoteFocus) {
+    const n = el.querySelector(`[data-qf="${quoteFocus}"]`);
+    if (n) n.focus();
+  }
+}
+function setQuoteExpanded(on, focusKey) {
+  quoteExpanded = !!on;
+  quoteFocus = focusKey || '';
+  if (!quoteExpanded) stopQuoteSpeech();
+  fillQuoteCard($('#quoteCard'));
+  armQuoteAutoplay();
+}
+function shiftQuote(delta, focusKey) {
+  if (quotePoolNow.length < 2) {
+    quoteExpanded = false;
+    stopQuoteSpeech();
+    fillQuoteCard($('#quoteCard'));
+    return;
+  }
+  quoteBrowse += delta;
+  quoteExpanded = false;
+  quoteFocus = focusKey || '';
+  stopQuoteSpeech();
+  fillQuoteCard($('#quoteCard'));
+  armQuoteAutoplay();
+}
+function bindQuoteCard(el, q) {
+  const main = $('#quoteMain', el);
+  const toggle = () => setQuoteExpanded(!quoteExpanded, quoteFocus || 'main');
+  if (main) {
+    main.onclick = () => { quoteFocus = 'main'; toggle(); };
+    main.onkeydown = (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      quoteFocus = 'main';
+      toggle();
+    };
+  }
+  const chev = $('#quoteToggle', el);
+  if (chev) chev.onclick = (e) => { e.stopPropagation(); quoteFocus = 'toggle'; setQuoteExpanded(!quoteExpanded, 'toggle'); };
+  const prev = $('#quotePrev', el);
+  if (prev) prev.onclick = () => shiftQuote(-1, 'prev');
+  const next = $('#quoteNext', el);
+  if (next) next.onclick = () => shiftQuote(1, 'next');
+  const star = $('#quoteStar', el);
+  if (star && q) star.onclick = async () => {
+    quoteFocus = 'star';
+    const on = !QuoteDeck.isQuoteFav(settings.quoteFavs, q.id);
+    settings.quoteFavs = Object.assign({}, settings.quoteFavs, { [q.id]: { on, at: Date.now() } });
+    await saveSettings('quoteFavs');
+    toast(on ? '已收藏這則語錄' : '已取消收藏');
+    fillQuoteCard($('#quoteCard'));
+  };
+  const speakBtn = $('#quoteSpeak', el);
+  if (speakBtn && q) speakBtn.onclick = () => {
+    quoteFocus = 'speak';
+    const text = QuoteDeck.speakText(q);
+    if (quoteSpeaking) { stopQuoteSpeech(); return; }
+    speak(text, quoteSpeakRate());
+    quoteSpeaking = true;
+    speakBtn.classList.add('is-reading');
+    speakBtn.setAttribute('aria-pressed', 'true');
+    speakBtn.textContent = '停止';
+    armQuoteSpeakWatch();
+  };
+}
+async function saveQuotePrefs(hours, autoplay) {
+  settings.quoteIntervalHours = QuoteDeck.normalizeQuoteHours(hours);
+  settings.quoteAutoplay = !!autoplay;
+  await loadQuoteCatalog();
+  if (quoteCatalog) {
+    const pool = QuoteDeck.rotationPool(quoteCatalog, settings.customQuotes);
+    if (pool.length) settings.quoteState = QuoteDeck.syncQuoteState(settings.quoteState, pool, settings.quoteIntervalHours, Date.now());
+  }
+  const keys = ['quoteIntervalHours', 'quoteAutoplay'];
+  if (quoteCatalog && settings.quoteState) keys.push('quoteState');
+  await saveSettings(...keys);
+}
+async function customQuoteDialog(existing) {
+  const q = existing || { lang: 'zh', status: '確認', text: '', author: '', era: '', source: '', plain: '', note: '', zh: '' };
+  const statuses = ['確認', '相傳', '作者不詳', '有異說', '誤歸'];
+  const r = await modal({
+    title: existing ? '編輯自訂語錄' : '新增自訂語錄',
+    okText: '儲存',
+    html: `
+      <label class="field"><span class="field-title">語言</span>
+        <select id="cqLang"><option value="zh" ${q.lang === 'en' ? '' : 'selected'}>中文</option><option value="en" ${q.lang === 'en' ? 'selected' : ''}>英文</option></select></label>
+      <label class="field"><span class="field-title">原文</span>
+        <textarea id="cqText" rows="3" maxlength="500">${esc(q.text || '')}</textarea></label>
+      <div id="cqZhWrap" ${q.lang === 'en' ? '' : 'hidden'}>
+        <label class="field"><span class="field-title">中譯</span>
+          <textarea id="cqZh" rows="2" maxlength="500">${esc(q.zh || '')}</textarea></label>
+      </div>
+      <label class="field"><span class="field-title">作者</span>
+        <input type="text" id="cqAuthor" maxlength="80" value="${esc(q.author || '')}"></label>
+      <label class="field"><span class="field-title">朝代或年代</span>
+        <input type="text" id="cqEra" maxlength="40" value="${esc(q.era || '')}"></label>
+      <label class="field"><span class="field-title">出處</span>
+        <input type="text" id="cqSource" maxlength="120" value="${esc(q.source || '')}"></label>
+      <label class="field"><span class="field-title">白話</span>
+        <textarea id="cqPlain" rows="2" maxlength="500">${esc(q.plain || '')}</textarea></label>
+      <label class="field"><span class="field-title">狀態</span>
+        <select id="cqStatus">${statuses.map((s) => `<option value="${s}" ${q.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+      <p class="hint">選「誤歸」就不會進輪播。作者不詳或誤歸時，卡片上的人名會寫「作者不詳」。</p>
+      <label class="field"><span class="field-title">備註</span>
+        <input type="text" id="cqNote" maxlength="300" value="${esc(q.note || '')}"></label>`,
+    onOpen: (body) => {
+      const sync = () => { $('#cqZhWrap', body).hidden = $('#cqLang', body).value !== 'en'; };
+      $('#cqLang', body).onchange = sync;
+      sync();
+    }
+  });
+  if (!r.ok) return null;
+  const body = r.body;
+  const lang = $('#cqLang', body).value === 'en' ? 'en' : 'zh';
+  const text = $('#cqText', body).value.trim();
+  if (!text) { toast('請填原文'); return null; }
+  const status = statuses.includes($('#cqStatus', body).value) ? $('#cqStatus', body).value : '確認';
+  const row = QuoteDeck.normalizeCustomQuotes([{
+    id: existing && existing.id ? existing.id : shortId('cq'),
+    text,
+    author: $('#cqAuthor', body).value.trim(),
+    era: $('#cqEra', body).value.trim(),
+    source: $('#cqSource', body).value.trim(),
+    plain: $('#cqPlain', body).value.trim(),
+    status,
+    note: $('#cqNote', body).value.trim(),
+    lang,
+    en: lang === 'en' ? text : null,
+    zh: lang === 'en' ? $('#cqZh', body).value.trim() : null,
+    custom: true,
+    updatedAt: Date.now()
+  }])[0];
+  return row || null;
+}
+
 const TODAY_SUBJECTS = [
   { id: 'ee', name: '電工原理', href: '#learn-ee/drill', tone: 'ee', keys: ['ee'] },
   { id: 'em', name: '電工機械', href: '#learn-em/drill', tone: 'em', keys: ['em'] },
@@ -1296,6 +1638,7 @@ async function viewHome(app) {
   const regAlerts = examRegAlerts(ex, t);
   const regAlertHtml = regAlerts.map((a) => `<div class="alert alert-warn exam-reg-alert" role="status"><div><b>報名提醒</b><br><span class="small">${esc(a.text)}（以中油公布為準）</span></div><a class="btn btn-soft btn-sm" href="#settings">看時程</a></div>`).join('');
   const examHtml = examHomeHtml(ex, t);
+  await syncQuoteForHome();
   const known = new Set(['english', 'en', 'zh', 'ee', 'em', 'math']);
   const extra = (settings.tabs || []).filter((x) => !known.has(x.id));
   const extraHtml = extra.length ? `<section class="card"><h3>其他分頁</h3>${extra.map((x) => {
@@ -1322,6 +1665,7 @@ async function viewHome(app) {
 
   app.innerHTML = `
     ${examHtml}
+    <section class="quote-card" id="quoteCard" aria-label="語錄"></section>
     ${regAlertHtml}
     <h2 class="section-label">今日該做</h2>
     <section class="card progress-hero">
@@ -1343,6 +1687,9 @@ async function viewHome(app) {
     ${backupNote}
     <p class="muted small center">若畫面怪異，請硬重新整理，或清除此站資料。</p>
     ${tipsHtml}`;
+  bindExamQuick();
+  fillQuoteCard($('#quoteCard'));
+  armQuoteAutoplay();
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
     if (DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected) await uploadBackupToDrive();
     else await exportBackup();
@@ -2070,7 +2417,7 @@ async function buildBackupBlob() {
     lastCloudBackupDate: settings.driveBackup.lastCloudBackupDate || null
   } : null;
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone) } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [] } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2209,7 +2556,13 @@ async function importBackup(file, mode) {
     if (s.pathDone && typeof s.pathDone === 'object' && !Array.isArray(s.pathDone)) settings.pathDone = mergePathDone(settings.pathDone, s.pathDone);
     // 合併時保留這支手機自己的全域間隔設定
   }
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone');
+  const quoteSlice = QuoteDeck.applyQuoteSettings(settings, s, mode);
+  settings.quoteFavs = quoteSlice.quoteFavs;
+  settings.quoteState = quoteSlice.quoteState;
+  settings.quoteIntervalHours = quoteSlice.quoteIntervalHours;
+  settings.quoteAutoplay = quoteSlice.quoteAutoplay;
+  settings.customQuotes = quoteSlice.customQuotes;
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   toast(`還原完成，匯入 ${incoming.length} 題`);
   location.hash = '#home'; render();
@@ -2276,7 +2629,7 @@ async function viewSettings(app) {
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛與雲端設定）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定）。</p>
 
       <div class="settings-grid">
         <div class="stack">
@@ -2359,6 +2712,19 @@ async function viewSettings(app) {
       <p class="muted small">整條時程（簡章／報名／第一試／第二試）與首頁倒數共用。推估時會標「可能為歷屆考試時間」並顯示免責；官方確認後改狀態即可。一定保留可點的中油就業資訊連結。自動爬官網＝下一階段。</p>
       <div id="examSummary" class="exam-summary"></div>
       <button type="button" class="btn btn-primary" id="btnEditExam" style="margin-top:10px">編輯考試時程</button>
+    </section>
+
+    <section class="card" id="quoteSettings">
+      <h2>每日語錄</h2>
+      <p class="muted small">今日頁依台北時間換一則，從 00:00 對齊。預設 24 小時。跨過好幾個時段也只前進一則。狀態為「誤歸」的句子不進輪播。左右切換不會改進度。</p>
+      <label class="field"><span class="field-title">更換間隔</span>
+        <select id="quoteInterval">${QuoteDeck.QUOTE_HOURS.map((h) => `<option value="${h}" ${settings.quoteIntervalHours === h ? 'selected' : ''}>${h} 小時</option>`).join('')}</select>
+      </label>
+      <label class="chk"><input type="checkbox" id="quoteAutoplay" ${settings.quoteAutoplay ? 'checked' : ''}> 自動輪播（每 6 秒；展開時暫停）</label>
+      <p class="hint">系統若設定減少動態，就不會自動輪播。預設關閉。</p>
+      <h3>自訂語錄</h3>
+      <div id="customQuoteList" class="link-admin"></div>
+      <button type="button" class="btn btn-primary" id="btnAddQuote" style="margin-top:12px">＋ 新增語錄</button>
     </section>
 
     <section class="card" id="goalCard">
@@ -2549,6 +2915,65 @@ async function viewSettings(app) {
   renderExamSummary();
   const be = $('#btnEditExam');
   if (be) be.onclick = async () => { if (await examDialog()) render(); };
+
+  const renderCustomQuotes = () => {
+    const box = $('#customQuoteList'); if (!box) return;
+    const list = settings.customQuotes || [];
+    if (!list.length) { box.innerHTML = '<p class="muted small">還沒有自訂語錄。新增的會排在內建語錄後面一起輪播。</p>'; return; }
+    box.innerHTML = list.map((q) => `<div class="link-admin-row" data-id="${esc(q.id)}">
+      <div class="grow"><b>${esc(q.text)}</b>
+        <div class="muted small">${esc(QuoteDeck.authorLabel(q))}${q.lang === 'en' ? ' · 英文' : ''}${q.status && q.status !== '確認' ? ' · ' + esc(q.status) : ''}</div>
+      </div>
+      <div class="btn-col">
+        <button type="button" class="btn btn-soft btn-sm cq-edit">編輯</button>
+        <button type="button" class="btn btn-text-bad btn-sm cq-del">刪除</button>
+      </div>
+    </div>`).join('');
+    $$('.cq-edit', box).forEach((b) => {
+      b.onclick = async () => {
+        const id = b.closest('.link-admin-row').dataset.id;
+        const cur = settings.customQuotes.find((x) => x.id === id);
+        const row = cur && await customQuoteDialog(cur);
+        if (!row) return;
+        settings.customQuotes = settings.customQuotes.map((x) => x.id === row.id ? row : x);
+        await saveSettings('customQuotes');
+        toast('已更新自訂語錄');
+        render();
+      };
+    });
+    $$('.cq-del', box).forEach((b) => {
+      b.onclick = async () => {
+        const id = b.closest('.link-admin-row').dataset.id;
+        const cur = settings.customQuotes.find((x) => x.id === id);
+        if (!cur) return;
+        if (!(await confirmBox('刪除這則自訂語錄？', `<p>${esc(cur.text.slice(0, 80))}</p>`, '刪除', true))) return;
+        settings.customQuotes = settings.customQuotes.filter((x) => x.id !== id);
+        await saveSettings('customQuotes');
+        toast('已刪除');
+        render();
+      };
+    });
+  };
+  renderCustomQuotes();
+  const qi = $('#quoteInterval');
+  const qa = $('#quoteAutoplay');
+  if (qi) qi.onchange = async () => {
+    await saveQuotePrefs(qi.value, qa && qa.checked);
+    toast(`語錄改為每 ${settings.quoteIntervalHours} 小時換一則`);
+  };
+  if (qa) qa.onchange = async () => {
+    await saveQuotePrefs(qi ? qi.value : settings.quoteIntervalHours, qa.checked);
+    toast(settings.quoteAutoplay ? '已開啟自動輪播' : '已關閉自動輪播');
+  };
+  const addQ = $('#btnAddQuote');
+  if (addQ) addQ.onclick = async () => {
+    const row = await customQuoteDialog(null);
+    if (!row) return;
+    settings.customQuotes = QuoteDeck.normalizeCustomQuotes([...(settings.customQuotes || []), row]);
+    await saveSettings('customQuotes');
+    toast('已加入輪播');
+    render();
+  };
 
   const bg = $('#btnSaveGoal');
   if (bg) bg.onclick = async () => {
