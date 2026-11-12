@@ -2,7 +2,7 @@
 'use strict';
 
 const APP_ID = 'mistake-notebook';
-const DATA_VERSION = 7;
+const DATA_VERSION = 8;
 /** 考試時程（整條本地；自動爬官網＝下一階段）。首頁倒數／提醒與設定共用。 */
 const DEFAULT_EXAM_LINKS = () => ([
   { id: 'cpc-jobs', name: '中油就業資訊', url: 'https://www.cpc.com.tw/News.aspx?n=32', note: '中油官網就業／甄試資訊', builtin: true },
@@ -378,13 +378,28 @@ let dbp;
 function db() {
   if (!dbp) {
     dbp = new Promise((resolve, reject) => {
-      const req = indexedDB.open(APP_ID, 1);
-      req.onupgradeneeded = () => {
+      const req = indexedDB.open(APP_ID, StudyDB.DB_VERSION);
+      req.onupgradeneeded = (ev) => {
         const d = req.result;
         if (!d.objectStoreNames.contains('mistakes')) d.createObjectStore('mistakes', { keyPath: 'id' });
         if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'key' });
+        StudyDB.upgrade(d, ev.target.transaction);
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onblocked = () => {
+        console.warn('IndexedDB 升級被其他分頁擋住');
+        const app = document.getElementById('app');
+        if (app && !app.querySelector('[data-db-blocked]')) {
+          app.innerHTML = '<div class="card" data-db-blocked><h2>請先關掉其他分頁</h2><p>這個學習卡在別的分頁還開著，資料庫無法升級。關掉那些分頁後，這頁會繼續開啟。</p></div>';
+        }
+      };
+      req.onsuccess = () => {
+        const d = req.result;
+        d.onversionchange = () => {
+          d.close();
+          dbp = null;
+        };
+        resolve(d);
+      };
       req.onerror = () => reject(req.error);
     });
   }
@@ -413,6 +428,7 @@ const DB = {
   async meta(key, fallback) { const r = await tx('meta', 'readonly', (s) => reqP(s.get(key))); return r ? r.value : fallback; },
   setMeta: (key, value) => tx('meta', 'readwrite', (s) => { s.put({ key, value }); })
 };
+StudyDB.bind(() => db());
 
 /* ---------- 設定：分頁、分類、間隔 ---------- */
 function normalizeLearned(raw) {
@@ -483,7 +499,8 @@ async function loadSettings() {
     quoteState: QuoteDeck.normalizeQuoteState(await DB.meta('quoteState', null)),
     quoteIntervalHours: QuoteDeck.normalizeQuoteHours(await DB.meta('quoteIntervalHours', 24)),
     quoteAutoplay: QuoteDeck.normalizeQuoteAutoplay(await DB.meta('quoteAutoplay', false)),
-    customQuotes: QuoteDeck.normalizeCustomQuotes(await DB.meta('customQuotes', []))
+    customQuotes: QuoteDeck.normalizeCustomQuotes(await DB.meta('customQuotes', [])),
+    pomodoroSettings: Pomo.normalizeSettings(await DB.meta('pomodoroSettings', null))
   };
   DriveBackup.normalizeSchedule(settings.driveBackup);
   const scheduleMigrated = !!settings.driveBackup._scheduleMigrated;
@@ -1666,6 +1683,7 @@ async function viewHome(app) {
   app.innerHTML = `
     ${examHtml}
     <section class="quote-card" id="quoteCard" aria-label="語錄"></section>
+    <div id="studyOs"></div>
     ${regAlertHtml}
     <h2 class="section-label">今日該做</h2>
     <section class="card progress-hero">
@@ -1690,6 +1708,7 @@ async function viewHome(app) {
   bindExamQuick();
   fillQuoteCard($('#quoteCard'));
   armQuoteAutoplay();
+  try { if (window.StudyOS) StudyOS.mountHome($('#studyOs')); } catch (err) { console.error(err); }
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
     if (DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected) await uploadBackupToDrive();
     else await exportBackup();
@@ -2405,6 +2424,7 @@ function dataURLToBlob(url) {
 }
 async function buildBackupBlob() {
   const all = await DB.all();
+  const studySessions = (await StudyDB.allSessions()).map((s) => StudyStats.normalizeSession(s)).filter(Boolean);
   const drivePublic = settings.driveBackup ? {
     folderId: settings.driveBackup.folderId || '',
     folderName: settings.driveBackup.folderName || '',
@@ -2417,7 +2437,8 @@ async function buildBackupBlob() {
     lastCloudBackupDate: settings.driveBackup.lastCloudBackupDate || null
   } : null;
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [] } };
+    studySessions,
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings) } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2562,7 +2583,12 @@ async function importBackup(file, mode) {
   settings.quoteIntervalHours = quoteSlice.quoteIntervalHours;
   settings.quoteAutoplay = quoteSlice.quoteAutoplay;
   settings.customQuotes = quoteSlice.customQuotes;
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes');
+  if (s.pomodoroSettings && typeof s.pomodoroSettings === 'object' && !Array.isArray(s.pomodoroSettings) && mode === 'overwrite') {
+    settings.pomodoroSettings = Pomo.normalizeSettings(s.pomodoroSettings);
+  }
+  const mergedSessions = StudyStats.sessionsFromBackup(await StudyDB.allSessions(), data);
+  await StudyDB.putSessions(mergedSessions);
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   toast(`還原完成，匯入 ${incoming.length} 題`);
   location.hash = '#home'; render();
@@ -2629,7 +2655,7 @@ async function viewSettings(app) {
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數）。</p>
 
       <div class="settings-grid">
         <div class="stack">
@@ -2727,6 +2753,8 @@ async function viewSettings(app) {
       <button type="button" class="btn btn-primary" id="btnAddQuote" style="margin-top:12px">＋ 新增語錄</button>
     </section>
 
+    <div id="pomoSettingsMount"></div>
+
     <section class="card" id="goalCard">
       <h2>今日該做</h2>
       <p class="muted small">首頁「今日該做」建議一次複習題數（預設 10）。學習入口與之後課表會掛在同一區塊。</p>
@@ -2805,6 +2833,7 @@ async function viewSettings(app) {
   }
 
   $('#btnExport').onclick = exportBackup;
+  try { if (window.StudyOS) StudyOS.mountSettings($('#pomoSettingsMount')); } catch (err) { console.error(err); }
   $('#importFile').onchange = async (e) => {
     const file = e.target.files && e.target.files[0]; e.target.value = '';
     if (!file) return;
@@ -3136,6 +3165,7 @@ async function start() {
   window.addEventListener('online', () => { maybeAutoCloudBackup(); if (parseHash().view === 'settings') render(); });
   window.addEventListener('offline', () => { if (parseHash().view === 'settings') render(); });
   if (canSpeak()) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; }
+  if (window.StudyOS) StudyOS.start();
   render();
   setTimeout(() => maybeAutoCloudBackup(), 800);
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
