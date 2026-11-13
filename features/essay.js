@@ -1,5 +1,6 @@
 /* 國文作文練習。預設關閉。關閉只隱藏畫面，不刪 essays，也不刪已寫入的 studySessions。
-   計時用時間戳，重新整理還在。結束時以 essay-<id> 只寫一筆 source=essay、subject=國文 的學習紀錄。 */
+   每一次「開始→結束」且滿 1 分鐘，各寫一筆 studySessions（id 在按下開始時決定，科目國文、source=essay）。
+   暫停後再開始仍是同一筆。同一個計時再按結束或重新整理不會再寫。離開頁面只存計時，不另開一筆。 */
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -83,7 +84,37 @@
     if (elapsedMs > MAX_CLOCK_MS) elapsedMs = MAX_CLOCK_MS;
     let anchorAt = Number(c.anchorAt);
     if (phase !== 'run' || !Number.isFinite(anchorAt)) anchorAt = null;
-    return { phase, elapsedMs, anchorAt, sessionWritten: c.sessionWritten === true };
+    const sessionId = c.sessionId ? String(c.sessionId).trim().slice(0, 80) : '';
+    let endedAt = Number(c.endedAt);
+    if (!Number.isFinite(endedAt) || endedAt <= 0) endedAt = null;
+    return {
+      phase,
+      elapsedMs,
+      anchorAt,
+      sessionId: sessionId || null,
+      sessionWritten: c.sessionWritten === true,
+      endedAt: phase === 'done' ? endedAt : null
+    };
+  }
+
+  function newSessionId(now) {
+    let rnd = '';
+    try {
+      if (globalThis.crypto && crypto.getRandomValues) {
+        const buf = new Uint8Array(4);
+        crypto.getRandomValues(buf);
+        rnd = Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch (e) { /* 改用 Math.random */ }
+    if (!rnd) rnd = Math.random().toString(16).slice(2, 10);
+    const token = Math.floor(Number(now) || Date.now()).toString(36);
+    return ('essay-' + token + '-' + rnd).slice(0, 80);
+  }
+
+  function clampTotal(n) {
+    const x = Math.floor(Number(n));
+    if (!Number.isFinite(x) || x < 0) return 0;
+    return Math.min(100000, x);
   }
 
   function normalizeVersions(list) {
@@ -116,7 +147,7 @@
       body: String(raw.body == null ? '' : raw.body).slice(0, 200000),
       status: raw.status === 'done' ? 'done' : 'draft',
       versions: normalizeVersions(raw.versions),
-      totalMinutes: clampMinutes(raw.totalMinutes),
+      totalMinutes: clampTotal(raw.totalMinutes),
       clock: normalizeClock(raw.clock),
       createdAt: finite(raw.createdAt),
       updatedAt: finite(raw.updatedAt)
@@ -133,7 +164,7 @@
       status: 'draft',
       versions: [],
       totalMinutes: 0,
-      clock: { phase: 'idle', elapsedMs: 0, anchorAt: null, sessionWritten: false },
+      clock: { phase: 'idle', elapsedMs: 0, anchorAt: null, sessionId: null, sessionWritten: false, endedAt: null },
       createdAt: input && input.createdAt || now,
       updatedAt: now
     });
@@ -187,16 +218,36 @@
     }));
   }
 
+  function blankClock(now) {
+    return {
+      phase: 'run',
+      elapsedMs: 0,
+      anchorAt: now,
+      sessionId: newSessionId(now),
+      sessionWritten: false,
+      endedAt: null
+    };
+  }
+
   function startClock(essay, now) {
     const base = normalizeEssay(essay);
     if (!base) return null;
-    const ms = elapsedMs(base, now);
-    return withClock(base, {
-      phase: 'run',
-      elapsedMs: ms,
-      anchorAt: now,
-      sessionWritten: base.clock.sessionWritten
-    }, now);
+    const clock = base.clock;
+    if (clock.phase === 'run') {
+      if (clock.sessionId) return base;
+      return withClock(base, Object.assign({}, clock, { sessionId: newSessionId(now) }), now);
+    }
+    if (clock.phase === 'pause' && !clock.sessionWritten) {
+      return withClock(base, {
+        phase: 'run',
+        elapsedMs: clock.elapsedMs,
+        anchorAt: now,
+        sessionId: clock.sessionId || newSessionId(now),
+        sessionWritten: false,
+        endedAt: null
+      }, now);
+    }
+    return withClock(base, blankClock(now), now);
   }
 
   function pauseClock(essay, now) {
@@ -207,45 +258,80 @@
       phase: 'pause',
       elapsedMs: ms,
       anchorAt: null,
-      sessionWritten: base.clock.sessionWritten
+      sessionId: base.clock.sessionId,
+      sessionWritten: base.clock.sessionWritten,
+      endedAt: null
     }, now);
   }
 
+  function segmentMinutes(elapsed) {
+    return Math.min(MAX_MINUTES, Math.floor((Number(elapsed) || 0) / 60000));
+  }
+
+  function sessionRecord(sessionId, endedAt, elapsedMs) {
+    const minutes = segmentMinutes(elapsedMs);
+    if (!sessionId || minutes < 1) return null;
+    return {
+      id: sessionId,
+      date: taipeiDate(endedAt),
+      startAt: endedAt - elapsedMs,
+      endAt: endedAt,
+      minutes,
+      subject: 'zh',
+      chapterId: null,
+      source: 'essay',
+      updatedAt: endedAt
+    };
+  }
+
+  /** 已按結束、滿 1 分鐘、這一個計時還沒標成寫入。用來在離開頁面或重開時補寫，id 不變。 */
+  function pendingSession(essay) {
+    const base = normalizeEssay(essay);
+    if (!base || base.clock.sessionWritten || base.clock.phase !== 'done' || !base.clock.sessionId) return null;
+    const endedAt = base.clock.endedAt || base.updatedAt;
+    if (!endedAt) return null;
+    return sessionRecord(base.clock.sessionId, endedAt, base.clock.elapsedMs);
+  }
+
   /**
-   * 結束計時。滿 1 分鐘且這篇還沒寫過學習紀錄，才回傳一筆 session。
-   * 同一個 id 再結束，session 為 null。
+   * 結束這一次計時。滿 1 分鐘就回傳一筆新的 session（id 是這次開始時的 sessionId）。
+   * 同一個計時再結束，session 為 null。下一次按下開始才會換新 id。
    */
   function finishEssay(essay, now) {
     const base = normalizeEssay(essay);
     if (!base) return { essay: null, session: null };
-    const ms = elapsedMs(base, now);
-    const minutes = Math.min(MAX_MINUTES, Math.floor(ms / 60000));
-    const already = base.clock.sessionWritten === true;
-    const write = !already && minutes >= 1;
+    if (base.clock.phase === 'idle' && !base.clock.sessionId) return { essay: base, session: null };
+    if (base.clock.sessionWritten && base.clock.phase === 'done') return { essay: base, session: null };
+    const alreadyDone = base.clock.phase === 'done';
+    const ms = alreadyDone ? base.clock.elapsedMs : elapsedMs(base, now);
+    const endedAt = alreadyDone && base.clock.endedAt ? base.clock.endedAt : now;
+    const sessionId = base.clock.sessionId || newSessionId(endedAt);
+    const minutes = segmentMinutes(ms);
+    const write = !base.clock.sessionWritten && minutes >= 1;
     const next = withClock(base, {
       phase: 'done',
       elapsedMs: ms,
       anchorAt: null,
-      sessionWritten: already || write
+      sessionId,
+      sessionWritten: base.clock.sessionWritten || write,
+      endedAt
     }, now, {
       status: 'done',
-      totalMinutes: write ? minutes : base.totalMinutes
+      totalMinutes: write ? clampTotal(base.totalMinutes + minutes) : base.totalMinutes
     });
     if (!write) return { essay: next, session: null };
-    return {
-      essay: next,
-      session: {
-        id: ('essay-' + base.id).slice(0, 80),
-        date: taipeiDate(now),
-        startAt: now - ms,
-        endAt: now,
-        minutes,
-        subject: 'zh',
-        chapterId: null,
-        source: 'essay',
-        updatedAt: now
-      }
-    };
+    return { essay: next, session: sessionRecord(sessionId, endedAt, ms) };
+  }
+
+  function markSessionWritten(essay, now) {
+    const base = normalizeEssay(essay);
+    if (!base || base.clock.sessionWritten) return base;
+    const minutes = segmentMinutes(base.clock.elapsedMs);
+    if (base.clock.phase !== 'done' || minutes < 1 || !base.clock.sessionId) return base;
+    return withClock(base, Object.assign({}, base.clock, { sessionWritten: true }), now || base.clock.endedAt || base.updatedAt, {
+      status: 'done',
+      totalMinutes: clampTotal(base.totalMinutes + minutes)
+    });
   }
 
   function saveVersion(essay, now) {
@@ -485,7 +571,7 @@
       if (hint) {
         if (essay.clock.phase === 'run') hint.textContent = '計時中。重新整理會接著算。';
         else if (essay.clock.phase === 'pause') hint.textContent = '已暫停。時間先停在這裡。';
-        else if (essay.clock.phase === 'done') hint.textContent = essay.clock.sessionWritten ? '已結束，學習時數記過一次。' : '已結束。未滿 1 分鐘，還沒記入學習時數。';
+        else if (essay.clock.phase === 'done') hint.textContent = essay.clock.sessionWritten ? '這一次已記入學習時數。再按開始會另外記一筆。' : '已結束。未滿 1 分鐘，這一次沒有記入。';
         else hint.textContent = '按開始才計時。休息或發呆可以先暫停。';
       }
       const start = document.getElementById('essayStart');
@@ -572,11 +658,59 @@
       tick();
       if (essay.clock.phase === 'run') timerHandle = setInterval(tick, 1000);
     }
+    let committing = false;
+    async function commitEnded(now) {
+      if (committing) return null;
+      committing = true;
+      try {
+        readFields();
+        const prevTotal = essay.totalMinutes;
+        const result = finishEssay(essay, now);
+        const store = db();
+        const writePromise = result.session && store && store.putSessionOnce ? store.putSessionOnce(result.session) : null;
+        if (result.session && store && store.putEssay) {
+          const recoverable = normalizeEssay(Object.assign({}, result.essay, {
+            totalMinutes: prevTotal,
+            clock: Object.assign({}, result.essay.clock, { sessionWritten: false })
+          }));
+          store.putEssay(recoverable);
+        }
+        essay = result.essay;
+        stashEssay(essay);
+        if (writePromise) await writePromise;
+        if (store && store.putEssay) await store.putEssay(essay);
+        existed = true;
+        return result;
+      } finally {
+        committing = false;
+      }
+    }
+    async function recoverPending() {
+      const session = pendingSession(essay);
+      if (!session) return;
+      const store = db();
+      if (!store || !store.putSessionOnce) {
+        essay = markSessionWritten(essay, session.endAt);
+        return;
+      }
+      await store.putSessionOnce(session);
+      essay = markSessionWritten(essay, session.endAt);
+      if (store.putEssay) await store.putEssay(essay);
+      existed = true;
+    }
     function armHooks() {
       const onLeave = () => {
         if (!readFields()) return;
         essay.updatedAt = Date.now();
         stashEssay(essay);
+        const session = pendingSession(essay);
+        const store = db();
+        if (session && store && store.putSessionOnce) {
+          store.putSessionOnce(session).then(() => {
+            essay = markSessionWritten(essay, session.endAt);
+            return store.putEssay(essay);
+          }).catch((e) => console.error(e));
+        }
         persist(essay.clock.phase !== 'idle').catch((e) => console.error(e));
       };
       const onHash = () => { onLeave(); clearHooks(); };
@@ -602,6 +736,7 @@
       armTimer();
     }
 
+    await recoverPending();
     paintMeta();
     renderVersions();
     armTimer();
@@ -610,6 +745,7 @@
     document.getElementById('essayPrompt').addEventListener('input', touch);
     document.getElementById('essayBody').addEventListener('input', touch);
     document.getElementById('essayStart').onclick = async () => {
+      if (pendingSession(essay)) await recoverPending();
       await putClock(startClock(essay, Date.now()));
       if (typeof toast === 'function') toast('開始計時');
     };
@@ -620,22 +756,14 @@
     };
     document.getElementById('essayEnd').onclick = async () => {
       if (draftTimer) clearTimeout(draftTimer);
-      readFields();
-      const result = finishEssay(essay, Date.now());
-      essay = result.essay;
-      stashEssay(essay);
-      if (db()) await db().putEssay(essay);
-      existed = true;
-      if (result.session && db() && db().putSessionOnce) {
-        const decision = await db().putSessionOnce(result.session);
-        if (typeof toast === 'function') {
-          toast(decision && decision.wrote ? '已記下 ' + result.session.minutes + ' 分鐘，計入總學習時數' : '這篇的學習時數之前已經記過');
-        }
-      } else if (typeof toast === 'function') {
-        toast(essay.clock.sessionWritten ? '已結束。這篇的學習時數之前已經記過' : '已結束。未滿 1 分鐘，沒有寫進學習時數');
-      }
+      const before = essay.clock.sessionId;
+      const result = await commitEnded(Date.now());
       paintMeta();
       armTimer();
+      if (typeof toast !== 'function' || !result) return;
+      if (result.session) toast('已記下 ' + result.session.minutes + ' 分鐘，計入總學習時數');
+      else if (essay.clock.sessionWritten && essay.clock.sessionId === before) toast('這一次已經記過。再按開始會另外記一筆');
+      else toast('已結束。未滿 1 分鐘，這一次沒有記入');
     };
     document.getElementById('essayForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -670,7 +798,7 @@
     MAX_VERSIONS, DISCLAIMER,
     normalizeEnabled, practiceEntryVisible, normalizeEssay, createEssay,
     mergeEssays, essaysFromBackup, setEnabled,
-    elapsedMs, startClock, pauseClock, finishEssay, saveVersion, restoreVersion, setStatus,
+    elapsedMs, startClock, pauseClock, finishEssay, pendingSession, markSessionWritten, saveVersion, restoreVersion, setStatus,
     wordCount, formatDuration, formatTaipei, sortEssays,
     decorate, mount
   };

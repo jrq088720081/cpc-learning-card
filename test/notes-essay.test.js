@@ -93,41 +93,65 @@ test('manual essay saves keep at most 20 versions and can restore an older body'
   assert.equal(Essay.wordCount('今天 天氣\n好'), 5);
 });
 
-test('essay timer uses timestamps, survives a stored pause, and writes one study session', () => {
+test('each essay timing writes its own session, and ending again does not', () => {
   let running = Essay.startClock(Essay.createEssay({ id: 'e1', now: 1 }), 10000);
   const storedRun = JSON.parse(JSON.stringify(running));
   assert.equal(Essay.elapsedMs(storedRun, 10000 + 15000), 15000);
+  assert.equal(Essay.pendingSession(storedRun), null);
   const paused = Essay.pauseClock(running, 10000 + 90000);
   const storedPause = JSON.parse(JSON.stringify(paused));
+  assert.equal(storedPause.clock.sessionId, running.clock.sessionId);
   assert.equal(Essay.elapsedMs(storedPause, 10000 + 90000 + 60000), 90000);
+  const resumed = Essay.startClock(storedPause, 10000 + 120000);
+  assert.equal(resumed.clock.sessionId, running.clock.sessionId);
+  const pausedEnd = Essay.finishEssay(resumed, 10000 + 120000 + 60000);
+  assert.equal(pausedEnd.session.id, running.clock.sessionId);
+  assert.equal(pausedEnd.session.minutes, 2);
+  assert.equal(Essay.finishEssay(pausedEnd.essay, pausedEnd.session.endAt + 1000).session, null);
   assert.equal(Essay.formatDuration(65000), '00:01:05');
 
-  const first = Essay.finishEssay(Essay.startClock(Essay.createEssay({ id: 'e1', now: 1 }), 1000), 1000 + 5 * 60000);
+  let essay = Essay.startClock(Essay.createEssay({ id: 'e1', now: 1 }), 1000);
+  const first = Essay.finishEssay(essay, 1000 + 5 * 60000);
   assert.equal(first.session.minutes, 5);
   assert.equal(first.session.source, 'essay');
   assert.equal(first.session.subject, 'zh');
-  assert.equal(first.session.id, 'essay-e1');
+  assert.equal(first.session.id, essay.clock.sessionId);
   assert.equal(first.essay.status, 'done');
   assert.equal(first.essay.totalMinutes, 5);
-  const second = Essay.finishEssay(first.essay, 1000 + 8 * 60000);
-  assert.equal(second.session, null);
-  assert.equal(second.essay.totalMinutes, 5);
+  assert.equal(Essay.finishEssay(first.essay, 1000 + 8 * 60000).session, null);
+  const retry = Essay.finishEssay(JSON.parse(JSON.stringify(Object.assign({}, first.essay, {
+    totalMinutes: 0,
+    clock: Object.assign({}, first.essay.clock, { sessionWritten: false })
+  }))), first.session.endAt);
+  assert.equal(retry.session.id, first.session.id);
+  assert.equal(retry.session.minutes, 5);
   const norm = StudyStats.normalizeSession(first.session);
-  assert.equal(norm.source, 'essay');
-  assert.equal(norm.subject, 'zh');
   const kept = StudyStats.keepFirstSession(norm, Object.assign({}, norm, { minutes: 99, updatedAt: 999999 }));
   assert.equal(kept.wrote, false);
   assert.equal(kept.session.minutes, 5);
-  const rows = StudyHeat.subjectSeries([norm], norm.date);
-  assert.equal(rows.find((r) => r.id === 'zh').minutes, 5);
+
+  essay = Essay.startClock(first.essay, 200000);
+  assert.notEqual(essay.clock.sessionId, first.session.id);
+  assert.equal(Essay.elapsedMs(essay, 200000), 0);
+  const second = Essay.finishEssay(essay, 200000 + 3 * 60000);
+  assert.equal(second.session.minutes, 3);
+  assert.equal(second.session.subject, 'zh');
+  assert.notEqual(second.session.id, first.session.id);
+  assert.equal(second.essay.totalMinutes, 8);
+  assert.equal(Essay.finishEssay(second.essay, 200000 + 4 * 60000).session, null);
+  const both = [norm, StudyStats.normalizeSession(second.session)];
+  const rows = StudyHeat.subjectSeries(both, first.session.date);
+  assert.equal(rows.find((r) => r.id === 'zh').minutes, 8);
   assert.equal(StudyStats.normalizeSession(Object.assign({}, norm, { source: 'hack' })), null);
 
   const short = Essay.finishEssay(Essay.startClock(Essay.createEssay({ id: 'e2', now: 1 }), 1000), 1000 + 20000);
   assert.equal(short.session, null);
   assert.equal(short.essay.clock.sessionWritten, false);
-  const later = Essay.finishEssay(Essay.startClock(short.essay, 30000), 30000 + 2 * 60000);
+  const next = Essay.startClock(short.essay, 30000);
+  assert.notEqual(next.clock.sessionId, short.essay.clock.sessionId);
+  assert.equal(Essay.elapsedMs(next, 30000), 0);
+  const later = Essay.finishEssay(next, 30000 + 2 * 60000);
   assert.equal(later.session.minutes, 2);
-  assert.equal(later.session.id, 'essay-e2');
   assert.equal(Essay.finishEssay(later.essay, 30000 + 4 * 60000).session, null);
 });
 
