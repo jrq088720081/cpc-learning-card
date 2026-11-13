@@ -183,8 +183,8 @@ test('database upgrade only adds missing stores', () => {
   }
   const fresh = fakeDb(['mistakes', 'meta']);
   StudyDB.upgrade(fresh, null);
-  assert.deepEqual(fresh.created, ['studySessions', 'pomodoroState']);
-  const again = fakeDb(['mistakes', 'meta', 'studySessions', 'pomodoroState']);
+  assert.deepEqual(fresh.created, ['studySessions', 'pomodoroState', 'tasks']);
+  const again = fakeDb(['mistakes', 'meta', 'studySessions', 'pomodoroState', 'tasks']);
   let indexCreated = false;
   StudyDB.upgrade(again, {
     objectStore() {
@@ -199,27 +199,31 @@ test('database upgrade only adds missing stores', () => {
   const src = fs.readFileSync(path.join(__dirname, '../features/db-v2.js'), 'utf8');
   assert.equal(src.includes('deleteObjectStore'), false);
   assert.equal(src.includes('.clear('), false);
-  assert.match(src, /DB_VERSION = 2/);
+  assert.match(src, /DB_VERSION = 3/);
 });
 
 test('app, service worker, and page share version 2 and the new files', () => {
   const app = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  assert.match(app, /const DATA_VERSION = 8/);
+  assert.match(app, /const DATA_VERSION = 9/);
   assert.match(app, /indexedDB\.open\(APP_ID, StudyDB\.DB_VERSION\)/);
   assert.equal(app.includes('indexedDB.open(APP_ID, 1)'), false);
   assert.equal(app.match(/indexedDB\.open/g).length, 1);
   assert.match(app, /onversionchange/);
   assert.match(app, /onblocked/);
   assert.match(app, /studySessions/);
-  assert.match(sw, /mistake-notebook-v40/);
+  assert.match(sw, /mistake-notebook-v41/);
   assert.match(sw, /\.\/features\/db-v2\.js/);
   assert.match(sw, /\.\/features\/pomodoro\.js/);
   assert.match(sw, /\.\/features\/stats\.js/);
+  assert.match(sw, /\.\/features\/tasks\.js/);
+  assert.match(sw, /\.\/features\/heatmap\.js/);
   assert.match(html, /features\/db-v2\.js/);
   assert.match(html, /features\/pomodoro\.js/);
   assert.match(html, /features\/stats\.js/);
+  assert.match(html, /features\/tasks\.js/);
+  assert.match(html, /features\/heatmap\.js/);
   assert.equal(Pomo.normalizeSettings({ focusMin: 999, shortMin: 0, notify: 'true' }).focusMin, 180);
   assert.equal(Pomo.normalizeSettings({ focusMin: 999, shortMin: 0, notify: 'true' }).shortMin, 1);
   assert.equal(Pomo.normalizeSettings({ focusMin: 999, shortMin: 0, notify: 'true' }).notify, true);

@@ -1,16 +1,16 @@
-/* IndexedDB v2：只新增 store，不刪、不改名、不清空既有的 mistakes／meta。
-   番茄鐘「進行中」放獨立的 pomodoroState（固定 id=current），
-   不塞進 meta：計時會在開始、暫停、結算時更新，若跟設定包在同一個 meta 物件，
-   整包回寫容易蓋掉計時，計時回寫也會碰到既有 meta key 的結構。
-   分鐘數與通知開關是設定，另用 meta 的新 key pomodoroSettings（由 app.js 讀寫）。 */
+/* IndexedDB：只新增 store，不刪、不改名、不清空既有的 mistakes／meta／studySessions／pomodoroState。
+   v2 番茄鐘「進行中」放獨立的 pomodoroState（固定 id=current），不塞進 meta。
+   分鐘數與通知開關是設定，另用 meta 的新 key pomodoroSettings（由 app.js 讀寫）。
+   v3 只加 tasks（讀書任務）。已逾期不另存，由到期日現算。 */
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.StudyDB = api;
 })(typeof window !== 'undefined' ? window : globalThis, function () {
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const SESSION_STORE = 'studySessions';
   const POMO_STORE = 'pomodoroState';
+  const TASK_STORE = 'tasks';
   const POMO_ID = 'current';
 
   let getDb = null;
@@ -29,6 +29,19 @@
     }
     if (!db.objectStoreNames.contains(POMO_STORE)) {
       db.createObjectStore(POMO_STORE, { keyPath: 'id' });
+    }
+    if (!db.objectStoreNames.contains(TASK_STORE)) {
+      const store = db.createObjectStore(TASK_STORE, { keyPath: 'id' });
+      store.createIndex('dueDate', 'dueDate', { unique: false });
+      store.createIndex('status', 'status', { unique: false });
+    } else if (transaction) {
+      const store = transaction.objectStore(TASK_STORE);
+      if (store.indexNames && !store.indexNames.contains('dueDate')) {
+        store.createIndex('dueDate', 'dueDate', { unique: false });
+      }
+      if (store.indexNames && !store.indexNames.contains('status')) {
+        store.createIndex('status', 'status', { unique: false });
+      }
     }
   }
 
@@ -82,6 +95,24 @@
     return tx(SESSION_STORE, 'readwrite', (s) => { s.delete(id); });
   }
 
+  function allTasks() {
+    return tx(TASK_STORE, 'readonly', (s) => reqP(s.getAll()));
+  }
+
+  function putTask(task) {
+    return tx(TASK_STORE, 'readwrite', (s) => { if (task && task.id) s.put(task); });
+  }
+
+  function putTasks(list) {
+    return tx(TASK_STORE, 'readwrite', (s) => {
+      (list || []).forEach((row) => { if (row && row.id) s.put(row); });
+    });
+  }
+
+  function deleteTask(id) {
+    return tx(TASK_STORE, 'readwrite', (s) => { s.delete(id); });
+  }
+
   function getPomo() {
     return tx(POMO_STORE, 'readonly', (s) => reqP(s.get(POMO_ID)));
   }
@@ -92,7 +123,8 @@
   }
 
   return {
-    DB_VERSION, SESSION_STORE, POMO_STORE, POMO_ID,
-    bind, upgrade, allSessions, putSessions, putSessionOnce, deleteSession, getPomo, putPomo
+    DB_VERSION, SESSION_STORE, POMO_STORE, TASK_STORE, POMO_ID,
+    bind, upgrade, allSessions, putSessions, putSessionOnce, deleteSession,
+    allTasks, putTask, putTasks, deleteTask, getPomo, putPomo
   };
 });
