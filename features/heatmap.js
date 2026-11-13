@@ -212,14 +212,7 @@
   }
 
   function subjectSeries(sessions, today) {
-    const totals = new Map(stats().SUBJECTS.map((s) => [s.id, 0]));
-    eachSession(sessions, today, (s) => {
-      if (!totals.has(s.subject)) return;
-      totals.set(s.subject, totals.get(s.subject) + s.minutes);
-    });
-    const rows = stats().SUBJECTS.map((s) => ({ id: s.id, name: s.name, minutes: totals.get(s.id) || 0 }));
-    const total = rows.reduce((sum, r) => sum + r.minutes, 0);
-    return rows.map((r) => Object.assign({}, r, { total, percent: total ? Math.round(r.minutes / total * 100) : 0 }));
+    return stats().subjectMinuteShares(sessions, today).rows;
   }
 
   function chartHasMinutes(rows) {
@@ -406,7 +399,7 @@
         <section class="card heat-card" id="heatCard" aria-label="讀書時數統計">
           <p class="kicker">實際紀錄</p>
           <h2>讀書時數</h2>
-          <p class="muted small">系統統計。只加總學習時數（番茄鐘與手動補登），沒有用答題數推算。</p>
+          <p class="muted small">系統統計。番茄鐘、手動補登和國文作文都算進總時數與熱力圖，沒有用答題數推算。</p>
           ${emptyLead}
           <div class="heat-stats">${tiles(sum)}</div>
           <h3>讀書熱力圖</h3>
@@ -415,8 +408,8 @@
           ${gridHtml(model)}
           ${chartBlock('近 14 天每日', daily, barSvg(daily, seriesAria('近 14 天每日讀書分鐘', daily)))}
           ${chartHasMinutes(subjects)
-            ? '<section class="heat-chart"><h3>各科時間比例</h3>' + subjectSvg(subjects, seriesAria('各科讀書分鐘', subjects.map((s) => ({ label: s.name, minutes: s.minutes })))) + '</section>'
-            : '<section class="heat-chart"><h3>各科時間比例</h3><p class="study-empty">這段還沒有學習紀錄。</p></section>'}
+            ? '<section class="heat-chart" id="heatSubjects"><h3>各科時間比例</h3><p class="muted small">國文作文另列，不算進國文。上面的每日長條和熱力圖仍把作文算進當天總分鐘。</p>' + subjectSvg(subjects, seriesAria('各科讀書分鐘', subjects.map((s) => ({ label: s.name, minutes: s.minutes })))) + '</section>'
+            : '<section class="heat-chart" id="heatSubjects"><h3>各科時間比例</h3><p class="study-empty">這段還沒有學習紀錄。</p></section>'}
           ${chartBlock('近 8 週每週', weekly, barSvg(weekly, seriesAria('近 8 週每週讀書分鐘', weekly)))}
           ${chartBlock('近 6 個月每月', monthly, barSvg(monthly, seriesAria('近 6 個月每月讀書分鐘', monthly)))}
         </section>`;

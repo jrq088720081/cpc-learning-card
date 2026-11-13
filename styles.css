@@ -1898,6 +1898,7 @@ button.heat-cell { cursor: pointer; }
 .chart-svg .tone-ee { fill: var(--tone-ee); }
 .chart-svg .tone-em { fill: var(--tone-em); }
 .chart-svg .tone-math { fill: var(--tone-math); }
+.chart-svg .tone-essay { fill: var(--accent); }
 @media (min-width: 768px) {
   .heat-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .heat-stat-wide { grid-column: span 2; }

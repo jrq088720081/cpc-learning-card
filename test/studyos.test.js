@@ -159,6 +159,29 @@ test('heatmap ranges stay on Monday and charts draw nothing when minutes are zer
   assert.equal(subjects.find((r) => r.id === 'math').minutes, 40);
   assert.equal(subjects.find((r) => r.id === 'zh').minutes, 0);
   assert.equal(subjects.reduce((sum, r) => sum + r.minutes, 0), 40);
+  const mixed = [
+    sess('formal', '2026-11-12', 20, { subject: 'zh', source: 'pomodoro' }),
+    sess('essay', '2026-11-12', 40, { subject: 'zh', source: 'essay' })
+  ];
+  const split = StudyStats.subjectMinuteShares(mixed, '2026-11-12');
+  const heatSubjects = StudyHeat.subjectSeries(mixed, '2026-11-12');
+  assert.equal(split.total, 60);
+  assert.equal(split.formal.zh, 20);
+  assert.equal(split.essay, 40);
+  assert.equal(StudyStats.displaySubjectName(mixed[1]), '國文作文');
+  assert.equal(StudyStats.displaySubjectName(mixed[0]), '國文');
+  assert.equal(heatSubjects.find((r) => r.id === 'zh').minutes, 20);
+  assert.equal(heatSubjects.find((r) => r.id === 'essay').minutes, 40);
+  assert.equal(heatSubjects.find((r) => r.id === 'essay').name, '國文作文');
+  assert.equal(StudyHeat.dayMinutes(mixed, '2026-11-12', '2026-11-12'), 60);
+  const cell = StudyHeat.heatCells(mixed, '2026-11-12', '12w').weeks
+    .flatMap((w) => w.days).find((d) => d.date === '2026-11-12');
+  assert.equal(cell.minutes, 60);
+  assert.equal(cell.level, StudyHeat.heatLevel(60));
+  const svg = StudyHeat.subjectSvg(heatSubjects, '各科讀書分鐘');
+  assert.match(svg, /國文作文/);
+  assert.match(svg, /tone-essay/);
+  assert.match(svg, /tone-zh/);
   const weeks = StudyHeat.weeklySeries([
     sess('a', '2026-11-12', 40),
     sess('b', '2026-11-09', 20)

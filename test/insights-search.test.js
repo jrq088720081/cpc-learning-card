@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
 
-require('../features/stats.js');
+const StudyStats = require('../features/stats.js');
 const StudyDB = require('../features/db-v2.js');
 const Search = require('../features/mistake-search.js');
 const Insights = require('../features/insights.js');
@@ -206,6 +206,14 @@ test('essay minutes stay in total time and out of formal Chinese progress and sc
   assert.equal(share.formal.ee, 40);
   assert.equal(share.rows.find((r) => r.id === 'zh').minutes, 30);
   assert.equal(share.rows.find((r) => r.id === 'essay').minutes, 30);
+  const same = StudyStats.subjectMinuteShares([
+    sess('a', '2026-11-01', 30, { subject: 'zh', source: 'essay' }),
+    sess('b', '2026-11-02', 30, { subject: 'zh', source: 'pomodoro' }),
+    sess('c', '2026-11-03', 40, { subject: 'ee', source: 'manual' })
+  ]);
+  assert.equal(share.formal.zh, same.formal.zh);
+  assert.equal(share.essay, same.essay);
+  assert.equal(share.total, same.total);
 
   const onlyEssay = [
     sess('e1', '2026-11-01', 40, { subject: 'zh', source: 'essay' }),

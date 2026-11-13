@@ -281,21 +281,12 @@
   }
 
   function timeShare(sessions) {
-    const rows = (sessions || []).map(validSession).filter(Boolean);
-    const formal = { zh: 0, en: 0, ee: 0, em: 0, math: 0 };
-    let essay = 0;
-    let total = 0;
-    rows.forEach((s) => {
-      total += s.minutes;
-      if (s.source === 'essay') essay += s.minutes;
-      else if (Object.prototype.hasOwnProperty.call(formal, s.subject)) formal[s.subject] += s.minutes;
-    });
-    const parts = SUBJECTS.map((s) => ({ id: s.id, name: s.name, minutes: formal[s.id], essay: false }));
-    parts.push({ id: 'essay', name: '國文作文', minutes: essay, essay: true });
-    const shown = parts.filter((p) => p.minutes > 0).map((p) => Object.assign({}, p, {
-      percent: total ? round1(p.minutes / total * 100) : 0
-    }));
-    return { total, essay, formal, rows: shown, count: rows.length };
+    const Stats = (typeof globalThis !== 'undefined' && globalThis.StudyStats) || null;
+    if (!Stats || !Stats.subjectMinuteShares) {
+      return { total: 0, essay: 0, formal: { zh: 0, en: 0, ee: 0, em: 0, math: 0 }, rows: [], count: 0 };
+    }
+    const share = Stats.subjectMinuteShares(sessions);
+    return Object.assign({}, share, { rows: share.rows.filter((r) => r.minutes > 0) });
   }
 
   function examStats(exams) {

@@ -41,8 +41,64 @@
   }
 
   function subjectName(id) {
+    if (id === 'essay') return '國文作文';
     const s = SUBJECTS.find((x) => x.id === id);
     return s ? s.name : '';
+  }
+
+  /** 科目分類用的桶。作文仍是一筆 studySessions，但不要算進國文正式時間。 */
+  const ESSAY_BUCKET = { id: 'essay', name: '國文作文' };
+
+  function subjectBuckets() {
+    return SUBJECTS.concat([ESSAY_BUCKET]);
+  }
+
+  /** source 為 essay 的紀錄歸「國文作文」，其餘用原本科目。 */
+  function subjectBucket(session) {
+    if (!session || typeof session !== 'object') return '';
+    if (session.source === 'essay') return ESSAY_BUCKET.id;
+    return SUBJECT_IDS.has(session.subject) ? session.subject : '';
+  }
+
+  function displaySubjectName(session) {
+    return subjectName(subjectBucket(session));
+  }
+
+  /**
+   * 各科分鐘。作文計入 total，並另列 essay，不計入 formal.zh。
+   * 有 today 時略過未來日期。百分比是該列分鐘除以 total（含作文）。
+   */
+  function subjectMinuteShares(sessions, today) {
+    const buckets = subjectBuckets();
+    const minutes = {};
+    buckets.forEach((b) => { minutes[b.id] = 0; });
+    let total = 0;
+    let count = 0;
+    (sessions || []).forEach((raw) => {
+      const s = normalizeSession(raw);
+      if (!s || s.minutes <= 0) return;
+      if (today && s.date > today) return;
+      const id = subjectBucket(s);
+      if (!Object.prototype.hasOwnProperty.call(minutes, id)) return;
+      minutes[id] += s.minutes;
+      total += s.minutes;
+      count += 1;
+    });
+    const rows = buckets.map((b) => ({
+      id: b.id,
+      name: b.name,
+      minutes: minutes[b.id],
+      essay: b.id === ESSAY_BUCKET.id,
+      total,
+      percent: total ? Math.round(minutes[b.id] / total * 100) : 0
+    }));
+    return {
+      total,
+      essay: minutes.essay,
+      formal: { zh: minutes.zh, en: minutes.en, ee: minutes.ee, em: minutes.em, math: minutes.math },
+      rows,
+      count
+    };
   }
 
   function chaptersFor(subjectId, catalog) {
@@ -223,7 +279,8 @@
   return {
     SUBJECTS, TAIPEI_OFFSET_MS,
     taipeiDate, taipeiDateTimeMs, addDays, weekStartMonday,
-    subjectName, chaptersFor, chapterName,
+    subjectName, subjectBuckets, subjectBucket, displaySubjectName, subjectMinuteShares,
+    chaptersFor, chapterName,
     normalizeSession, mergeSessions, sessionsFromBackup, keepFirstSession,
     summarize, streakEnding, formatStat, formatLong, buildManual
   };
