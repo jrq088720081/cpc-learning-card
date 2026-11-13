@@ -2,7 +2,7 @@
 'use strict';
 
 const APP_ID = 'mistake-notebook';
-const DATA_VERSION = 11;
+const DATA_VERSION = 12;
 /** 考試時程（整條本地；自動爬官網＝下一階段）。首頁倒數／提醒與設定共用。 */
 const DEFAULT_EXAM_LINKS = () => ([
   { id: 'cpc-jobs', name: '中油就業資訊', url: 'https://www.cpc.com.tw/News.aspx?n=32', note: '中油官網就業／甄試資訊', builtin: true },
@@ -503,7 +503,8 @@ async function loadSettings() {
     pomodoroSettings: Pomo.normalizeSettings(await DB.meta('pomodoroSettings', null)),
     weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(await DB.meta('weeklyGoalMinutes', null)) : null,
     essayEnabled: (await DB.meta('essayEnabled', false)) === true,
-    targetScores: window.Exams ? Exams.normalizeTargetScores(await DB.meta('targetScores', null)) : {}
+    targetScores: window.Exams ? Exams.normalizeTargetScores(await DB.meta('targetScores', null)) : {},
+    mistakeListSort: window.MistakeSearch ? MistakeSearch.normalizeSort(await DB.meta(MistakeSearch.META_KEY, 'recent')) : 'recent'
   };
   window.settings = settings;
   DriveBackup.normalizeSchedule(settings.driveBackup);
@@ -1048,6 +1049,7 @@ async function render() {
         await LearnUI.viewProgress(app);
         try { if (window.StudyHeat) StudyHeat.mount(app); } catch (err) { console.error(err); }
         try { if (window.Exams) await Exams.mount(app); } catch (err) { console.error(err); }
+        try { if (window.Insights) await Insights.mount(app, await DB.all()); } catch (err) { console.error(err); }
         try { if (window.Notes) await Notes.decoratePath(app); } catch (err) { console.error(err); }
         break;
       case 'flash':
@@ -2047,7 +2049,7 @@ async function viewAddDone(app) {
 }
 
 /* ---------- 錯題列表 ---------- */
-const filters = { reason: '', status: '', onlyDue: false, quiz: false, starred: false };
+const filters = { reason: '', status: '', onlyDue: false, quiz: false, starred: false, query: '' };
 async function viewList(app) {
   let all = (await DB.all()).filter(inTab).sort((a, b) => b.createdAt - a.createdAt);
   const reasonSet = new Set();
@@ -2064,6 +2066,7 @@ async function viewList(app) {
       <button type="button" data-mode="" id="modeAll"></button>
     </div>
     <div id="doneHead"></div>
+    ${window.MistakeSearch ? MistakeSearch.controlsHtml(settings.mistakeListSort) : ''}
     <div class="filters">
       <select id="fReason" aria-label="錯誤原因"><option value="">全部錯誤原因</option>${[...reasonSet].map((r) => `<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select>
       <label class="chk" id="onlyDueWrap"><input type="checkbox" id="onlyDue"> 只看今天要複習</label>
@@ -2095,9 +2098,20 @@ async function viewList(app) {
         ${nDone ? '<button type="button" class="btn btn-primary" id="randomPractice">🎲 隨機抽一題練習</button>' : ''}</div>` : '';
     const rp = $('#randomPractice');
     if (rp) rp.onclick = () => { const pool = quizList.length ? quizList : all.filter((m) => m.status === 'done'); location.hash = '#practice/' + pool[Math.floor(Math.random() * pool.length)].id; };
-    const list = all.filter((m) => (!filters.reason || (m.reasons || []).includes(filters.reason)) &&
-      (!filters.status || m.status === filters.status) && (!filters.onlyDue || isDue(m, t)) && (!filters.quiz || isQuizzable(m, t)) && (!filters.starred || m.starred))
-      .sort((a, b) => (b.starred ? 1 : 0) - (a.starred ? 1 : 0) || b.createdAt - a.createdAt);
+    const list = MistakeSearch.arrange(all, {
+      query: filters.query,
+      sort: settings.mistakeListSort,
+      reason: filters.reason,
+      status: filters.status,
+      onlyDue: filters.onlyDue,
+      quiz: filters.quiz,
+      starred: filters.starred,
+      today: t,
+      isDue,
+      isQuizzable,
+      subjectOrder: settings.tabs.map((tab) => tab.id)
+    });
+    [...selected].forEach((id) => { if (!list.some((m) => m.id === id)) selected.delete(id); });
     const total = filters.status ? (filters.status === 'done' ? nDone : nAct) : all.length;
     $('#listCount').textContent = `共 ${list.length} 題${list.length !== total ? `（這一類全部 ${total} 題）` : ''}${selectMode ? '・選取模式：勾選後可批次剔除' : ''}`;
     $('#btnToggleSelect').textContent = selectMode ? '取消選取' : '選取剔除';
@@ -2163,6 +2177,19 @@ async function viewList(app) {
   $('#onlyQuiz').onchange = (e) => { filters.quiz = e.target.checked; draw(); };
   $('#onlyStar').checked = filters.starred;
   $('#onlyStar').onchange = (e) => { filters.starred = e.target.checked; draw(); };
+  const qInput = $('#mistakeQuery');
+  if (qInput) {
+    qInput.value = filters.query || '';
+    qInput.oninput = (e) => { filters.query = e.target.value; draw(); };
+  }
+  const sortSel = $('#mistakeSort');
+  if (sortSel) {
+    sortSel.onchange = async (e) => {
+      settings.mistakeListSort = MistakeSearch.normalizeSort(e.target.value);
+      try { await saveSettings(MistakeSearch.META_KEY); } catch (err) { console.error(err); }
+      draw();
+    };
+  }
   draw();
 }
 
@@ -2481,7 +2508,7 @@ async function buildBackupBlob() {
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
     studySessions,
     tasks,
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null, essayEnabled: settings.essayEnabled === true, targetScores: window.Exams ? Exams.normalizeTargetScores(settings.targetScores) : {} } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null, essayEnabled: settings.essayEnabled === true, targetScores: window.Exams ? Exams.normalizeTargetScores(settings.targetScores) : {}, mistakeListSort: window.MistakeSearch ? MistakeSearch.normalizeSort(settings.mistakeListSort) : 'recent' } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2666,7 +2693,8 @@ async function importBackup(file, mode) {
     const mergedExams = Exams.examsFromBackup(await StudyDB.allExams(), data);
     await StudyDB.putExams(mergedExams);
   }
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes', 'essayEnabled', 'targetScores');
+  if (window.MistakeSearch) settings.mistakeListSort = MistakeSearch.sortFromBackup(settings.mistakeListSort, s, mode);
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes', 'essayEnabled', 'targetScores', 'mistakeListSort');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   const taskNote = Array.isArray(data.tasks) ? `，任務 ${data.tasks.length} 筆已合併` : '';
   toast(`還原完成，匯入 ${incoming.length} 題${taskNote}`);

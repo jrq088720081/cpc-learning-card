@@ -206,14 +206,14 @@ test('app, service worker, and page share version 2 and the new files', () => {
   const app = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  assert.match(app, /const DATA_VERSION = 11/);
+  assert.match(app, /const DATA_VERSION = 12/);
   assert.match(app, /indexedDB\.open\(APP_ID, StudyDB\.DB_VERSION\)/);
   assert.equal(app.includes('indexedDB.open(APP_ID, 1)'), false);
   assert.equal(app.match(/indexedDB\.open/g).length, 1);
   assert.match(app, /onversionchange/);
   assert.match(app, /onblocked/);
   assert.match(app, /studySessions/);
-  assert.match(sw, /mistake-notebook-v43/);
+  assert.match(sw, /mistake-notebook-v44/);
   assert.match(sw, /\.\/features\/notes\.js/);
   assert.match(sw, /\.\/features\/essay\.js/);
   assert.match(sw, /\.\/features\/db-v2\.js/);

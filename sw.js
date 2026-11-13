@@ -1,5 +1,5 @@
 // 錯題本 service worker：讓 App 不用網路也能打開
-const CACHE = 'mistake-notebook-v43';
+const CACHE = 'mistake-notebook-v44';
 const ASSETS = [
   './',
   './index.html',
@@ -15,6 +15,8 @@ const ASSETS = [
   './features/essay.js',
   './features/flashcards.js',
   './features/exams.js',
+  './features/mistake-search.js',
+  './features/insights.js',
   './learn-features.js',
   './gate.js',
   './data/math/figures/jingxin/p7-q1.png',

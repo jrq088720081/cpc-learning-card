@@ -295,7 +295,7 @@ test('version 4 upgrade adds notes and essays without removing older stores', ()
   assert.equal(StudyDB.DB_VERSION, 5);
   assert.equal(StudyDB.TASK_STORE, 'tasks');
   const app = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8');
-  assert.match(app, /const DATA_VERSION = 11/);
+  assert.match(app, /const DATA_VERSION = 12/);
   assert.match(app, /tasksFromBackup/);
   assert.match(app, /weeklyGoalMinutes/);
   assert.equal(app.match(/indexedDB\.open/g).length, 1);
