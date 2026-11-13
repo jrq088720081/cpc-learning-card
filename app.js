@@ -2,7 +2,7 @@
 'use strict';
 
 const APP_ID = 'mistake-notebook';
-const DATA_VERSION = 8;
+const DATA_VERSION = 9;
 /** 考試時程（整條本地；自動爬官網＝下一階段）。首頁倒數／提醒與設定共用。 */
 const DEFAULT_EXAM_LINKS = () => ([
   { id: 'cpc-jobs', name: '中油就業資訊', url: 'https://www.cpc.com.tw/News.aspx?n=32', note: '中油官網就業／甄試資訊', builtin: true },
@@ -500,8 +500,10 @@ async function loadSettings() {
     quoteIntervalHours: QuoteDeck.normalizeQuoteHours(await DB.meta('quoteIntervalHours', 24)),
     quoteAutoplay: QuoteDeck.normalizeQuoteAutoplay(await DB.meta('quoteAutoplay', false)),
     customQuotes: QuoteDeck.normalizeCustomQuotes(await DB.meta('customQuotes', [])),
-    pomodoroSettings: Pomo.normalizeSettings(await DB.meta('pomodoroSettings', null))
+    pomodoroSettings: Pomo.normalizeSettings(await DB.meta('pomodoroSettings', null)),
+    weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(await DB.meta('weeklyGoalMinutes', null)) : null
   };
+  window.settings = settings;
   DriveBackup.normalizeSchedule(settings.driveBackup);
   const scheduleMigrated = !!settings.driveBackup._scheduleMigrated;
   delete settings.driveBackup._scheduleMigrated;
@@ -1029,7 +1031,10 @@ async function render() {
   await renderTabstrip(view === 'mine' && (mineTab === 'review' || mineTab === 'list'));
   try {
     switch (view) {
-      case 'progress': await LearnUI.viewProgress(app); break;
+      case 'progress':
+        await LearnUI.viewProgress(app);
+        try { if (window.StudyHeat) StudyHeat.mount(app); } catch (err) { console.error(err); }
+        break;
       case 'mine': await viewMine(app, parts.slice(1)); break;
       case 'learn-bank': await LearnUI.viewBank(app, parts.slice(1)); break;
       case 'path': await viewPath(app); break;
@@ -1684,6 +1689,7 @@ async function viewHome(app) {
     ${examHtml}
     <section class="quote-card" id="quoteCard" aria-label="語錄"></section>
     <div id="studyOs"></div>
+    <div id="taskOs"></div>
     ${regAlertHtml}
     <h2 class="section-label">今日該做</h2>
     <section class="card progress-hero">
@@ -1709,6 +1715,7 @@ async function viewHome(app) {
   fillQuoteCard($('#quoteCard'));
   armQuoteAutoplay();
   try { if (window.StudyOS) StudyOS.mountHome($('#studyOs')); } catch (err) { console.error(err); }
+  try { if (window.TaskOS) TaskOS.mount($('#taskOs')); } catch (err) { console.error(err); }
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
     if (DriveBackup.online() && DriveBackup.hasClientId(settings) && settings.driveBackup.connected) await uploadBackupToDrive();
     else await exportBackup();
@@ -2425,6 +2432,7 @@ function dataURLToBlob(url) {
 async function buildBackupBlob() {
   const all = await DB.all();
   const studySessions = (await StudyDB.allSessions()).map((s) => StudyStats.normalizeSession(s)).filter(Boolean);
+  const tasks = window.StudyTasks ? (await StudyDB.allTasks()).map((t) => StudyTasks.normalizeTask(t)).filter(Boolean) : [];
   const drivePublic = settings.driveBackup ? {
     folderId: settings.driveBackup.folderId || '',
     folderName: settings.driveBackup.folderName || '',
@@ -2438,7 +2446,8 @@ async function buildBackupBlob() {
   } : null;
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
     studySessions,
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings) } };
+    tasks,
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2588,9 +2597,15 @@ async function importBackup(file, mode) {
   }
   const mergedSessions = StudyStats.sessionsFromBackup(await StudyDB.allSessions(), data);
   await StudyDB.putSessions(mergedSessions);
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings');
+  if (window.StudyTasks) {
+    const mergedTasks = StudyTasks.tasksFromBackup(await StudyDB.allTasks(), data);
+    await StudyDB.putTasks(mergedTasks);
+  }
+  if (window.StudyHeat) settings.weeklyGoalMinutes = StudyHeat.weeklyGoalFromBackup(settings.weeklyGoalMinutes, s, mode);
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
-  toast(`還原完成，匯入 ${incoming.length} 題`);
+  const taskNote = Array.isArray(data.tasks) ? `，任務 ${data.tasks.length} 筆已合併` : '';
+  toast(`還原完成，匯入 ${incoming.length} 題${taskNote}`);
   location.hash = '#home'; render();
 }
 
@@ -2655,7 +2670,7 @@ async function viewSettings(app) {
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數、讀書任務、每週目標）。</p>
 
       <div class="settings-grid">
         <div class="stack">
@@ -2754,6 +2769,7 @@ async function viewSettings(app) {
     </section>
 
     <div id="pomoSettingsMount"></div>
+    <div id="weeklyGoalMount"></div>
 
     <section class="card" id="goalCard">
       <h2>今日該做</h2>
@@ -2834,6 +2850,7 @@ async function viewSettings(app) {
 
   $('#btnExport').onclick = exportBackup;
   try { if (window.StudyOS) StudyOS.mountSettings($('#pomoSettingsMount')); } catch (err) { console.error(err); }
+  try { if (window.StudyHeat) StudyHeat.mountSettings($('#weeklyGoalMount')); } catch (err) { console.error(err); }
   $('#importFile').onchange = async (e) => {
     const file = e.target.files && e.target.files[0]; e.target.value = '';
     if (!file) return;
