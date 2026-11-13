@@ -858,7 +858,7 @@ const LearnUI = (() => {
 
   async function runQuiz(app, {
     title, questions, mode = 'practice', subjectTab = 'ee', source = '刷題',
-    durationSec = null, onDone, annotateZh = false, doneHref = '#learn', doneLabel = '回學習'
+    durationSec = null, examSubject = null, onDone, annotateZh = false, doneHref = '#learn', doneLabel = '回學習'
   }) {
     stopRunner();
     const qs = (questions || []).filter(Boolean);
@@ -873,6 +873,10 @@ const LearnUI = (() => {
       revealed: {}, // id -> bool
       startedAt: Date.now(),
       endsAt: durationSec ? Date.now() + durationSec * 1000 : null,
+      plannedSec: durationSec || 0,
+      examSubject: examSubject || subjectTab,
+      examRecordId: mode === 'mock' && window.Exams ? Exams.newSubmissionId() : '',
+      examWritten: false,
       finished: false,
       examLinks: null,
       formulas: null
@@ -907,6 +911,23 @@ const LearnUI = (() => {
       });
       const seenIds = state.qs.filter((q) => q.id && state.picked[q.id]).map((q) => q.id);
       await recordPractice({ subject: subjectTab, correct, total: graded || state.qs.length, source, ids: seenIds });
+      if (window.Exams && Exams.shouldRecordExam(state)) {
+        state.examWritten = true;
+        const wrongN = state.qs.filter((q) => q.answer && state.picked[q.id] && state.picked[q.id] !== q.answer).length;
+        try {
+          await Exams.commitMock({
+            id: state.examRecordId,
+            name: state.title || '計時模擬考',
+            subject: state.examSubject || subjectTab,
+            correct,
+            wrong: wrongN,
+            graded: graded || state.qs.length,
+            startedAt: state.startedAt,
+            endedAt: Date.now(),
+            plannedSec: state.plannedSec || 0
+          });
+        } catch (err) { console.error(err); }
+      }
       const wrongs = state.qs.filter((q) => q.answer && state.picked[q.id] && state.picked[q.id] !== q.answer)
         .map((q) => Object.assign({}, q, { _picked: state.picked[q.id] }));
       const isMock = state.mode === 'mock' || !!state.endsAt || auto;
@@ -1395,7 +1416,7 @@ const LearnUI = (() => {
       const qs = shuffle(pool).slice(0, n);
       return runQuiz(app, {
         title: '混合模擬考', questions: qs, mode: 'mock',
-        subjectTab: 'ee', source: '模擬考', durationSec: (cfg.minutes || 40) * 60
+        subjectTab: 'ee', examSubject: 'mixed', source: '模擬考', durationSec: (cfg.minutes || 40) * 60
       });
     }
     if (!pool.length) {
@@ -1409,7 +1430,7 @@ const LearnUI = (() => {
     const tab = scope === 'en' ? 'en' : scope === 'zh' ? 'zh' : (scope === 'em' ? 'em' : 'ee');
     return runQuiz(app, {
       title: '計時模擬考', questions: qs, mode: 'mock',
-      subjectTab: tab, source: '模擬考', durationSec: (cfg.minutes || 40) * 60
+      subjectTab: tab, examSubject: scope === 'pro' ? 'pro' : tab, source: '模擬考', durationSec: (cfg.minutes || 40) * 60
     });
   }
 
@@ -2184,7 +2205,7 @@ const LearnUI = (() => {
         <div class="formula-eq">${formula.tex ? displayMath(formula.tex) : ''}</div>
         <p>${esc(formula.plain || formula.blurb || '')}</p>
         ${unitChips ? `<div class="link-chips muted small"><span>數學基礎：</span>${unitChips}</div>` : ''}
-        <div class="btn-row" style="margin-top:12px"><a class="btn btn-soft" href="${back}">回公式庫</a></div>
+        <div class="btn-row formula-actions" style="margin-top:12px"><a class="btn btn-soft" href="${back}">回公式庫</a>${window.Flashcards ? Flashcards.addButtonHtml('formula', formula.id) : ''}</div>
       </section>
       <section class="card">
         <h3>相關歷屆</h3>
@@ -2197,6 +2218,7 @@ const LearnUI = (() => {
         </div>
       </section>`;
     typesetMath(app);
+    if (window.Flashcards) Flashcards.bindAdds(app);
   }
 
   async function viewFormulas(app, parts, opts) {
@@ -2232,7 +2254,7 @@ const LearnUI = (() => {
         const blob = [f.name, f.blurb, f.plain, f.tex, formulaSubjectName(f.subject), f.origin].join(' ');
         return blob.toLowerCase().includes(q);
       });
-      const head = `${subjectChrome(track)}${proSeg(track, 'formulas')}<section class="card learn-shell"><h2>公式庫</h2><p class="muted small">每一張卡是歷屆試題會用到的一條公式。點進去看說明，並連到相關考題。數學公式也可以從這裡篩。</p></section>`;
+      const head = `${subjectChrome(track)}${proSeg(track, 'formulas')}<section class="card learn-shell"><h2>公式庫</h2><p class="muted small">每一張卡是歷屆試題會用到的一條公式。點進去看說明，並連到相關考題。數學公式也可以從這裡篩。</p><div class="flash-mode-link">${window.Flashcards ? Flashcards.modeLinkHtml('formula') : ''}</div></section>`;
       app.innerHTML = `
         ${head}
         <section class="card">
@@ -2260,7 +2282,7 @@ const LearnUI = (() => {
             <h3>${esc(f.name || '')}</h3>
             <div class="formula-eq">${f.tex ? displayMath(f.tex) : ''}</div>
             <p class="small">${esc(f.blurb || '')}</p>
-            <a class="btn btn-soft btn-sm" href="${base}/${esc(f.id)}">查看詳情</a>
+            <div class="btn-row formula-actions"><a class="btn btn-soft btn-sm" href="${base}/${esc(f.id)}">查看詳情</a>${window.Flashcards ? Flashcards.addButtonHtml('formula', f.id) : ''}</div>
           </article>`).join('') || '<p class="muted">沒有符合的公式。</p>'}
         </div>`;
       typesetMath(app);
@@ -2272,6 +2294,7 @@ const LearnUI = (() => {
         const n = input.value.length;
         try { input.setSelectionRange(n, n); } catch (_) {}
       }
+      if (window.Flashcards) Flashcards.bindAdds(app);
     };
     paint();
   }
@@ -3139,12 +3162,13 @@ const LearnUI = (() => {
       }).join('');
       const row = (it) => {
         const pos = mode === 'words' ? `<span class="vocab-pos">${esc(vocabPos(it.pos))}</span>` : '';
-        return `<a class="vocab-row" href="#learn-en/vocab/w/${encodeURIComponent(it.id)}">
+        const add = window.Flashcards ? Flashcards.addButtonHtml('vocab', it.id) : '';
+        return `<div class="vocab-row-line"><a class="vocab-row" href="#learn-en/vocab/w/${encodeURIComponent(it.id)}">
           <span class="vocab-w">${esc(it.w)}</span>
           ${pos}
           <span class="vocab-zh">${esc(it.zh || '')}</span>
           <span class="vocab-n" title="出現次數">${it.count || 0}</span>
-        </a>`;
+        </a>${add}</div>`;
       };
       let body = '';
       if (!shown.length) body = '<p class="muted">沒有符合的項目。</p>';
@@ -3165,6 +3189,7 @@ const LearnUI = (() => {
               <button type="button" class="btn btn-soft btn-sm${vocabSort === 'alpha' ? ' on' : ''}" data-sort="alpha">A–Z</button>
               <button type="button" class="btn btn-soft btn-sm${vocabSort === 'freq' ? ' on' : ''}" data-sort="freq">出現次數</button>
             </div>
+            ${window.Flashcards ? Flashcards.modeLinkHtml('vocab') : ''}
           </div>
           <p class="muted small">${shown.length} 筆${mode === 'words' ? '・詞性、中文、右側是出現次數' : ''}</p>
         </section>
@@ -3188,6 +3213,7 @@ const LearnUI = (() => {
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
       });
+      if (window.Flashcards) Flashcards.bindAdds(app);
     };
     paint();
   }
@@ -3248,6 +3274,7 @@ const LearnUI = (() => {
         <div class="vocab-card-tools">
           <label class="q-learned${learned ? ' on' : ''}" id="vocabLearned"><input type="checkbox" ${learned ? 'checked' : ''} aria-label="已學會"><span>已學會</span></label>
           <button type="button" class="q-fav${fav ? ' on' : ''}" id="vocabFav" aria-pressed="${fav ? 'true' : 'false'}" aria-label="收藏">${fav ? '★' : '☆'}<span class="small">${fav ? '已收藏' : '收藏'}</span></button>
+          ${window.Flashcards ? Flashcards.addButtonHtml('vocab', item.id) : ''}
         </div>
         <button type="button" class="vocab-speak vocab-head" data-speak="${esc(item.w)}" aria-label="念 ${esc(item.w)}">${esc(item.w)}</button>
         <p class="vocab-meta"><span class="tag">${esc(kind === 'phrase' ? '片語' : vocabPosLong(item.pos))}</span> ${esc(item.zh || '')} <span class="muted">出現 ${item.count || 0} 次</span></p>
@@ -3323,6 +3350,7 @@ const LearnUI = (() => {
         toast(on ? '已加入我的最愛' : '已取消收藏');
       };
     }
+    if (window.Flashcards) Flashcards.bindAdds(app);
   }
   async function viewVocabRoots(app, parts) {
     const bank = await loadVocab();

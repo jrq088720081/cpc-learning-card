@@ -1958,3 +1958,61 @@ button.heat-cell { cursor: pointer; }
 @media (max-width: 420px) {
   .note-filters { grid-template-columns: 1fr; }
 }
+
+/* 翻卡複習 */
+.vocab-row-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.vocab-row-line .btn { width: auto; min-height: 44px; white-space: nowrap; }
+.formula-actions { margin-top: 8px; }
+.flip-shell .flip-stage {
+  width: 100%; min-height: 220px; margin: 8px 0 0; padding: 28px 16px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: 20px; background: var(--soft); cursor: pointer;
+}
+.flip-word, .flip-word-back { font-size: 2.1rem; font-weight: 800; color: var(--primary); line-height: 1.3; }
+.flip-word-back { font-size: 1.8rem; margin: 0 0 8px; }
+.flip-answer { margin-top: 12px; text-align: left; }
+.flip-example { font-size: 1.05rem; }
+.flip-back-text { white-space: pre-wrap; font-size: 1.15rem; }
+.flip-tex-raw { font-family: ui-monospace, monospace; }
+.grade-row {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px;
+  position: sticky; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 8px);
+  padding: 8px 0; background: color-mix(in srgb, var(--card) 92%, transparent);
+}
+.grade-row .btn { width: 100%; }
+.btn-fuzzy { background: var(--warn-soft); color: var(--warn); }
+.flash-links, .flash-mode-link { margin-top: 12px; }
+.flash-mode-link .btn { width: auto; }
+.flash-today .btn { width: auto; min-width: 160px; margin-top: 10px; }
+
+/* 模擬考成績 */
+.exam-svg { width: 100%; height: auto; color: var(--muted); display: block; }
+.exam-svg .exam-axis { fill: currentColor; stroke: none; font-size: 11px; }
+.exam-svg .exam-grid { stroke: var(--line); }
+.exam-legend-row { display: flex; flex-wrap: wrap; gap: 8px 12px; margin: 8px 0 12px; }
+.exam-legend { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 700; }
+.exam-legend i { width: 12px; height: 12px; border-radius: 99px; display: inline-block; }
+.exam-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.exam-stats div { background: var(--soft); border-radius: 12px; padding: 8px 10px; }
+.exam-stats b { display: block; font-size: 1.15rem; }
+.exam-stats span, .exam-gap b { font-size: .85rem; }
+.exam-gap { grid-column: 1 / -1; }
+.exam-subject { margin-top: 12px; }
+.exam-subject h3 { margin-bottom: 0; }
+.exam-weak { margin: 8px 0; }
+.exam-list { display: flex; flex-direction: column; gap: 8px; }
+.exam-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.exam-row-actions { display: flex; gap: 6px; flex: none; }
+.exam-row-actions .btn { width: auto; }
+.exam-history { margin: 0; padding-left: 1.2em; }
+.exam-history li { margin: 6px 0; }
+.exam-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.exam-empty { padding: 12px 0 4px; }
+.exam-empty h3 { margin-bottom: 4px; }
+@media (min-width: 768px) {
+  .grade-row { bottom: 16px; }
+}
+@media (max-width: 520px) {
+  .vocab-row-line .btn { min-height: 40px; padding: 6px 10px; font-size: .85rem; }
+  .exam-row { flex-direction: column; align-items: stretch; }
+}

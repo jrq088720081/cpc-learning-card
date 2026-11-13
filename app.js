@@ -2,7 +2,7 @@
 'use strict';
 
 const APP_ID = 'mistake-notebook';
-const DATA_VERSION = 10;
+const DATA_VERSION = 11;
 /** 考試時程（整條本地；自動爬官網＝下一階段）。首頁倒數／提醒與設定共用。 */
 const DEFAULT_EXAM_LINKS = () => ([
   { id: 'cpc-jobs', name: '中油就業資訊', url: 'https://www.cpc.com.tw/News.aspx?n=32', note: '中油官網就業／甄試資訊', builtin: true },
@@ -502,7 +502,8 @@ async function loadSettings() {
     customQuotes: QuoteDeck.normalizeCustomQuotes(await DB.meta('customQuotes', [])),
     pomodoroSettings: Pomo.normalizeSettings(await DB.meta('pomodoroSettings', null)),
     weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(await DB.meta('weeklyGoalMinutes', null)) : null,
-    essayEnabled: (await DB.meta('essayEnabled', false)) === true
+    essayEnabled: (await DB.meta('essayEnabled', false)) === true,
+    targetScores: window.Exams ? Exams.normalizeTargetScores(await DB.meta('targetScores', null)) : {}
   };
   window.settings = settings;
   DriveBackup.normalizeSchedule(settings.driveBackup);
@@ -891,7 +892,7 @@ async function renderTabstrip(show) {
 }
 
 /* ---------- 路由 ---------- */
-const TITLES = { learn: '學習', home: '今日', progress: '進度', mine: '我的題目', bank: '全部題庫', 'learn-bank': '全部題庫', path: '進度', subjects: '進度', learned: '已學會', notebook: '我的題目', formulas: '公式庫', review: '待複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '綜合模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
+const TITLES = { learn: '學習', home: '今日', progress: '進度', mine: '我的題目', bank: '全部題庫', 'learn-bank': '全部題庫', path: '進度', subjects: '進度', learned: '已學會', notebook: '我的題目', formulas: '公式庫', review: '待複習', session: '複習中', add: '新增錯題', 'add-done': '新增錯題', edit: '編輯錯題', list: '錯題列表', detail: '錯題內容', practice: '自由練習', settings: '設定', flash: '翻卡複習', 'learn-en': '英文', 'learn-zh': '國文', 'learn-ee': '電工原理', 'learn-em': '電工機械', 'learn-math': '數學基礎', 'learn-tips': '備考技巧', 'learn-mock': '綜合模擬考', 'learn-favs': '我的最愛', favs: '我的最愛' };
 function pageHead(kicker, title, sub, actionHtml) {
   return `<header class="desk-head"><div class="desk-head-text">${kicker ? `<p class="kicker">${kicker}</p>` : ''}<h2 class="desk-title">${title}</h2>${sub ? `<p class="desk-sub muted">${sub}</p>` : ''}</div>${actionHtml ? `<div class="desk-head-action">${actionHtml}</div>` : ''}</header>`;
 }
@@ -965,6 +966,7 @@ function needsBack(view, parts) {
   if (view === 'learn-bank' && parts[1] === 'q') return true;
   if (view === 'learn-mock' && parts[1] === 'run') return true;
   if (view === 'formulas' && parts[1]) return true;
+  if (view === 'flash') return true;
   if (view === 'mine' && parts[1] === 'notes' && (parts[2] === 'new' || parts[2] === 'edit')) return true;
   if (view === 'learn-zh' && parts[1] === 'essay' && parts[2]) return true;
   return false;
@@ -1018,8 +1020,11 @@ async function render() {
     if (!isActiveQuiz(early.view, early.parts) && window.LearnUI && LearnUI.stopRunner) LearnUI.stopRunner();
   } catch (_) {}
   const { view, id, parts } = parseHash();
-  const tab = mainTabFor(view);
-  const subject = learnSubjectOf(view);
+  let tab = mainTabFor(view);
+  if (view === 'flash') tab = (parts[1] === 'vocab' || parts[1] === 'formula') ? 'learn' : 'home';
+  let subject = learnSubjectOf(view);
+  if (view === 'flash' && parts[1] === 'vocab') subject = 'en';
+  if (view === 'flash' && parts[1] === 'formula') subject = 'ee';
   $$('.tabbar a').forEach((a) => a.classList.toggle('active', a.dataset.tab === tab));
   $$('.desk-nav a.nav-link').forEach((a) => {
     const on = a.dataset.subject ? a.dataset.subject === subject : a.dataset.tab === tab;
@@ -1042,7 +1047,12 @@ async function render() {
       case 'progress':
         await LearnUI.viewProgress(app);
         try { if (window.StudyHeat) StudyHeat.mount(app); } catch (err) { console.error(err); }
+        try { if (window.Exams) await Exams.mount(app); } catch (err) { console.error(err); }
         try { if (window.Notes) await Notes.decoratePath(app); } catch (err) { console.error(err); }
+        break;
+      case 'flash':
+        if (window.Flashcards) await Flashcards.mount(app, parts.slice(1));
+        else app.innerHTML = '<div class="card"><h2>翻卡沒有載入</h2><p class="muted">請重新整理這個頁面。</p></div>';
         break;
       case 'mine': await viewMine(app, parts.slice(1)); break;
       case 'learn-bank': await LearnUI.viewBank(app, parts.slice(1)); break;
@@ -1714,6 +1724,7 @@ async function viewHome(app) {
     <div id="taskOs"></div>
     ${regAlertHtml}
     <h2 class="section-label">今日該做</h2>
+    <div id="flashToday"></div>
     <section class="card progress-hero">
       <div class="progress-hero-top">
         <div>
@@ -1736,6 +1747,7 @@ async function viewHome(app) {
   bindExamQuick();
   fillQuoteCard($('#quoteCard'));
   armQuoteAutoplay();
+  try { if (window.Flashcards) await Flashcards.mountToday($('#flashToday')); } catch (err) { console.error(err); }
   try { if (window.StudyOS) StudyOS.mountHome($('#studyOs')); } catch (err) { console.error(err); }
   try { if (window.TaskOS) TaskOS.mount($('#taskOs')); } catch (err) { console.error(err); }
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
@@ -2469,7 +2481,7 @@ async function buildBackupBlob() {
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
     studySessions,
     tasks,
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null, essayEnabled: settings.essayEnabled === true } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null, essayEnabled: settings.essayEnabled === true, targetScores: window.Exams ? Exams.normalizeTargetScores(settings.targetScores) : {} } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2484,6 +2496,12 @@ async function buildBackupBlob() {
   parts.push('],"essays":[');
   const essayRows = window.EssayPractice ? (await StudyDB.allEssays()).map((row) => EssayPractice.normalizeEssay(row)).filter(Boolean) : [];
   for (let i = 0; i < essayRows.length; i++) parts.push((i ? ',' : '') + JSON.stringify(essayRows[i]));
+  parts.push('],"flashcards":[');
+  const flashRows = window.Flashcards ? (await StudyDB.allFlashcards()).map((row) => Flashcards.normalizeCard(row)).filter(Boolean) : [];
+  for (let i = 0; i < flashRows.length; i++) parts.push((i ? ',' : '') + JSON.stringify(flashRows[i]));
+  parts.push('],"exams":[');
+  const examRows = window.Exams ? (await StudyDB.allExams()).map((row) => Exams.normalizeExam(row)).filter(Boolean) : [];
+  for (let i = 0; i < examRows.length; i++) parts.push((i ? ',' : '') + JSON.stringify(examRows[i]));
   parts.push(']}');
   return new Blob(parts, { type: 'application/json' });
 }
@@ -2639,7 +2657,16 @@ async function importBackup(file, mode) {
     const mergedEssays = EssayPractice.essaysFromBackup(await StudyDB.allEssays(), data);
     await StudyDB.putEssays(mergedEssays);
   }
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes', 'essayEnabled');
+  if (window.Flashcards) {
+    const mergedCards = Flashcards.cardsFromBackup(await StudyDB.allFlashcards(), data);
+    await StudyDB.putFlashcards(mergedCards);
+  }
+  if (window.Exams) {
+    settings.targetScores = Exams.targetScoresFromBackup(settings.targetScores, s, mode);
+    const mergedExams = Exams.examsFromBackup(await StudyDB.allExams(), data);
+    await StudyDB.putExams(mergedExams);
+  }
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes', 'essayEnabled', 'targetScores');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   const taskNote = Array.isArray(data.tasks) ? `，任務 ${data.tasks.length} 筆已合併` : '';
   toast(`還原完成，匯入 ${incoming.length} 題${taskNote}`);
@@ -2712,7 +2739,7 @@ async function viewSettings(app) {
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數、讀書任務、每週目標、筆記、作文）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數、讀書任務、每週目標、筆記、作文、翻卡、模擬考成績、各科目標分數）。</p>
 
       <div class="settings-grid">
         <div class="stack">
@@ -2812,6 +2839,7 @@ async function viewSettings(app) {
 
     <div id="pomoSettingsMount"></div>
     <div id="weeklyGoalMount"></div>
+    <div id="targetScoreMount"></div>
 
     <section class="card" id="goalCard">
       <h2>今日該做</h2>
@@ -2902,6 +2930,7 @@ async function viewSettings(app) {
   $('#btnExport').onclick = exportBackup;
   try { if (window.StudyOS) StudyOS.mountSettings($('#pomoSettingsMount')); } catch (err) { console.error(err); }
   try { if (window.StudyHeat) StudyHeat.mountSettings($('#weeklyGoalMount')); } catch (err) { console.error(err); }
+  try { if (window.Exams) Exams.mountSettings($('#targetScoreMount')); } catch (err) { console.error(err); }
   $('#importFile').onchange = async (e) => {
     const file = e.target.files && e.target.files[0]; e.target.value = '';
     if (!file) return;

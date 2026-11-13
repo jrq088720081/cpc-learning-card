@@ -224,12 +224,12 @@ test('version 3 database upgrade only adds notes and essays', () => {
       return { indexNames: { contains: () => true }, createIndex() { throw new Error('既有索引不該重做'); } };
     }
   });
-  assert.deepEqual(fromV3.created, ['notes', 'essays']);
-  assert.deepEqual(fromV3.indexes, ['notes:subject', 'notes:updatedAt', 'essays:updatedAt']);
+  assert.deepEqual(fromV3.created, ['notes', 'essays', 'flashcards', 'exams']);
+  assert.deepEqual(fromV3.indexes, ['notes:subject', 'notes:updatedAt', 'essays:updatedAt', 'flashcards:nextDue', 'flashcards:refType', 'exams:date', 'exams:subject']);
   const src = fs.readFileSync(path.join(__dirname, '../features/db-v2.js'), 'utf8');
   assert.equal(src.includes('deleteObjectStore'), false);
   assert.equal(src.includes('.clear('), false);
-  assert.equal(StudyDB.DB_VERSION, 4);
+  assert.equal(StudyDB.DB_VERSION, 5);
   assert.equal(StudyDB.NOTE_STORE, 'notes');
   assert.equal(StudyDB.ESSAY_STORE, 'essays');
   const app = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8');
