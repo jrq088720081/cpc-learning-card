@@ -2062,3 +2062,160 @@ button.heat-cell { cursor: pointer; }
 }
 .share-bar { height: 8px; background: var(--soft); border-radius: 99px; overflow: hidden; }
 .share-bar i { display: block; height: 100%; width: var(--w); background: var(--primary); }
+
+/* ---------- 今日頁格線版面（≥1024px 才排格；窄螢幕用 display:contents 維持單欄） ---------- */
+.layout-tools { display: none; align-items: center; gap: 8px; flex: none; }
+.layout-tools .btn { white-space: nowrap; }
+.layout-hint {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 650;
+  max-width: 16rem;
+  line-height: 1.35;
+}
+@media (max-width: 1279px) {
+  .layout-hint { display: none; }
+}
+@media (min-width: 1024px) {
+  .layout-tools.is-on { display: flex; }
+  .page.dash-on { max-width: none; }
+}
+.dash-board.is-stack,
+.dash-board.is-stack .dash-item,
+.dash-board.is-stack .dash-body { display: contents; }
+.dash-board.is-grid {
+  --dash-row: 36px;
+  --dash-gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: var(--dash-row);
+  gap: var(--dash-gap);
+  align-items: stretch;
+}
+.dash-board.is-grid .dash-item {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.dash-board.is-grid .dash-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+}
+.dash-board.is-editing .dash-body { padding-bottom: 36px; box-sizing: border-box; }
+.dash-board.is-grid .dash-body > * {
+  margin: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+.dash-chrome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  min-width: 0;
+}
+.dash-chrome[hidden] { display: none !important; }
+.dash-name {
+  font-size: .82rem;
+  font-weight: 800;
+  color: var(--primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-handle, .dash-resize {
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line));
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 10px;
+  cursor: grab;
+  touch-action: none;
+}
+.dash-handle {
+  width: 36px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.dash-handle:active, .dash-board.is-dragging .dash-handle { cursor: grabbing; }
+.dash-resize {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  z-index: 2;
+  cursor: nwse-resize;
+}
+.dash-resize::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  margin: 8px auto 0;
+  border-right: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+.dash-board.is-editing .dash-item {
+  outline: 1px dashed color-mix(in srgb, var(--primary) 55%, var(--line));
+  outline-offset: 3px;
+  border-radius: 18px;
+  z-index: 1;
+}
+.dash-board.is-editing .dash-item:focus,
+.dash-board.is-editing .dash-item.is-active {
+  outline: 2px solid var(--primary);
+  z-index: 2;
+}
+.dash-board.is-dragging { user-select: none; }
+
+/* ---------- PWA：離線細列、更新、安裝與保存 ---------- */
+.pwa-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 32px;
+  margin-left: calc(var(--side-w, 0px) * -1);
+  width: calc(100% + var(--side-w, 0px));
+  padding: 4px 14px;
+  padding-top: calc(4px + env(safe-area-inset-top));
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+@media (max-width: 767px) {
+  .pwa-bar { margin-left: 0; width: 100%; }
+}
+.pwa-bar[hidden] { display: none !important; }
+.pwa-reload {
+  border: 0;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font: inherit;
+  font-weight: 800;
+  font-size: .8rem;
+  min-height: 28px;
+  padding: 2px 12px;
+  cursor: pointer;
+}
+body.has-pwa-bar .topbar { top: var(--pwa-bar-h, 32px); }
+body.has-pwa-bar .desk-nav { top: var(--pwa-bar-h, 32px); }
+#pwaStorageCard .btn, #pwaInstallCard .btn { margin-top: 8px; }

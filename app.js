@@ -2,7 +2,7 @@
 'use strict';
 
 const APP_ID = 'mistake-notebook';
-const DATA_VERSION = 12;
+const DATA_VERSION = 13;
 /** 考試時程（整條本地；自動爬官網＝下一階段）。首頁倒數／提醒與設定共用。 */
 const DEFAULT_EXAM_LINKS = () => ([
   { id: 'cpc-jobs', name: '中油就業資訊', url: 'https://www.cpc.com.tw/News.aspx?n=32', note: '中油官網就業／甄試資訊', builtin: true },
@@ -504,7 +504,8 @@ async function loadSettings() {
     weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(await DB.meta('weeklyGoalMinutes', null)) : null,
     essayEnabled: (await DB.meta('essayEnabled', false)) === true,
     targetScores: window.Exams ? Exams.normalizeTargetScores(await DB.meta('targetScores', null)) : {},
-    mistakeListSort: window.MistakeSearch ? MistakeSearch.normalizeSort(await DB.meta(MistakeSearch.META_KEY, 'recent')) : 'recent'
+    mistakeListSort: window.MistakeSearch ? MistakeSearch.normalizeSort(await DB.meta(MistakeSearch.META_KEY, 'recent')) : 'recent',
+    dashboardLayout: window.DashLayout ? DashLayout.sanitize(await DB.meta(DashLayout.META_KEY, null)) : await DB.meta('dashboardLayout', null)
   };
   window.settings = settings;
   DriveBackup.normalizeSchedule(settings.driveBackup);
@@ -1009,6 +1010,7 @@ async function viewMine(app, parts) {
 }
 async function render() {
   releaseUrls();
+  if (window.DashLayout) DashLayout.detach();
   const early = parseHash();
   if (redirectLegacy(early.view, early.parts)) return;
   if ((early.view || 'home') !== 'home') {
@@ -1724,32 +1726,32 @@ async function viewHome(app) {
     <section class="quote-card" id="quoteCard" aria-label="語錄"></section>
     <div id="studyOs"></div>
     <div id="taskOs"></div>
-    ${regAlertHtml}
-    <h2 class="section-label">今日該做</h2>
-    <div id="flashToday"></div>
-    <section class="card progress-hero">
-      <div class="progress-hero-top">
-        <div>
-          <div class="eyebrow">每日節奏</div>
-          <h3>先建立每天都做得到的節奏</h3>
-          <p class="muted small">首次完成 ${seenAll} / ${bankAll} 題（本機作答過的題，含已寫進錯題本的題）。四科的今日目標都用設定裡的 ${goal} 題。</p>
+    <div data-dash="alerts">${regAlertHtml}</div>
+    <div data-dash="today">
+      <h2 class="section-label">今日該做</h2>
+      <div id="flashToday"></div>
+      <section class="card progress-hero">
+        <div class="progress-hero-top">
+          <div>
+            <div class="eyebrow">每日節奏</div>
+            <h3>先建立每天都做得到的節奏</h3>
+            <p class="muted small">首次完成 ${seenAll} / ${bankAll} 題（本機作答過的題，含已寫進錯題本的題）。四科的今日目標都用設定裡的 ${goal} 題。</p>
+          </div>
+          <div class="progress-pct">${pctAll}<span class="pct-unit">%</span></div>
         </div>
-        <div class="progress-pct">${pctAll}<span class="pct-unit">%</span></div>
-      </div>
-      <div class="bar bar-lg"><i class="ok" style="--w:${pctAll}%"></i></div>
-    </section>
-    <div class="subj-grid">${cards}</div>
-    ${extraHtml}
-    ${nextHtml}
-    ${dueHtml}
-    ${backupHtml}
-    ${backupNote}
-    <p class="muted small center">若畫面怪異，請硬重新整理，或清除此站資料。</p>
-    ${tipsHtml}`;
+        <div class="bar bar-lg"><i class="ok" style="--w:${pctAll}%"></i></div>
+      </section>
+      <div class="subj-grid">${cards}</div>
+    </div>
+    <div data-dash="extra">${extraHtml}</div>
+    <div data-dash="next">${nextHtml}</div>
+    <div data-dash="due">${dueHtml}</div>
+    <div data-dash="backup">${backupHtml}${backupNote}<p class="muted small center">若畫面怪異，請硬重新整理，或清除此站資料。</p></div>
+    <div data-dash="tips">${tipsHtml}</div>`;
   bindExamQuick();
   fillQuoteCard($('#quoteCard'));
   armQuoteAutoplay();
-  try { if (window.Flashcards) await Flashcards.mountToday($('#flashToday')); } catch (err) { console.error(err); }
+  const flashJob = window.Flashcards ? Flashcards.mountToday($('#flashToday')) : null;
   try { if (window.StudyOS) StudyOS.mountHome($('#studyOs')); } catch (err) { console.error(err); }
   try { if (window.TaskOS) TaskOS.mount($('#taskOs')); } catch (err) { console.error(err); }
   const hb = $('#homeBackup'); if (hb) hb.onclick = async () => {
@@ -1760,6 +1762,19 @@ async function viewHome(app) {
     if (!b.dataset.tab) return;
     b.onclick = async () => { await setCurrentTab(b.dataset.tab); location.hash = '#mine/list'; };
   });
+  try {
+    if (window.DashLayout) {
+      DashLayout.mount(app, {
+        layout: settings.dashboardLayout,
+        tools: document.getElementById('layoutTools'),
+        save: async (layout) => {
+          settings.dashboardLayout = layout;
+          await saveSettings(DashLayout.META_KEY);
+        }
+      });
+    }
+  } catch (err) { console.error(err); }
+  if (flashJob) flashJob.catch((err) => console.error(err));
 }
 
 async function viewPath(app) {
@@ -2508,7 +2523,7 @@ async function buildBackupBlob() {
   const header = { app: APP_ID, version: DATA_VERSION, exportedAt: new Date().toISOString(), exportedDate: today(),
     studySessions,
     tasks,
-    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null, essayEnabled: settings.essayEnabled === true, targetScores: window.Exams ? Exams.normalizeTargetScores(settings.targetScores) : {}, mistakeListSort: window.MistakeSearch ? MistakeSearch.normalizeSort(settings.mistakeListSort) : 'recent' } };
+    settings: { tabs: settings.tabs, categories: settings.categories, intervals: settings.intervals, chapters: settings.chapters, sources: settings.sources, driveBackup: drivePublic, learnLinks: settings.learnLinks || [], learnFavs: settings.learnFavs || {}, dailyGoal: settings.dailyGoal || 10, examSchedule: settings.examSchedule || DEFAULT_EXAM_SCHEDULE(), learned: settings.learned || {}, pathDone: normalizePathDone(settings.pathDone), quoteFavs: settings.quoteFavs || {}, quoteState: settings.quoteState || null, quoteIntervalHours: QuoteDeck.normalizeQuoteHours(settings.quoteIntervalHours), quoteAutoplay: !!settings.quoteAutoplay, customQuotes: settings.customQuotes || [], pomodoroSettings: Pomo.normalizeSettings(settings.pomodoroSettings), weeklyGoalMinutes: window.StudyHeat ? StudyHeat.normalizeWeeklyGoal(settings.weeklyGoalMinutes) : null, essayEnabled: settings.essayEnabled === true, targetScores: window.Exams ? Exams.normalizeTargetScores(settings.targetScores) : {}, mistakeListSort: window.MistakeSearch ? MistakeSearch.normalizeSort(settings.mistakeListSort) : 'recent', dashboardLayout: window.DashLayout ? DashLayout.sanitize(settings.dashboardLayout) : (settings.dashboardLayout || null) } };
   const parts = [JSON.stringify(header).slice(0, -1), ',"mistakes":['];
   for (let i = 0; i < all.length; i++) {
     const m = all[i];
@@ -2694,7 +2709,8 @@ async function importBackup(file, mode) {
     await StudyDB.putExams(mergedExams);
   }
   if (window.MistakeSearch) settings.mistakeListSort = MistakeSearch.sortFromBackup(settings.mistakeListSort, s, mode);
-  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes', 'essayEnabled', 'targetScores', 'mistakeListSort');
+  if (window.DashLayout) settings.dashboardLayout = DashLayout.layoutFromBackup(settings.dashboardLayout, s.dashboardLayout, mode);
+  await saveSettings('tabs', 'categories', 'intervals', 'chapters', 'sources', 'driveBackup', 'learnLinks', 'learnFavs', 'dailyGoal', 'examSchedule', 'learned', 'pathDone', 'quoteFavs', 'quoteState', 'quoteIntervalHours', 'quoteAutoplay', 'customQuotes', 'pomodoroSettings', 'weeklyGoalMinutes', 'essayEnabled', 'targetScores', 'mistakeListSort', 'dashboardLayout');
   if (currentTab && !settings.tabs.some((t) => t.id === currentTab)) await setCurrentTab('');
   const taskNote = Array.isArray(data.tasks) ? `，任務 ${data.tasks.length} 筆已合併` : '';
   toast(`還原完成，匯入 ${incoming.length} 題${taskNote}`);
@@ -2738,9 +2754,6 @@ function bindTime24(id) {
 async function viewSettings(app) {
   const all = await DB.all();
   const age = backupAgeDays();
-  let persisted = null, estimate = null;
-  try { persisted = navigator.storage && navigator.storage.persisted ? await navigator.storage.persisted() : null; } catch {}
-  try { estimate = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null; } catch {}
   const countIn = (tabId) => all.filter((m) => m.subject === tabId).length;
 
   const db = settings.driveBackup;
@@ -2764,10 +2777,11 @@ async function viewSettings(app) {
         <label class="chk"><input type="checkbox" id="gateOn" ${window.CpcGate && CpcGate.isOn() ? 'checked' : ''}> 開啟通行碼（建議）</label>
       </div>
     </section>
+    <div id="pwaSettingsMount"></div>
     <section class="card" id="backupCard">
       <h2>備份與還原</h2>
       <p class="small">${age === null ? '⚠️ 還沒有備份過。' : `上次備份：${esc(settings.lastBackup)}（${age === 0 ? '今天' : age + ' 天前'}）`}</p>
-      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數、讀書任務、每週目標、筆記、作文、翻卡、模擬考成績、各科目標分數）。</p>
+      <p class="muted small">資料只存在這台裝置的瀏覽器裡。可下載到本機，或連上 Google 雲端硬碟自動／手動上傳（含照片、分頁、分類、間隔、已學會、我的最愛、語錄收藏與自訂語錄、雲端設定、學習時數、讀書任務、每週目標、筆記、作文、翻卡、模擬考成績、各科目標分數、今日版面）。</p>
 
       <div class="settings-grid">
         <div class="stack">
@@ -2935,8 +2949,7 @@ async function viewSettings(app) {
     </section>
 
     <div class="card small muted">
-      <p>共 ${all.length} 題。${estimate ? `目前用掉約 ${(estimate.usage / 1048576).toFixed(1)} MB。` : ''}</p>
-      <p>資料保護：${persisted === true ? '✅ 已設為「不會被自動清除」' : persisted === false ? '⚠️ 瀏覽器還沒同意永久保存，記得定期備份（加到主畫面後通常會同意）' : '無法檢查'}</p>
+      <p>共 ${all.length} 題。</p>
       <p>外觀會跟著手機的深色／淺色模式自動切換。</p>
       <p>中油學習卡｜阿電老師・錯題複習＋學習區（國英數電機）・手機與電腦都能用</p>
     </div>`;
@@ -2954,6 +2967,7 @@ async function viewSettings(app) {
     $('#gateLock').onclick = () => CpcGate.lock();
     $('#gateOn').onchange = async (ev) => { const ok = await CpcGate.toggleOff(!ev.target.checked); if (!ok) ev.target.checked = !ev.target.checked; };
   }
+  try { if (window.PwaStatus) await PwaStatus.mountSettings($('#pwaSettingsMount')); } catch (err) { console.error(err); }
 
   $('#btnExport').onclick = exportBackup;
   try { if (window.StudyOS) StudyOS.mountSettings($('#pomoSettingsMount')); } catch (err) { console.error(err); }
@@ -3270,6 +3284,7 @@ $('#backBtn').onclick = () => { if (history.length > 1) history.back(); else loc
 
 /* ---------- 啟動 ---------- */
 async function start() {
+  if (window.PwaStatus) PwaStatus.start();
   try {
     await loadSettings();
     const old = (await DB.all()).filter((m) => m.status === 'mastered' || m.relearnCount === undefined);
@@ -3297,7 +3312,9 @@ async function start() {
   render();
   setTimeout(() => maybeAutoCloudBackup(), 800);
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch((err) => console.warn('離線功能啟用失敗', err));
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then((reg) => { if (window.PwaStatus) PwaStatus.watch(reg); })
+      .catch((err) => console.warn('離線功能啟用失敗', err));
   }
 }
 start();

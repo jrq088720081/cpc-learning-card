@@ -268,12 +268,12 @@ test('version 5 only adds flashcards and exams, and the shell points at them', (
   const learn = fs.readFileSync(path.join(__dirname, '../learn-features.js'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  assert.match(app, /const DATA_VERSION = 12/);
+  assert.match(app, /const DATA_VERSION = 13/);
   assert.match(app, /flashcardsFromBackup|cardsFromBackup/);
   assert.match(app, /examsFromBackup/);
   assert.match(app, /targetScores/);
   assert.equal(app.match(/indexedDB\.open/g).length, 1);
-  assert.match(sw, /mistake-notebook-v44/);
+  assert.match(sw, /mistake-notebook-v45/);
   assert.match(sw, /\.\/features\/flashcards\.js/);
   assert.match(sw, /\.\/features\/exams\.js/);
   assert.match(html, /features\/flashcards\.js/);
