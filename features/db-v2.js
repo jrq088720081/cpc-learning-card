@@ -1,16 +1,19 @@
-/* IndexedDB：只新增 store，不刪、不改名、不清空既有的 mistakes／meta／studySessions／pomodoroState。
+/* IndexedDB：只新增 store，不刪、不改名、不清空既有的 mistakes／meta／studySessions／pomodoroState／tasks。
    v2 番茄鐘「進行中」放獨立的 pomodoroState（固定 id=current），不塞進 meta。
    分鐘數與通知開關是設定，另用 meta 的新 key pomodoroSettings（由 app.js 讀寫）。
-   v3 只加 tasks（讀書任務）。已逾期不另存，由到期日現算。 */
+   v3 只加 tasks（讀書任務）。已逾期不另存，由到期日現算。
+   v4 只加 notes、essays。既有 store 與 meta 的 key 結構不動，也不改資料庫名稱。 */
 (function (root, factory) {
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.StudyDB = api;
 })(typeof window !== 'undefined' ? window : globalThis, function () {
-  const DB_VERSION = 3;
+  const DB_VERSION = 4;
   const SESSION_STORE = 'studySessions';
   const POMO_STORE = 'pomodoroState';
   const TASK_STORE = 'tasks';
+  const NOTE_STORE = 'notes';
+  const ESSAY_STORE = 'essays';
   const POMO_ID = 'current';
 
   let getDb = null;
@@ -43,6 +46,24 @@
         store.createIndex('status', 'status', { unique: false });
       }
     }
+    ensureIndexed(db, transaction, NOTE_STORE, [['subject', 'subject'], ['updatedAt', 'updatedAt']]);
+    ensureIndexed(db, transaction, ESSAY_STORE, [['updatedAt', 'updatedAt']]);
+  }
+
+  /** 缺的 store 才建立，缺的索引才補。不刪、不改名、不清空。 */
+  function ensureIndexed(db, transaction, name, indexes) {
+    if (!db.objectStoreNames.contains(name)) {
+      const store = db.createObjectStore(name, { keyPath: 'id' });
+      indexes.forEach(([indexName, key]) => store.createIndex(indexName, key, { unique: false }));
+      return;
+    }
+    if (!transaction) return;
+    const store = transaction.objectStore(name);
+    indexes.forEach(([indexName, key]) => {
+      if (store.indexNames && !store.indexNames.contains(indexName)) {
+        store.createIndex(indexName, key, { unique: false });
+      }
+    });
   }
 
   function tx(store, mode, fn) {
@@ -113,6 +134,50 @@
     return tx(TASK_STORE, 'readwrite', (s) => { s.delete(id); });
   }
 
+  function allNotes() {
+    return tx(NOTE_STORE, 'readonly', (s) => reqP(s.getAll()));
+  }
+
+  function getNote(id) {
+    return tx(NOTE_STORE, 'readonly', (s) => reqP(s.get(id)));
+  }
+
+  function putNote(note) {
+    return tx(NOTE_STORE, 'readwrite', (s) => { if (note && note.id) s.put(note); });
+  }
+
+  function putNotes(list) {
+    return tx(NOTE_STORE, 'readwrite', (s) => {
+      (list || []).forEach((row) => { if (row && row.id) s.put(row); });
+    });
+  }
+
+  function deleteNote(id) {
+    return tx(NOTE_STORE, 'readwrite', (s) => { s.delete(id); });
+  }
+
+  function allEssays() {
+    return tx(ESSAY_STORE, 'readonly', (s) => reqP(s.getAll()));
+  }
+
+  function getEssay(id) {
+    return tx(ESSAY_STORE, 'readonly', (s) => reqP(s.get(id)));
+  }
+
+  function putEssay(essay) {
+    return tx(ESSAY_STORE, 'readwrite', (s) => { if (essay && essay.id) s.put(essay); });
+  }
+
+  function putEssays(list) {
+    return tx(ESSAY_STORE, 'readwrite', (s) => {
+      (list || []).forEach((row) => { if (row && row.id) s.put(row); });
+    });
+  }
+
+  function deleteEssay(id) {
+    return tx(ESSAY_STORE, 'readwrite', (s) => { s.delete(id); });
+  }
+
   function getPomo() {
     return tx(POMO_STORE, 'readonly', (s) => reqP(s.get(POMO_ID)));
   }
@@ -123,8 +188,10 @@
   }
 
   return {
-    DB_VERSION, SESSION_STORE, POMO_STORE, TASK_STORE, POMO_ID,
+    DB_VERSION, SESSION_STORE, POMO_STORE, TASK_STORE, NOTE_STORE, ESSAY_STORE, POMO_ID,
     bind, upgrade, allSessions, putSessions, putSessionOnce, deleteSession,
-    allTasks, putTask, putTasks, deleteTask, getPomo, putPomo
+    allTasks, putTask, putTasks, deleteTask, getPomo, putPomo,
+    allNotes, getNote, putNote, putNotes, deleteNote,
+    allEssays, getEssay, putEssay, putEssays, deleteEssay
   };
 });

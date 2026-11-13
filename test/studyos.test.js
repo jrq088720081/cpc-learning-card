@@ -258,7 +258,7 @@ test('import keeps the newer task and still reads a v8 backup', () => {
   assert.equal(ok.task.chapterId, 'zh-phon');
 });
 
-test('version 3 upgrade only creates the tasks store and its indexes', () => {
+test('version 4 upgrade adds notes and essays without removing older stores', () => {
   function fakeDb(names) {
     const created = [];
     const indexes = [];
@@ -282,20 +282,20 @@ test('version 3 upgrade only creates the tasks store and its indexes', () => {
       return { indexNames: { contains: () => true }, createIndex() { throw new Error('既有索引不該重做'); } };
     }
   });
-  assert.deepEqual(fromV2.created, ['tasks']);
-  assert.deepEqual(fromV2.indexes, ['tasks:dueDate', 'tasks:status']);
+  assert.deepEqual(fromV2.created, ['tasks', 'notes', 'essays']);
+  assert.deepEqual(fromV2.indexes, ['tasks:dueDate', 'tasks:status', 'notes:subject', 'notes:updatedAt', 'essays:updatedAt']);
   const fresh = fakeDb(['mistakes', 'meta']);
   StudyDB.upgrade(fresh, null);
-  assert.deepEqual(fresh.created, ['studySessions', 'pomodoroState', 'tasks']);
+  assert.deepEqual(fresh.created, ['studySessions', 'pomodoroState', 'tasks', 'notes', 'essays']);
   assert.ok(fresh.indexes.includes('tasks:dueDate'));
   assert.ok(fresh.indexes.includes('tasks:status'));
   const src = fs.readFileSync(path.join(__dirname, '../features/db-v2.js'), 'utf8');
   assert.equal(src.includes('deleteObjectStore'), false);
   assert.equal(src.includes('.clear('), false);
-  assert.equal(StudyDB.DB_VERSION, 3);
+  assert.equal(StudyDB.DB_VERSION, 4);
   assert.equal(StudyDB.TASK_STORE, 'tasks');
   const app = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8');
-  assert.match(app, /const DATA_VERSION = 9/);
+  assert.match(app, /const DATA_VERSION = 10/);
   assert.match(app, /tasksFromBackup/);
   assert.match(app, /weeklyGoalMinutes/);
   assert.equal(app.match(/indexedDB\.open/g).length, 1);

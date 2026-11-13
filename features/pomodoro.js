@@ -685,7 +685,7 @@
       log.innerHTML = rows.map((s) => {
         const name = Stats.subjectName(s.subject);
         const ch = Stats.chapterName(s.chapterId, catalog());
-        const src = s.source === 'manual' ? '手動' : '番茄鐘';
+        const src = s.source === 'manual' ? '手動' : (s.source === 'essay' ? '作文' : '番茄鐘');
         const del = s.source === 'manual'
           ? '<button type="button" class="btn btn-text-bad btn-sm" data-del-session="' + esc(s.id) + '">刪除</button>'
           : '';
