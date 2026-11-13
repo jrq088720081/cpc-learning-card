@@ -1898,6 +1898,7 @@ button.heat-cell { cursor: pointer; }
 .chart-svg .tone-ee { fill: var(--tone-ee); }
 .chart-svg .tone-em { fill: var(--tone-em); }
 .chart-svg .tone-math { fill: var(--tone-math); }
+.chart-svg .tone-essay { fill: var(--accent); }
 @media (min-width: 768px) {
   .heat-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .heat-stat-wide { grid-column: span 2; }
@@ -2016,3 +2017,48 @@ button.heat-cell { cursor: pointer; }
   .vocab-row-line .btn { min-height: 40px; padding: 6px 10px; font-size: .85rem; }
   .exam-row { flex-direction: column; align-items: stretch; }
 }
+
+/* 錯題搜尋 */
+.mistake-tools { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 8px; }
+.mistake-tools .field { margin-bottom: 0; min-width: 0; }
+@media (min-width: 768px) {
+  .mistake-tools { grid-template-columns: 1.4fr .8fr; align-items: end; }
+}
+
+/* 智慧分析：預設收合，桌面也不強迫展開 */
+.insight-fold { padding: 0; }
+.insight-fold > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 14px;
+  min-height: 56px;
+}
+.insight-fold > summary::-webkit-details-marker { display: none; }
+.insight-fold > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.insight-sum-title { font-weight: 800; font-size: 1.15rem; }
+.insight-fold[open] > summary { border-bottom: 1px solid var(--line); }
+.insight-fold > :not(summary) { padding: 0 16px; }
+.insight-fold > :last-child { padding-bottom: 16px; }
+.insight-block { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
+.insight-block h3 { margin: 0 0 8px; font-size: 1.08rem; }
+.insight-block h4 { margin: 12px 0 4px; font-size: .98rem; }
+.insight-empty { margin: 12px 0; color: var(--muted); }
+.insight-formula { font-size: .86rem; color: var(--muted); }
+.insight-reason { margin: 6px 0; }
+.insight-reason summary { cursor: pointer; font-weight: 700; }
+.insight-reason ul, .insight-links, .insight-rank { margin: 4px 0 8px; padding-left: 1.2em; }
+.insight-links a { font-weight: 700; }
+.share-row {
+  display: grid;
+  grid-template-columns: 5.2em minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0;
+  font-size: .9rem;
+}
+.share-bar { height: 8px; background: var(--soft); border-radius: 99px; overflow: hidden; }
+.share-bar i { display: block; height: 100%; width: var(--w); background: var(--primary); }

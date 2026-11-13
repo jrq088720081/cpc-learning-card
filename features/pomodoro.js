@@ -688,7 +688,7 @@
         return;
       }
       log.innerHTML = rows.map((s) => {
-        const name = Stats.subjectName(s.subject);
+        const name = Stats.displaySubjectName(s);
         const ch = Stats.chapterName(s.chapterId, catalog());
         const src = s.source === 'manual' ? '手動' : (s.source === 'essay' ? '作文' : '番茄鐘');
         const del = s.source === 'manual'
@@ -776,7 +776,7 @@
       const all = await StudyDB.allSessions();
       const row = (all || []).map((s) => Stats.normalizeSession(s)).find((s) => s && s.id === id);
       if (!row || row.source !== 'manual') { if (typeof toast === 'function') toast('只能刪除自己補登的紀錄'); return; }
-      const label = row.date + '　' + Stats.formatLong(row.minutes) + '　' + Stats.subjectName(row.subject);
+      const label = row.date + '　' + Stats.formatLong(row.minutes) + '　' + Stats.displaySubjectName(row);
       const ok = typeof confirmBox === 'function'
         ? await confirmBox('刪除這筆補登？', '<p>' + esc(label) + '</p><p class="muted small">刪了就不會算進今日、本週和連續天數。</p>', '刪除', true)
         : false;

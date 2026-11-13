@@ -201,7 +201,7 @@ test('old backups keep quote fields and new fields merge', () => {
 test('service worker caches the next version and the quote file', () => {
   const sw = fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  assert.match(sw, /mistake-notebook-v43/);
+  assert.match(sw, /mistake-notebook-v44/);
   assert.match(sw, /\.\/data\/quotes\.json/);
   assert.match(sw, /\.\/quotes\.js/);
   assert.match(html, /quotes\.js/);

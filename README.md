@@ -108,7 +108,7 @@
 ## 技術摘要
 
 靜態檔：`index.html`、`styles.css`、`app.js`、`drive-backup.js`、`backup-config.js`、`sw.js`、`manifest.json`、`icons/`。  
-無建置、無後端、無 CDN 字型。DATA_VERSION 11（含 learnLinks、examSchedule、dailyGoal、practiceStats、studySessions、tasks、weeklyGoalMinutes、notes、essays、flashcards、exams、targetScores）。測試可用 Playwright（手機 412×915、桌面 1280×800）並以 `__DriveBackupHooks` mock 雲端。
+無建置、無後端、無 CDN 字型。DATA_VERSION 12（含 learnLinks、examSchedule、dailyGoal、practiceStats、studySessions、tasks、weeklyGoalMinutes、notes、essays、flashcards、exams、targetScores、mistakeListSort）。測試可用 Playwright（手機 412×915、桌面 1280×800）並以 `__DriveBackupHooks` mock 雲端。
 
 ## 資料與離線
 
@@ -116,7 +116,7 @@
 - 國文：`data/chinese/` 常識表約 492 筆；`data/zh/quiz.json`（114 MC＋常識自出）
 - 英文：`data/en/quiz.json`（100–111、113、114）
 - 數學：`data/math/lessons.json`
-- Service Worker `mistake-notebook-v43` 快取上述 JSON／JS／附圖、`data/quotes.json`、番茄鐘／學習時數、今日任務／熱力圖、筆記與作文、翻卡與模擬考成績（`features/`），離線可讀。
+- Service Worker `mistake-notebook-v44` 快取上述 JSON／JS／附圖、`data/quotes.json`、番茄鐘／學習時數、今日任務／熱力圖、筆記與作文、翻卡與模擬考成績、錯題搜尋與智慧分析（`features/`），離線可讀。
 - IndexedDB `mistake-notebook` 第 5 版只新增 `flashcards`、`exams`（第 4 版的 `notes`、`essays`，第 3 版的 `tasks`，以及第 2 版的 `studySessions`、`pomodoroState` 都保留）。番茄鐘預設 25／5／15 分鐘、每 4 輪長休；網址 `?pomoTest=毫秒` 只縮短這一頁的計時，不寫進設定。
 - 學習邏輯：`learn-features.js`；主殼仍為 `app.js`。
 

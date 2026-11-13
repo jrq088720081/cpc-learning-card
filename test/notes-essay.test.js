@@ -141,7 +141,10 @@ test('each essay timing writes its own session, and ending again does not', () =
   assert.equal(Essay.finishEssay(second.essay, 200000 + 4 * 60000).session, null);
   const both = [norm, StudyStats.normalizeSession(second.session)];
   const rows = StudyHeat.subjectSeries(both, first.session.date);
-  assert.equal(rows.find((r) => r.id === 'zh').minutes, 8);
+  assert.equal(rows.find((r) => r.id === 'zh').minutes, 0);
+  assert.equal(rows.find((r) => r.id === 'essay').name, '國文作文');
+  assert.equal(rows.find((r) => r.id === 'essay').minutes, 8);
+  assert.equal(StudyHeat.dayMinutes(both, first.session.date, first.session.date), 8);
   assert.equal(StudyStats.normalizeSession(Object.assign({}, norm, { source: 'hack' })), null);
 
   const short = Essay.finishEssay(Essay.startClock(Essay.createEssay({ id: 'e2', now: 1 }), 1000), 1000 + 20000);
