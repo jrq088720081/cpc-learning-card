@@ -66,7 +66,7 @@
     if (!id) return null;
     const date = String(raw.date || '');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-    const source = raw.source === 'manual' || raw.source === 'pomodoro' ? raw.source : '';
+    const source = raw.source === 'manual' || raw.source === 'pomodoro' || raw.source === 'essay' ? raw.source : '';
     if (!source) return null;
     if (!SUBJECT_IDS.has(raw.subject)) return null;
     const minutes = Math.floor(Number(raw.minutes));

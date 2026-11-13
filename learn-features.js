@@ -1446,6 +1446,7 @@ const LearnUI = (() => {
       $('#zhYears').onclick = () => go(pool, `國文 ${yearsLabel}`);
       $('#zhAuto').onclick = () => go(data.fromKnowledge || [], '常識表出題');
       $('#zhMix').onclick = () => go([...pool, ...(data.fromKnowledge || [])], '國文混合');
+      try { if (window.EssayPractice) EssayPractice.decorate(app); } catch (err) { console.error(err); }
     };
     paint();
   }

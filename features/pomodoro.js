@@ -662,11 +662,16 @@
       const sum = Stats.summarize(sessions, Date.now());
       const today = Stats.formatStat(sum.todayMin);
       const week = Stats.formatStat(sum.weekMin);
+      const unitEl = document.getElementById('statTodayUnit');
+      const weekEl = document.getElementById('statWeekVal');
+      const weekUnitEl = document.getElementById('statWeekUnit');
+      const streakEl = document.getElementById('statStreakVal');
+      if (!document.getElementById('statTodayVal') || !unitEl || !weekEl || !weekUnitEl || !streakEl) return;
       todayEl.textContent = today.value;
-      document.getElementById('statTodayUnit').textContent = today.unit;
-      document.getElementById('statWeekVal').textContent = week.value;
-      document.getElementById('statWeekUnit').textContent = week.unit;
-      document.getElementById('statStreakVal').textContent = String(sum.streak);
+      unitEl.textContent = today.unit;
+      weekEl.textContent = week.value;
+      weekUnitEl.textContent = week.unit;
+      streakEl.textContent = String(sum.streak);
       const empty = document.getElementById('studyEmpty');
       if (empty) empty.hidden = !!sum.hasStudy;
       const line = document.getElementById('studyMonthLine');
@@ -685,7 +690,7 @@
       log.innerHTML = rows.map((s) => {
         const name = Stats.subjectName(s.subject);
         const ch = Stats.chapterName(s.chapterId, catalog());
-        const src = s.source === 'manual' ? '手動' : '番茄鐘';
+        const src = s.source === 'manual' ? '手動' : (s.source === 'essay' ? '作文' : '番茄鐘');
         const del = s.source === 'manual'
           ? '<button type="button" class="btn btn-text-bad btn-sm" data-del-session="' + esc(s.id) + '">刪除</button>'
           : '';
