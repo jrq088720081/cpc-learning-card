@@ -310,10 +310,10 @@ test('database version stays 5 and the new files are cached', () => {
   const app = fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8');
   const sw = fs.readFileSync(path.join(__dirname, '../sw.js'), 'utf8');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  assert.match(app, /const DATA_VERSION = 12/);
+  assert.match(app, /const DATA_VERSION = 13/);
   assert.match(app, /mistakeListSort/);
   assert.match(app, /Insights\.mount/);
-  assert.match(sw, /mistake-notebook-v44/);
+  assert.match(sw, /mistake-notebook-v45/);
   assert.match(sw, /\.\/features\/mistake-search\.js/);
   assert.match(sw, /\.\/features\/insights\.js/);
   assert.match(html, /features\/mistake-search\.js/);
